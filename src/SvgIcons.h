@@ -12,16 +12,18 @@ enum class TbIcon {
     Print,
     PagePrev,
     PageNext,
+    GoBack,
+    GoForward,
     LayoutContinuous,
     LayoutSinglePage,
+    RotateLeft,
+    RotateRight,
     ZoomOut,
     ZoomIn,
     SearchPrev,
     SearchNext,
     MatchCase,
     MatchCase2,
-    RotateLeft,
-    RotateRight,
     kMax
 };
 

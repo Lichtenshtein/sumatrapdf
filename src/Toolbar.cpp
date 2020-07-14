@@ -82,6 +82,9 @@ static ToolbarButtonInfo gToolbarButtons[] = {
     {TbIcon::PagePrev, CmdGoToPrevPage, _TRN("Previous Page")},
     {TbIcon::PageNext, CmdGoToNextPage, _TRN("Next Page")},
     {TbIcon::None, 0, nullptr}, // separator
+    {TbIcon::GoBack, CmdNavigateBack, _TRN("Go Back")},
+    {TbIcon::GoForward, CmdNavigateForward, _TRN("Go Forward")},
+    {TbIcon::None, 0, nullptr}, // separator
     {TbIcon::LayoutContinuous, CmdZoomFitWidthAndContinuous, _TRN("Fit Width and Show Pages Continuously")},
     {TbIcon::LayoutSinglePage, CmdZoomFitPageAndSinglePage, _TRN("Fit a Single Page")},
     {TbIcon::RotateLeft, CmdRotateLeft, _TRN("Rotate &Left")},
