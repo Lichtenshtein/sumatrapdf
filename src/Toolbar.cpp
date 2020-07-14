@@ -77,6 +77,8 @@ static ToolbarButtonInfo gToolbarButtons[] = {
     {TbIcon::None, CmdPageInfo, nullptr}, // text box for page number + show current page / no of pages
     {TbIcon::PagePrev, CmdGoToPrevPage, _TRN("Previous Page")},
     {TbIcon::PageNext, CmdGoToNextPage, _TRN("Next Page")},
+    {TbIcon::GoBack, CmdNavigateBack, _TRN("Go Back")},
+    {TbIcon::GoForward, CmdNavigateForward, _TRN("Go Forward")},
     {TbIcon::None, 0, nullptr}, // separator
     {TbIcon::Favorites, CmdFavoriteToggle, _TRN("Favorites")},
     {TbIcon::Bookmarks, CmdToggleBookmarks, _TRN("Bookmarks")},

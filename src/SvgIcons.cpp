@@ -38,6 +38,18 @@ static const char* gIconPageNext =
   <line x1="13" y1="6" x2="19" y2="12" />
 </svg>)";
 
+static const char* gIconGoBack =
+    R"(<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="0" y="0" width="24" height="24" stroke="none"></rect>
+  <path d="M9 11l-4 4l4 4m-4 -4h11a4 4 0 0 0 0 -8h-1"/>
+</svg>)";
+
+static const char* gIconGoForward =
+    R"(<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="0" y="0" width="24" height="24" stroke="none"></rect>
+  <path d="M15 11l4 4l-4 4m4 -4h-11a4 4 0 0 1 0 -8h1"/>
+</svg>)";
+
 // https://github.com/tabler/tabler-icons/raw/147130cd0e67a9cfc70538f8b3a14a48a695d90b/icons/outline/stars.svg
 static const char* gIconFavorites =
     R"(<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-stars" width="24" height="24" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
@@ -164,10 +176,14 @@ static const char* gIcons[] = {
     gIconPrint,
     gIconPagePrev,
     gIconPageNext,
+    gIconGoBack,
+    gIconGoForward,
     gIconFavorites,
     gIconBookmarks,
     gIconLayoutContinuous,
     gIconLayoutSinglePage,
+    gIconRotateLeft,
+    gIconRotateRight,
     gIconZoomOut,
     gIconZoomIn,
     gIconSearchPrev,
@@ -175,8 +191,6 @@ static const char* gIcons[] = {
     gIconMatchCase,
     gIconMatchCase,  // TODO: remove this, is for compatiblity with bitmap icons
     gIconSave,
-    gIconRotateLeft,
-    gIconRotateRight,
 };
 // clang-format on
 

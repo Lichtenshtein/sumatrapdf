@@ -9,10 +9,14 @@ enum class TbIcon {
     Print,
     PagePrev,
     PageNext,
+    GoBack,
+    GoForward,
     Favorites,
     Bookmarks,
     LayoutContinuous,
     LayoutSinglePage,
+    RotateLeft,
+    RotateRight,
     ZoomOut,
     ZoomIn,
     SearchPrev,
@@ -20,8 +24,6 @@ enum class TbIcon {
     MatchCase,
     MatchCase2,
     Save,
-    RotateLeft,
-    RotateRight,
     kMax
 };
 
