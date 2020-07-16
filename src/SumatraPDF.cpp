@@ -4300,7 +4300,7 @@ static void OnFrameKeyEsc(MainWindow* win) {
         ToggleFullScreen(win, win->presentation != PM_DISABLED);
         return;
     }
-    if (gGlobalPrefs->escToExit && CanCloseWindow(win)) {
+    if (gGlobalPrefs->escToExit && (win)) {
         CloseWindow(win, true, false);
         return;
     }

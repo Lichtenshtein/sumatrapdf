@@ -358,7 +358,7 @@ static bool SetupPluginMode(Flags& i) {
     // always display the toolbar when embedded (as there's no menubar in that case)
     gGlobalPrefs->showToolbar = true;
     // never allow esc as a shortcut to quit
-    gGlobalPrefs->escToExit = false;
+    gGlobalPrefs->escToExit = true;
     // never show the sidebar by default
     gGlobalPrefs->showToc = false;
     if (DisplayMode::Automatic == gGlobalPrefs->defaultDisplayModeEnum) {

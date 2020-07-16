@@ -286,7 +286,7 @@ var (
 			"default zoom (in %) or one of those values: fit page, fit width, fit content"),
 		mkField("EnableTeXEnhancements", Bool, false,
 			"if true, we expose the SyncTeX inverse search command line in Settings -> Options"),
-		mkField("EscToExit", Bool, false,
+		mkField("EscToExit", Bool, true,
 			"if true, Esc key closes SumatraPDF").setExpert(),
 		mkField("FullPathInTitle", Bool, false,
 			"if true, we show the full path to a file in the title bar").setExpert().setVersion("3.0"),
