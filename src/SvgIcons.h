@@ -6,6 +6,9 @@ enum class TbIcon {
     Text = -2,
     None = -1,
     Open = 0,
+    Save,
+    Favorites,
+    Bookmarks,
     Print,
     PagePrev,
     PageNext,
@@ -17,7 +20,6 @@ enum class TbIcon {
     SearchNext,
     MatchCase,
     MatchCase2,
-    Save,
     RotateLeft,
     RotateRight,
     kMax

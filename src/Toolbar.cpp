@@ -42,6 +42,7 @@ extern "C" {
 #include "DarkModeSubclass.h"
 #include "wingui/Layout.h"
 #include "wingui/WinGui.h"
+#include "Favorites.h"
 
 #include "utils/Log.h"
 
@@ -72,7 +73,11 @@ constexpr int CmdInfoText = (int)CmdLast + 17;
 
 static ToolbarButtonInfo gToolbarButtons[] = {
     {TbIcon::Open, CmdOpenFile, _TRN("Open")},
+    {TbIcon::Save, CmdSaveAs, _TRN("Save As...")},
+    {TbIcon::Favorites, CmdFavoriteToggle, _TRN("Favorites")},
+    {TbIcon::Bookmarks, CmdToggleBookmarks, _TRN("Bookmarks")},
     {TbIcon::Print, CmdPrint, _TRN("Print")},
+    {TbIcon::None, 0, nullptr}, // separator
     {TbIcon::None, CmdPageInfo, nullptr}, // text box for page number + show current page / no of pages
     {TbIcon::PagePrev, CmdGoToPrevPage, _TRN("Previous Page")},
     {TbIcon::PageNext, CmdGoToNextPage, _TRN("Next Page")},
@@ -169,12 +174,18 @@ static bool IsToolbarButtonEnabled(MainWindow* win, int cmdId) {
         return false;
     }
 
-    // If no file open, only enable open button
+    // If no file open, only enable open and favorites buttons
     if (!win->IsDocLoaded()) {
-        return CmdOpenFile == cmdId;
+        return cmdId == CmdOpenFile || (cmdId == CmdFavoriteToggle && HasFavorites());
     }
 
     switch (cmdId) {
+        case CmdFavoriteToggle:
+            return HasFavorites();
+
+        case CmdToggleBookmarks:
+            return win->ctrl->HasToc();
+
         case CmdOpenFile:
             // opening different files isn't allowed in plugin mode
             return !gPluginMode;
