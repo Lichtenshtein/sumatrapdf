@@ -8,7 +8,7 @@
 
 // maximum number of most frequently used files that will be shown on the
 // Frequent Read list (space permitting)
-#define kFileHistoryMaxFrequent 30
+#define kFileHistoryMaxFrequent 40
 
 struct FileHistory {
     // owned by gGlobalPrefs->fileStates
