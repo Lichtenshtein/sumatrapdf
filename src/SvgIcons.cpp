@@ -38,6 +38,34 @@ static const char* gIconPageNext =
   <line x1="13" y1="6" x2="19" y2="12" />
 </svg>)";
 
+// https://github.com/tabler/tabler-icons/raw/147130cd0e67a9cfc70538f8b3a14a48a695d90b/icons/outline/stars.svg
+static const char* gIconFavorites =
+    R"(<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-stars" width="24" height="24" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="0" y="0" width="24" height="24" stroke="none"></rect>
+  <path d="M17.8 19.817l-2.172 1.138a0.392 .392 0 0 1 -.568 -.41l.415 -2.411l-1.757 -1.707a0.389 .389 0 0 1 .217 -.665l2.428 -.352l1.086 -2.193a0.392 .392 0 0 1 .702 0l1.086 2.193l2.428 .352a0.39 .39 0 0 1 .217 .665l-1.757 1.707l.414 2.41a0.39 .39 0 0 1 -.567 .411l-2.172 -1.138z"/>
+  <path d="M6.2 19.817l-2.172 1.138a0.392 .392 0 0 1 -.568 -.41l.415 -2.411l-1.757 -1.707a0.389 .389 0 0 1 .217 -.665l2.428 -.352l1.086 -2.193a0.392 .392 0 0 1 .702 0l1.086 2.193l2.428 .352a0.39 .39 0 0 1 .217 .665l-1.757 1.707l.414 2.41a0.39 .39 0 0 1 -.567 .411l-2.172 -1.138z"/>
+  <path d="M12 9.817l-2.172 1.138a0.392 .392 0 0 1 -.568 -.41l.415 -2.411l-1.757 -1.707a0.389 .389 0 0 1 .217 -.665l2.428 -.352l1.086 -2.193a0.392 .392 0 0 1 .702 0l1.086 2.193l2.428 .352a0.39 .39 0 0 1 .217 .665l-1.757 1.707l.414 2.41a0.39 .39 0 0 1 -.567 .411l-2.172 -1.138z"/>
+</svg>)";
+
+// https://github.com/tabler/tabler-icons/raw/147130cd0e67a9cfc70538f8b3a14a48a695d90b/icons/outline/bookmarks.svg
+static const char* gIconBookmarks =
+    R"(<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-bookmarks" width="24" height="24" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="0" y="0" width="24" height="24" stroke="none"></rect>
+  <path d="M13 7a2 2 0 0 1 2 2v12l-5 -3l-5 3v-12a2 2 0 0 1 2 -2h6z"/>
+  <path d="M9.265 4a2 2 0 0 1 1.735 -1h6a2 2 0 0 1 2 2v12l-1 -.6"/>
+</svg>)";
+
+// https://github.com/tabler/tabler-icons/blob/master/icons/layout-rows.svg
+static const char* gIconLayoutContinuous =
+    R"(<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="0" y="0" width="24" height="24" stroke="none"></rect>
+  <path d="M8 12h-6"/>
+  <path d="M5 15l-3 -3l3 -3"/>
+  <path d="M22 12h-6"/>
+  <path d="M19 15l3 -3l-3 -3"/>
+  <path d="M12 4v16"/>
+</svg>)";
+
 // https://github.com/tabler/tabler-icons/blob/master/icons/layout-rows.svg
 static const char* gIconLayoutContinuous =
     R"(<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
@@ -136,6 +164,8 @@ static const char* gIcons[] = {
     gIconPrint,
     gIconPagePrev,
     gIconPageNext,
+    gIconFavorites,
+    gIconBookmarks,
     gIconLayoutContinuous,
     gIconLayoutSinglePage,
     gIconZoomOut,

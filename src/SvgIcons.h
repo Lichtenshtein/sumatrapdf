@@ -9,6 +9,8 @@ enum class TbIcon {
     Print,
     PagePrev,
     PageNext,
+    Favorites,
+    Bookmarks,
     LayoutContinuous,
     LayoutSinglePage,
     ZoomOut,
