@@ -1219,7 +1219,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int) {
         // TODO: pass print request through to previous instance?
     } else if (flags.reuseDdeInstance || flags.dde) {
         existingHwnd = FindWindow(FRAME_CLASS_NAME, nullptr);
-    } else if (gGlobalPrefs->reuseInstance || gGlobalPrefs->useTabs) {
+    } else if (gGlobalPrefs->reuseInstance) {
         existingHwnd = existingInstanceHwnd;
     }
 
