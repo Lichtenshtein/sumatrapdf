@@ -654,6 +654,17 @@ static void new_annot(int type)
 
 static const char *color_names[] = {
 	"None",
+	"Yellow New",
+	"Light Green New",
+	"Light Blue New",
+	"Pink New",
+	"Red New",
+	"Orange New",
+	"Green New",
+	"Blue New",
+	"Purple New",
+	"Purple Red New",
+	"Gray New",
 	"Aqua",
 	"Black",
 	"Blue",
@@ -675,6 +686,17 @@ static const char *color_names[] = {
 
 static unsigned int color_values[] = {
 	0x00000000, /* transparent */
+	0xfffff066, /* Yellow */
+	0xff7df066, /* Light Green */
+	0xff8fdef9, /* Light Blue */
+	0xfff799d1, /* Pink */
+	0xffeb4949, /* Red */
+	0xffffaa00, /* Orange */
+	0xff22b14c, /* Green */
+	0xff004de6, /* Blue */
+	0xffbcb3ff, /* Purple */
+	0xffb31564, /* Magenta (deep pink) */
+	0xff808285, /* Gray */
 	0xff00ffff, /* aqua */
 	0xff000000, /* black */
 	0xff0000ff, /* blue */

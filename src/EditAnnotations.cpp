@@ -51,13 +51,25 @@ static const char *gFileAttachmentUcons = "Graph\0Paperclip\0PushPin\0Tag\0";
 static const char *gSoundIcons = "Speaker\0Mic\0";
 static const char *gStampIcons = "Approved\0AsIs\0Confidential\0Departmental\0Draft\0Experimental\0Expired\0Final\0ForComment\0ForPublicRelease\0NotApproved\0NotForPublicRelease\0Sold\0TopSecret\0";
 static const char *gLineEndingStyles = "None\0Square\0Circle\0Diamond\0OpenArrow\0ClosedArrow\0Butt\0ROpenArrow\0RClosedArrow\0Slash\0";
-static const char* gColors = "Transparent\0Aqua\0Black\0Blue\0Fuchsia\0Gray\0Green\0Lime\0Maroon\0Navy\0Olive\0Orange\0Purple\0Red\0Silver\0Teal\0White\0Yellow\0";
+static const char* gColors = "Transparent\0Yellow New\0Light Green New\0Light Blue New\0Pink New\0Red New\0Orange New\0Green New\0Blue New\0Purple New\0Purple Red New\0Gray New\0Aqua\0Black\0Blue\0Fuchsia\0Gray\0Green\0Lime\0Maroon\0Navy\0Olive\0Orange\0Purple\0Red\0Silver\0Teal\0White\0Yellow\0";
 static const char *gFontNames = "Cour\0Helv\0TiRo\0";
 static const char *gFontReadableNames = "Courier\0Helvetica\0TimesRoman\0";
 static const char* gQuaddingNames = "Left\0Center\0Right\0";
 
+ // colors from Microsoft Edge PDF reader. Note: 0xff indicates opaque. The last 6 digits are exactly the reverse of those in gl-annotate.c, e.g., ff|f0|66 -- changed to --> 66|f0|ff
 static PdfColor gColorsValues[] = {
 	0x00000000, /* transparent */
+	0xff66f0ff, /* Yellow */
+	0xff66f07d, /* Light Green */
+	0xfff9de8f, /* Light Blue */
+	0xffd199f7, /* Pink */
+	0xff4949eb, /* Red */
+	0xff00aaff, /* Orange */
+	0xff4cb122, /* Green */
+	0xffe64d00, /* Blue */
+	0xffffb3bc, /* Purple */
+	0xff6415b3, /* Magenta (deep pink) */
+	0xff858280, /* Gray */
 	0xff00ffff, /* aqua */
 	0xff000000, /* black */
 	0xff0000ff, /* blue */
