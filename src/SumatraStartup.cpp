@@ -1219,7 +1219,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int) {
         // TODO: pass print request through to previous instance?
     } else if (flags.reuseDdeInstance || flags.dde) {
         existingHwnd = FindWindow(FRAME_CLASS_NAME, nullptr);
-    } else if (gGlobalPrefs->reuseInstance) {
+    } else if (gGlobalPrefs->reuseInstance || gGlobalPrefs->restoreSession) {
         existingHwnd = existingInstanceHwnd;
     }
 
@@ -1229,7 +1229,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int) {
         goto Exit;
     }
 
-    if (existingHwnd) {
+    if ((flags.reuseDdeInstance || gGlobalPrefs->reuseInstance) && existingHwnd) {
         int nFiles = flags.fileNames.Size();
         // we allow -new-window on its own if no files given
         if (nFiles > 0 && IsNoAdminToAdmin(existingHwnd)) {
@@ -1263,7 +1263,7 @@ ContinueOpenWindow:
     sessionData = gGlobalPrefs->sessionData;
     gGlobalPrefs->sessionData = new Vec<SessionData*>();
 
-    restoreSession = gGlobalPrefs->restoreSession && (sessionData->size() > 0) && !gPluginMode;
+    restoreSession = gGlobalPrefs->restoreSession && (sessionData->size() > 0) && !gPluginMode && !existingHwnd;
     if (!gGlobalPrefs->useTabs && (existingInstanceHwnd != nullptr)) {
         // do not restore a session if tabs are disabled and SumatraPDF is already running
         // TODO: maybe disable restoring if tabs are disabled?
