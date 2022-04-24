@@ -114,9 +114,6 @@ ACCEL gBuiltInAccelerators[] = {
     {0, 'n', CmdGoToNextPage},
     //{FCONTROL | FVIRTKEY, VK_NEXT, CmdGoToNextPage},
 
-    {0, 'p', CmdGoToPrevPage},
-    //{FCONTROL | FVIRTKEY, VK_PRIOR, CmdGoToPrevPage},
-
     {FVIRTKEY, VK_HOME, CmdGoToFirstPage},
     {FCONTROL | FVIRTKEY, VK_HOME, CmdGoToFirstPage},
     {FVIRTKEY, VK_END, CmdGoToLastPage},
@@ -132,10 +129,12 @@ ACCEL gBuiltInAccelerators[] = {
     {FSHIFT | FCONTROL | FVIRTKEY, VK_LEFT, CmdOpenPrevFileInFolder},
     {FVIRTKEY, VK_F2, CmdRenameFile},
     {FCONTROL | FVIRTKEY, 'W', CmdClose},
+    {FSHIFT | FCONTROL | FVIRTKEY, 'W', CmdCloseAllTabs},
     {FCONTROL | FVIRTKEY, 'N', CmdNewWindow},
     {FSHIFT | FCONTROL | FVIRTKEY, 'N', CmdDuplicateInNewWindow},
     {FCONTROL | FVIRTKEY, 'S', CmdSaveAs},
-    //{FSHIFT | FCONTROL | FVIRTKEY, 'S', CmdCreateShortcutToFile},
+    {FALT | FSHIFT | FCONTROL | FVIRTKEY, 'S', CmdCreateShortcutToFile},
+    {FALT | FVIRTKEY, 'S', CmdCopyFilePath},
 
     {FCONTROL | FVIRTKEY, 'A', CmdSelectAll},
     {FCONTROL | FVIRTKEY, 'B', CmdFavoriteAdd},
@@ -144,7 +143,6 @@ ACCEL gBuiltInAccelerators[] = {
     {FCONTROL | FVIRTKEY, 'D', CmdProperties},
     {FSHIFT | FCONTROL | FVIRTKEY, 'E', CmdShowInFolder},
     {FCONTROL | FVIRTKEY, 'F', CmdFindFirst},
-    {FCONTROL | FVIRTKEY, 'G', CmdGoToPage},
     {0, 'g', CmdGoToPage},
     {FCONTROL | FVIRTKEY, 'K', CmdCommandPalette},
     //{FALT | FVIRTKEY, 'K', CmdCommandPaletteOnlyTabs}, // removed in 3.6
@@ -183,10 +181,10 @@ ACCEL gBuiltInAccelerators[] = {
     {FCONTROL | FVIRTKEY, 'L', CmdTogglePresentationMode},
     {FVIRTKEY, VK_F5, CmdTogglePresentationMode},
     {FSHIFT | FVIRTKEY, VK_F11, CmdTogglePresentationMode},
-    {FSHIFT | FCONTROL | FVIRTKEY, 'L', CmdToggleFullscreen},
+    // {FSHIFT | FCONTROL | FVIRTKEY, 'L', CmdToggleFullscreen},
     {FVIRTKEY, VK_F11, CmdToggleFullscreen},
     {FVIRTKEY, VK_F12, CmdToggleBookmarks},
-    {FSHIFT | FVIRTKEY, VK_F12, CmdToggleBookmarks},
+    // {FSHIFT | FVIRTKEY, VK_F12, CmdToggleBookmarks},
     {FSHIFT | FCONTROL | FVIRTKEY, VK_SUBTRACT, CmdRotateLeft},
     {FSHIFT | FCONTROL | FVIRTKEY, VK_OEM_MINUS, CmdRotateLeft},
     {FSHIFT | FCONTROL | FVIRTKEY, 'T', CmdReopenLastClosedFile},
@@ -206,7 +204,7 @@ ACCEL gBuiltInAccelerators[] = {
     {0, 'u', CmdCreateAnnotUnderline},
     {0, 'U', CmdCreateAnnotUnderline},
 
-    {0, 'I', CmdInvertColors},
+    {FSHIFT | FVIRTKEY, 'I', CmdInvertColors},
     {0, 'i', CmdTogglePageInfo},
 
     {FCONTROL | FVIRTKEY, VK_DELETE, CmdDeleteAnnotation},
@@ -214,7 +212,6 @@ ACCEL gBuiltInAccelerators[] = {
     {0, 'q', CmdCloseCurrentDocument},
     {0, 'r', CmdReloadDocument},
     {0, 'z', CmdToggleZoom},
-    {0, 'f', CmdToggleFullscreen},
     {0, '[', CmdRotateLeft},
     {0, ']', CmdRotateRight},
     {0, 'm', CmdToggleCursorPosition},
@@ -222,6 +219,11 @@ ACCEL gBuiltInAccelerators[] = {
     // // for Logitech's wireless presenters which target PowerPoint's shortcuts
     {0, '.', CmdPresentationBlackBackground},
     {0, 'c', CmdToggleContinuousView},
+
+    {0, '1', CmdGoToFirstPage},
+    {0, '2', CmdZoomFitPageAndSinglePage},
+    {0, '3', CmdZoomFitWidthAndContinuous},
+    {0, 'b', CmdGoToPrevPage},
 };
 
 ACCEL* gAccels = nullptr;
