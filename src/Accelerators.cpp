@@ -132,10 +132,12 @@ ACCEL gBuiltInAccelerators[] = {
     {FSHIFT | FCONTROL | FVIRTKEY, VK_LEFT, CmdOpenPrevFileInFolder},
     {FVIRTKEY, VK_F2, CmdRenameFile},
     {FCONTROL | FVIRTKEY, 'W', CmdClose},
+    {FSHIFT | FCONTROL | FVIRTKEY, 'W', CmdCloseAllTabs},
     {FCONTROL | FVIRTKEY, 'N', CmdNewWindow},
     {FSHIFT | FCONTROL | FVIRTKEY, 'N', CmdDuplicateInNewWindow},
     {FCONTROL | FVIRTKEY, 'S', CmdSaveAs},
-    //{FSHIFT | FCONTROL | FVIRTKEY, 'S', CmdCreateShortcutToFile},
+    {FALT | FSHIFT | FCONTROL | FVIRTKEY, 'S', CmdCreateShortcutToFile},
+    {FALT | FVIRTKEY, 'S', CmdCopyFilePath},
 
     {FCONTROL | FVIRTKEY, 'A', CmdSelectAll},
     {FCONTROL | FVIRTKEY, 'B', CmdFavoriteAdd},
@@ -222,6 +224,16 @@ ACCEL gBuiltInAccelerators[] = {
     // // for Logitech's wireless presenters which target PowerPoint's shortcuts
     {0, '.', CmdPresentationBlackBackground},
     {0, 'c', CmdToggleContinuousView},
+
+    {0, '1', CmdGoToFirstPage},
+    {0, '2', CmdZoomFitPageAndSinglePage},
+    {0, '3', CmdZoomFitWidthAndContinuous},
+    {0, ':', CmdGoToPage},
+    {0, '<', CmdViewRotateLeft},
+    {0, '>', CmdViewRotateRight},
+    {0, 'G', CmdGoToLastPage},
+    {0, 'b', CmdGoToPrevPage},
+    {0, 'd', CmdCloseCurrentDocument},
 };
 
 ACCEL* gAccels = nullptr;
