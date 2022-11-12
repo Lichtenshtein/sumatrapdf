@@ -5,9 +5,9 @@
 
 struct MainWindow;
 
-constexpr const char* kLeftTextFont = "Arial";
+constexpr const char* kLeftTextFont = "Segoe UI";
 constexpr int kLeftTextFontSize = 14;
-constexpr const char* kRightTextFont = "Arial Black";
+constexpr const char* kRightTextFont = "Segoe UI";
 constexpr int kRightTextFontSize = 14;
 
 void ShowAboutWindow(MainWindow*);
