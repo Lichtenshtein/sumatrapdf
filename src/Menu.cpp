@@ -366,6 +366,26 @@ static MenuDef menuDefView[] = {
         CmdInvertColors,
     },
     {
+        kMenuSeparator,
+        0,
+    },
+    {
+        _TRN("Switch to Dark Mode"),
+        CmdDarkMode,
+    },
+    {
+        _TRN("Switch to Reading Mode"),
+        CmdReadMode,
+    },
+    {
+        _TRN("Switch to Default Mode"),
+        CmdDefaultMode,
+    },
+    {
+        kMenuSeparator,
+        0,
+    },
+    {
         nullptr,
         0,
     },

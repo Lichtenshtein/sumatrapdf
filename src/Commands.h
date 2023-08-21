@@ -171,6 +171,9 @@ Cmd* enum (e.g. CmdOpen) and a human-readable name (not used yet).
     V(CmdReopenLastClosedFile, "Reopen Last Closed")                               \
     V(CmdNextTab, "Next Tab")                                                      \
     V(CmdPrevTab, "Previous Tab")                                                  \
+    V(CmdDarkMode, "Switch to dark mode")                              \
+    V(CmdReadMode, "Switch to reading mode")                              \
+    V(CmdDefaultMode, "Switch to default mode")                           \
     V(CmdNextTabSmart, "Smart Next Tab")                                           \
     V(CmdPrevTabSmart, "Smart Next Tab")                                           \
     V(CmdMoveTabLeft, "Move Tab Left")                                             \

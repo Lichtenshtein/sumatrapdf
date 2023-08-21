@@ -23,6 +23,9 @@ enum class TbIcon {
     SearchNext,
     MatchCase,
     MatchCase2,
+    DarkMode,
+    ReadMode,
+    DefaultMode
     Save,
     kMax
 };

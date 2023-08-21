@@ -176,6 +176,31 @@ static const char* gIconRotateRight =
   <circle cx="11" cy="19.94" r="0.15"/>
 </svg>)";
 
+static const char* gIconDarkMode =
+    R"(<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="0" y="0" width="24" height="24" stroke="none"></rect>
+  <path d="M3 16h18"/>
+  <path d="M3 20h18"/>
+  <path d="M8.296 16c-2.268 -1.4 -3.598 -4.087 -3.237 -6.916c.443 -3.48 3.308 -6.083 6.698 -6.084v.006h.296c-1.991 1.916 -2.377 5.03 -.918 7.405c1.459 2.374 4.346 3.33 6.865 2.275a6.888 6.888 0 0 1 -2.777 3.314"/>
+</svg>)";
+
+static const char* gIconReadMode =
+    R"(<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="0" y="0" width="24" height="24" stroke="none"></rect>
+  <path d="M8 4h-2l-3 10"/>
+  <path d="M16 4h2l3 10"/>
+  <path d="M10 16l4 0"/>
+  <path d="M21 16.5a3.5 3.5 0 0 1 -7 0v-2.5h7v2.5"/>
+  <path d="M10 16.5a3.5 3.5 0 0 1 -7 0v-2.5h7v2.5"/>
+</svg>)";
+
+static const char* gIconDefaultMode =
+    R"(<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="0" y="0" width="24" height="24" stroke="none"></rect>
+  <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"/>
+  <path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"/>
+ </svg>)";
+
 // must match order in enum class TbIcon
 // clang-format off
 static const char* gIcons[] = {
@@ -197,6 +222,9 @@ static const char* gIcons[] = {
     gIconSearchNext,
     gIconMatchCase,
     gIconMatchCase,  // TODO: remove this, is for compatiblity with bitmap icons
+    gIconDarkMode,
+    gIconReadMode,
+    gIconDefaultMode,
     gIconSave,
 };
 // clang-format on
