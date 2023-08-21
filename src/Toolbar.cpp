@@ -95,6 +95,11 @@ static ToolbarButtonInfo gToolbarButtons[] = {
     {TbIcon::SearchPrev, CmdFindPrev, _TRN("Find Previous")},
     {TbIcon::SearchNext, CmdFindNext, _TRN("Find Next")},
     {TbIcon::MatchCase, CmdFindMatch, _TRN("Match Case")},
+    {TbIcon::None, 0, nullptr}, // separator
+    {TbIcon::DarkMode, CmdDarkMode, _TRN("Dark Mode")},
+    {TbIcon::InvertColors, CmdInvertColors, _TRN("Invert Colors")},
+    {TbIcon::ReadMode, CmdReadMode, _TRN("Reading Mode")},
+    {TbIcon::DefaultMode, CmdDefaultMode, _TRN("Default Mode")},
 };
 // unicode chars: https://www.compart.com/en/unicode/U+25BC
 
@@ -172,6 +177,9 @@ static bool IsToolbarButtonEnabled(MainWindow* win, int cmdId) {
         case CmdPrint:
             isAllowed = HasPermission(Perm::PrinterAccess);
             break;
+        case CmdDarkMode:
+            printf("Dark Mode Activated\n");
+        break;
     }
     if (!isAllowed) {
         return false;
