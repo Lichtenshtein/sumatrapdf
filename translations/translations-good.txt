@@ -20801,3 +20801,9 @@ ru:&Открыть в новой вкладке
 ru:Прокрутить вниз быстро
 :Scroll Up Quickly
 ru:Прокрутить вверх быстро
+:S&how Pages Continuously Vertically
+ru:Показать страницы непрер&ывно по вертикали
+:Show &Pages Continuously Horizontally
+ru:Показать &страницы непрерывно по горизонтали
+:Reverse Pa&ges
+ru:Инвертировать порядок &страниц

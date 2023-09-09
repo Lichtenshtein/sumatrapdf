@@ -221,7 +221,8 @@ ACCEL gBuiltInAccelerators[] = {
     {0, 'w', CmdPresentationWhiteBackground},
     // // for Logitech's wireless presenters which target PowerPoint's shortcuts
     {0, '.', CmdPresentationBlackBackground},
-    {0, 'c', CmdToggleContinuousView},
+    {0, 'c', CmdToggleContinuousViewVertically},
+    {FSHIFT | FVIRTKEY, 'C', CmdToggleReversePages},
 
     // Custom SumatraPDF enhancement hotkeys
     {FSHIFT | FCONTROL | FVIRTKEY, 'H', CmdHighlightKeyTerms},     // Ctrl+Shift+H = Highlight Key Terms
