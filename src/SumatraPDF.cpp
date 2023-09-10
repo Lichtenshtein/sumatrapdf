@@ -4332,7 +4332,7 @@ static void ShowOptionsDialog(MainWindow* win) {
 }
 
 // toggles 'show pages continuously' state
-static void ToggleContinuousView(MainWindow* win) {
+static void ToggleContinuousViewVertically(MainWindow* win) {
     if (!win->IsDocLoaded()) {
         return;
     }
@@ -4340,8 +4340,8 @@ static void ToggleContinuousView(MainWindow* win) {
     DisplayMode newMode = win->ctrl->GetDisplayMode();
     switch (newMode) {
         case DisplayMode::SinglePage:
-        case DisplayMode::Continuous:
-            newMode = IsContinuous(newMode) ? DisplayMode::SinglePage : DisplayMode::Continuous;
+        case DisplayMode::ContinuousVertically:
+            newMode = IsContinuous(newMode) ? DisplayMode::SinglePage : DisplayMode::ContinuousVertically;
             break;
         case DisplayMode::Facing:
         case DisplayMode::ContinuousFacing:
@@ -4513,7 +4513,7 @@ static void ChangeZoomLevel(MainWindow* win, float newZoom, bool pagesContinuous
 
     float zoom = win->ctrl->GetZoomVirtual();
     DisplayMode mode = win->ctrl->GetDisplayMode();
-    DisplayMode newMode = pagesContinuously ? DisplayMode::Continuous : DisplayMode::SinglePage;
+    DisplayMode newMode = pagesContinuously ? DisplayMode::ContinuousVertically : DisplayMode::SinglePage;
 
     if (mode != newMode || zoom != newZoom) {
         float prevZoom = win->CurrentTab()->prevZoomVirtual;
@@ -7149,7 +7149,7 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
             break;
 
         case CmdToggleContinuousViewVertically:
-            ToggleContinuousView(win);
+            ToggleContinuousViewVertically(win);
             break;
 
         case CmdToggleContinuousViewHorizontally:

@@ -573,7 +573,7 @@ static bool OpenFile(StressTest* st, const char* fileName) {
     }
 
     auto ctrl = st->win->ctrl;
-    ctrl->SetDisplayMode(DisplayMode::Continuous);
+    ctrl->SetDisplayMode(DisplayMode::ContinuousVertically);
     ctrl->SetZoomVirtual(kZoomFitPage, nullptr);
     ctrl->GoToFirstPage();
     if (st->win->tocVisible || gGlobalPrefs->showFavorites) {
@@ -670,7 +670,7 @@ static void RandomizeViewingState(StressTest* st) {
             ctrl->SetDisplayMode(DisplayMode::BookView);
             break;
         case 7:
-            ctrl->SetDisplayMode(DisplayMode::Continuous);
+            ctrl->SetDisplayMode(DisplayMode::ContinuousVertically);
             break;
         case 8:
             ctrl->SetDisplayMode(DisplayMode::ContinuousFacing);

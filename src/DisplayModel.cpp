@@ -345,7 +345,7 @@ void DisplayModel::SetInitialViewSettings(DisplayMode newDisplayMode, int newSta
     if (DisplayMode::Automatic == displayMode) {
         switch (layout.type) {
             case PageLayout::Type::Single:
-                displayMode = DisplayMode::Continuous;
+                displayMode = DisplayMode::ContinuousVertically;
                 if (layout.nonContinuous) {
                     displayMode = DisplayMode::SinglePage;
                 }
@@ -1302,7 +1302,7 @@ void DisplayModel::SetDisplayMode(DisplayMode newDisplayMode, bool keepContinuou
     if (keepContinuous && IsContinuous(displayMode)) {
         switch (newDisplayMode) {
             case DisplayMode::SinglePage:
-                newDisplayMode = DisplayMode::Continuous;
+                newDisplayMode = DisplayMode::ContinuousVertically;
                 break;
             case DisplayMode::Facing:
                 newDisplayMode = DisplayMode::ContinuousFacing;
