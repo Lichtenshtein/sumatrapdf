@@ -2096,7 +2096,8 @@ void MenuUpdateDisplayMode(MainWindow* win) {
 
     WindowTab* tab = win->CurrentTab();
     if (win->IsDocLoaded() && tab) {
-        MenuSetChecked(win->menu, CmdToggleContinuousViewVertically, IsContinuous(displayMode));
+        MenuSetChecked(win->menu, CmdToggleContinuousViewVertically, IsContinuousVertically(displayMode));
+        MenuSetChecked(win->menu, CmdToggleContinuousViewHorizontally, IsContinuousHorizontally(displayMode));
         MenuSetChecked(win->menu, CmdToggleReversePages, win->ctrl->IsReversed());
     }
 
