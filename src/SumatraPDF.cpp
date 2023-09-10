@@ -4355,6 +4355,21 @@ static void ToggleContinuousViewVertically(MainWindow* win) {
     SwitchToDisplayMode(win, newMode);
 }
 
+// toggles 'show pages continuously horizontally' state
+static void ToggleContinuousViewHorizontally(MainWindow* win) {
+    if (!win->IsDocLoaded()) {
+        return;
+    }
+
+    DisplayMode newMode = win->ctrl->GetDisplayMode();
+    if (newMode == DisplayMode::ContinuousHorizontally) {
+        newMode = DisplayMode::SinglePage;
+    } else {
+        newMode = DisplayMode::ContinuousHorizontally;
+    }
+    SwitchToDisplayMode(win, newMode);
+}
+
 static void ToggleReverseView(MainWindow* win) {
     if (!win->IsDocLoaded()) {
         return;
@@ -7153,6 +7168,7 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
             break;
 
         case CmdToggleContinuousViewHorizontally:
+            ToggleContinuousViewHorizontally(win);
             break;
 
         case CmdToggleReversePages:
