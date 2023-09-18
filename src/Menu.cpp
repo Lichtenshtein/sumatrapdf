@@ -375,7 +375,7 @@ static MenuDef menuDefView[] = {
     },
     // TODO: "&Inverse Reading Direction" (since some Mangas might be read left-to-right)?
     {
-        _TRN("Man&ga Mode"),
+        _TRN("Right to Left"),
         CmdToggleMangaMode,
     },
     {
@@ -1830,7 +1830,6 @@ std::pair<bool, bool> GetCommandIdState(BuildMenuCtx* ctx, int cmdId) {
     }
 
     remove |= (ctx->tab && ctx->tab->AsChm() && cmdIdInList(removeIfChm));
-    remove |= (!ctx->isCbx && (cmdId == CmdToggleMangaMode));
     remove |= (!ctx->supportsAnnotations && cmdIdInList(removeIfAnnotsNotSupported));
     remove |= !ctx->canSendEmail && (cmdId == CmdSendByEmail);
 
@@ -2109,11 +2108,7 @@ void MenuUpdateDisplayMode(MainWindow* win) {
         MenuSetChecked(win->menu, CmdToggleContinuousViewVertically, IsContinuousVertically(displayMode));
         MenuSetChecked(win->menu, CmdToggleContinuousViewHorizontally, IsContinuousHorizontally(displayMode));
         MenuSetChecked(win->menu, CmdToggleReversePages, win->ctrl->IsReversed());
-    }
-
-    if (win->CurrentTab() && win->CurrentTab()->GetEngineType() == kindEngineComicBooks) {
-        bool mangaMode = win->AsFixed()->GetDisplayR2L();
-        MenuSetChecked(win->menu, CmdToggleMangaMode, mangaMode);
+        MenuSetChecked(win->menu, CmdToggleMangaMode, win->AsFixed()->GetDisplayR2L());
     }
 }
 

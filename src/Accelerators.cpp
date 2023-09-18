@@ -251,6 +251,8 @@ ACCEL gBuiltInAccelerators[] = {
     {FCONTROL | FVIRTKEY, VK_NUMPAD7, CmdFacingView},
     {FCONTROL | FVIRTKEY, '8', CmdBookView},
     {FCONTROL | FVIRTKEY, VK_NUMPAD8, CmdBookView},
+    {FCONTROL | FVIRTKEY, '9', CmdToggleMangaMode},
+    {FCONTROL | FVIRTKEY, VK_NUMPAD9, CmdToggleMangaMode},
     {FSHIFT | FCONTROL | FVIRTKEY, VK_ADD, CmdRotateRight},
     {FCONTROL | FVIRTKEY, VK_OEM_PLUS, CmdZoomIn},
     {FSHIFT | FCONTROL | FVIRTKEY, VK_OEM_PLUS, CmdRotateRight},
