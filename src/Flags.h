@@ -40,6 +40,7 @@ struct Flags {
     bool exitWhenDone = false;
     bool printDialog = false;
     char* printerName = nullptr;
+    char* docName = nullptr;
     char* printSettings = nullptr;
     char* forwardSearchOrigin = nullptr;
     int forwardSearchLine = 0;

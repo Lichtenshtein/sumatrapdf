@@ -1228,7 +1228,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int) {
         // note: this prints all PDF files. Another option would be to
         // print only the first one
         for (char* path : flags.fileNames) {
-            bool ok = PrintFile(path, flags.printerName, !flags.silent, flags.printSettings);
+            bool ok = PrintFile(path, flags.printerName, flags.docName, !flags.silent, flags.printSettings);
             if (!ok) {
                 exitCode++;
             }

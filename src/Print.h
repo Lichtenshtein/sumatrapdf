@@ -34,9 +34,9 @@ struct Printer {
 
 Printer* NewPrinter(const char* name);
 
-bool PrintFile(const char* fileName, char* printerName = nullptr, bool displayErrors = true,
+bool PrintFile(const char* fileName, char* printerName = nullptr, char* docName = nullptr, bool displayErrors = true,
                const char* settings = nullptr);
-bool PrintFile2(EngineBase* engine, char* printerName = nullptr, bool displayErrors = true,
+bool PrintFile2(EngineBase* engine, char* printerName = nullptr, char *docName = nullptr, bool displayErrors = true,
                 const char* settings = nullptr);
 void PrintCurrentFile(MainWindow* win, bool waitForCompletion = false);
 void AbortPrinting(MainWindow* win);

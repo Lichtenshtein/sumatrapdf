@@ -65,6 +65,7 @@ class AbortCookieManager {
 
 struct PrintData {
     Printer* printer = nullptr;
+    const char* docName = nullptr;
     EngineBase* engine = nullptr;
     Vec<PRINTPAGERANGE> ranges; // empty when printing a selection
     Vec<SelectionOnPage> sel;   // empty when printing a page range
@@ -74,9 +75,10 @@ struct PrintData {
     AbortCookieManager* abortCookie = nullptr;
     bool failedEngineClone = false;
 
-    PrintData(EngineBase* engine, Printer* printer, Vec<PRINTPAGERANGE>& ranges, Print_Advanced_Data& advData,
+    PrintData(EngineBase* engine, Printer* printer, const char *docName, Vec<PRINTPAGERANGE>& ranges, Print_Advanced_Data& advData,
               int rotation = 0, Vec<SelectionOnPage>* sel = nullptr) {
         this->printer = printer;
+        this->docName = docName;
         this->advData = advData;
         this->rotation = rotation;
         this->engine = engine->Clone();
@@ -305,6 +307,8 @@ static bool PrintToDevice(const PrintData& pd) {
             fileName = (TempStr) "filename";
         }
         di.lpszDocName = ToWStrTemp(fileName);
+    } else if (pd.docName) {
+        di.lpszDocName = ToWStrTemp(pd.docName);
     } else {
         di.lpszDocName = ToWStrTemp(engine.FilePath());
     }
@@ -916,7 +920,7 @@ void PrintCurrentFile(MainWindow* win, bool waitForCompletion) {
     }
 
     sel = printSelection ? win->CurrentTab()->selectionOnPage : nullptr;
-    pd = new PrintData(engine, printer, ranges, advanced, rotation, sel);
+    pd = new PrintData(engine, printer, nullptr, ranges, advanced, rotation, sel);
 
     if (!waitForCompletion && !pd->failedEngineClone) {
         PrintToDeviceOnThread(win, pd);
@@ -1229,7 +1233,7 @@ static void SetPrinterCustomPaperSizeForEngine(EngineBase* engine, Printer* prin
     SetCustomPaperSize(printer, size);
 }
 
-bool PrintFile2(EngineBase* engine, char* printerName, bool displayErrors, const char* settings) {
+bool PrintFile2(EngineBase* engine, char* printerName, char* docName, bool displayErrors, const char* settings) {
     bool ok = false;
     Printer* printer = nullptr;
 
@@ -1286,7 +1290,7 @@ bool PrintFile2(EngineBase* engine, char* printerName, bool displayErrors, const
         }
 
         // takes ownership of printer
-        PrintData pd(engine, printer, ranges, advanced);
+        PrintData pd(engine, printer, docName, ranges, advanced);
         ok = PrintToDevice(pd);
         if (!ok) {
             logfa("PrintToDevice: failed\n");
@@ -1297,7 +1301,7 @@ bool PrintFile2(EngineBase* engine, char* printerName, bool displayErrors, const
     return ok;
 }
 
-bool PrintFile(const char* fileName, char* printerName, bool displayErrors, const char* settings) {
+bool PrintFile(const char* fileName, char* printerName, char* docName, bool displayErrors, const char* settings) {
     logf("PrintFile: file: '%s', printer: '%s'\n", fileName, printerName);
     fileName = path::NormalizeTemp(fileName);
     EngineBase* engine = CreateEngineFromFile(fileName, nullptr, true);
@@ -1306,7 +1310,7 @@ bool PrintFile(const char* fileName, char* printerName, bool displayErrors, cons
         MessageBoxWarningCond(displayErrors, msg, "Error");
         return false;
     }
-    bool ok = PrintFile2(engine, printerName, displayErrors, settings);
+    bool ok = PrintFile2(engine, printerName, docName, displayErrors, settings);
     SafeEngineRelease(&engine);
     logfa("PrintFile: finished ok\n");
     return ok;

@@ -50,6 +50,7 @@
     V(ArgEnumPrinters, "enum-printers")          \
     V(SleepMs, "sleep-ms")                       \
     V(PrintTo, "print-to")                       \
+    V(DocName, "doc-name")                       \
     V(PrintSettings, "print-settings")           \
     V(InverseSearch, "inverse-search")           \
     V(CacheDir, "cache-dir")                              \
@@ -540,6 +541,10 @@ void ParseFlags(const WCHAR* cmdLine, Flags& i) {
         if (arg == Arg::PrintTo) {
             i.printerName = str::Dup(param);
             i.exitWhenDone = true;
+            continue;
+        }
+        if (arg == Arg::DocName) {
+            i.docName = str::Dup(param);
             continue;
         }
         if (arg == Arg::PrintSettings) {
