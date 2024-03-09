@@ -7190,6 +7190,27 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
             ToggleThumbnails(win);
             break;
 
+        case CmdScrollDownQ:
+        case CmdScrollUpQ: {
+            if (!win->IsDocLoaded()) {
+                return 0;
+            }
+            if (dm && dm->NeedVScroll()) {
+                int n = GetCommandIntArg(cmd, kCmdArgN, 12);
+                WPARAM dir = (cmdId == CmdScrollUpQ) ? SB_LINEUP : SB_LINEDOWN;
+                for (int i = 0; i < n; i++) {
+                    SendMessageW(win->hwndCanvas, WM_VSCROLL, dir, 0);
+                }
+            } else {
+                // in single page view, scrolls by page
+                if (cmdId == CmdScrollUpQ) {
+                    win->ctrl->GoToPrevPage(true);
+                } else {
+                    win->ctrl->GoToNextPage();
+                }
+            }
+        } break;
+
         case CmdScrollUpHalfPage: {
             if (!win->IsDocLoaded()) {
                 return 0;

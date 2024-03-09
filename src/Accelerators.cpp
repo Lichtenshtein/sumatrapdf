@@ -84,8 +84,8 @@
     V(VK_F24, "F24")
 
 ACCEL gBuiltInAccelerators[] = {
-    {0, 'k', CmdScrollUp},
-    {0, 'j', CmdScrollDown},
+    {FSHIFT | FVIRTKEY, 'K', CmdScrollUpQ},
+    {FSHIFT | FVIRTKEY, 'J', CmdScrollDownQ},
     {0, 'h', CmdScrollLeft},
     {0, 'l', CmdScrollRight},
     {FVIRTKEY, VK_UP, CmdScrollUp},
@@ -201,6 +201,8 @@ ACCEL gBuiltInAccelerators[] = {
     // TODO: maybe add CmdCreateAnnotHighlightAndOpenWindow (kind of clumsy)
     {0, 'a', CmdCreateAnnotHighlight},
     {0, 'A', CmdCreateAnnotHighlight},
+    {FSHIFT | FVIRTKEY, 'B', CmdSearchSelectionWithBing},
+    {FSHIFT | FVIRTKEY, 'G', CmdTranslateSelectionWithGoogle},
 
     {0, 'u', CmdCreateAnnotUnderline},
     {0, 'U', CmdCreateAnnotUnderline},
