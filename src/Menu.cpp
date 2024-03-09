@@ -504,8 +504,16 @@ static MenuDef menuDefGoTo[] = {
         CmdScrollUp,
     },
     {
+        _TRN("Scroll Up Quickly"),
+        CmdScrollUpQ,
+    },
+    {
         _TRN("Scroll Down"),
         CmdScrollDown,
+    },
+    {
+        _TRN("Scroll Down Quickly"),
+        CmdScrollDownQ,
     },
     {
         _TRN("Scroll Left"),
