@@ -76,8 +76,9 @@ again:
         goto again;
     }
     char* s = strings.RemoveAt(0);
+    char* res = str::DupTemp(s);
     Unlock();
-    return s;
+    return res;
 }
 
 // is blocking
