@@ -1582,7 +1582,7 @@ static void InstallFitzErrorCallbacks(fz_context* ctx) {
 }
 
 struct ContextThreadID {
-    EngineMupdf* engine = nullptr;
+    const EngineMupdf* engine = nullptr;
     fz_context* ctx = nullptr;
     DWORD threadID = 0;
 };
@@ -1596,7 +1596,14 @@ void InitializeEngineMupdf() {
     gPerThreadContexts = new Vec<ContextThreadID>();
 }
 
-fz_context* GetOrClonePerThreadContext(EngineMupdf* engine, fz_context* ctx) {
+void DestroyEngineMupdf() {
+    ReportIf(gPerThreadContexts->Size() != 0);
+    delete gPerThreadContexts;
+    gPerThreadContexts = nullptr;
+    DeleteCriticalSection(&gPerThreadContextsCs);
+}
+
+static fz_context* GetOrClonePerThreadContext(const EngineMupdf* engine, fz_context* ctx) {
     DWORD threadID = GetCurrentThreadId();
     ScopedCritSec cs(&gPerThreadContextsCs);
     for (auto& el : *gPerThreadContexts) {
@@ -1610,7 +1617,7 @@ fz_context* GetOrClonePerThreadContext(EngineMupdf* engine, fz_context* ctx) {
     return newCtx;
 }
 
-void ReleasePerThreadContext(EngineMupdf* engine) {
+static void ReleasePerThreadContext(EngineMupdf* engine) {
     DWORD threadID = GetCurrentThreadId();
     ScopedCritSec cs(&gPerThreadContextsCs);
     auto n = gPerThreadContexts->Size();
@@ -1622,6 +1629,28 @@ void ReleasePerThreadContext(EngineMupdf* engine) {
             gPerThreadContexts->RemoveAtFast(i);
             return;
         }
+    }
+}
+
+void ReleaseAllContextsForEngine(EngineMupdf* engine) {
+Again:
+    auto n = gPerThreadContexts->Size();
+    for (int i = 0; i < n; i++) {
+        auto& el = gPerThreadContexts->at(i);
+        if (el.engine == engine) {
+            auto ctx = el.ctx;
+            fz_drop_context(ctx);
+            gPerThreadContexts->RemoveAtFast(i);
+            goto Again;
+        }
+    }
+}
+
+// Note: it's defined in EngineBase.h
+void ReleasePerThreadContext(EngineBase* engine) {
+    EngineMupdf* e = AsEngineMupdf(engine);
+    if (e) {
+        ReleasePerThreadContext(e);
     }
 }
 
@@ -1647,7 +1676,11 @@ EngineMupdf::EngineMupdf() {
 }
 
 fz_context* EngineMupdf::Ctx() const {
-    return _ctx;
+    if (IsGUIThread(FALSE)) {
+        return _ctx;
+    }
+    auto ctx = GetOrClonePerThreadContext(this, _ctx);
+    return ctx;
 }
 
 EngineMupdf::~EngineMupdf() {
@@ -1679,6 +1712,8 @@ EngineMupdf::~EngineMupdf() {
     }
 
     fz_drop_document(ctx, _doc);
+
+    ReleaseAllContextsForEngine(this);
     fz_drop_context(ctx);
 
     delete pageLabels;

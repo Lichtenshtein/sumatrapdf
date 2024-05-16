@@ -542,6 +542,8 @@ struct PasswordUI {
     virtual ~PasswordUI() = default;
 };
 
+void ReleasePerThreadContext(EngineBase*);
+
 template <typename T>
 void SafeEngineRelease(T** enginePtr) {
     T* engine = *enginePtr;
