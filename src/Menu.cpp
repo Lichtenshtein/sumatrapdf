@@ -500,6 +500,10 @@ static MenuDef menuDefTabs[] = {
         CmdNewWindow,
     },
     {
+        _TRN("Duplicate Tab"),
+        CmdDuplicateTab,
+    },
+    {
         _TRN("Duplicate in New Window"),
         CmdDuplicateInNewWindow,
     },

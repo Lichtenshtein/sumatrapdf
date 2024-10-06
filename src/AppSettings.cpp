@@ -198,7 +198,7 @@ bool LoadSettings() {
         gprefs = gGlobalPrefs;
         prefsData.Free();
     }
-
+    gprefs->windowState = 1;
     if (!gprefs->uiLanguage || !trans::ValidateLangCode(gprefs->uiLanguage)) {
         // guess the ui language on first start
         str::ReplaceWithCopy(&gprefs->uiLanguage, trans::DetectUserLang());

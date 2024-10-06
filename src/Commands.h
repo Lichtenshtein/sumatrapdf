@@ -176,6 +176,7 @@ Cmd* enum (e.g. CmdOpen) and a human-readable name (not used yet).
     V(CmdDefaultMode, "Switch to default mode")                           \
     V(CmdNextTabSmart, "Smart Next Tab")                                           \
     V(CmdPrevTabSmart, "Smart Next Tab")                                           \
+    V(CmdDuplicateTab, "Duplicate Tab")                                           \
     V(CmdMoveTabLeft, "Move Tab Left")                                             \
     V(CmdMoveTabRight, "Move Tab Right")                                           \
     V(CmdSelectNextTheme, "Select next theme")                                     \

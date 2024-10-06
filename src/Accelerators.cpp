@@ -131,6 +131,7 @@ ACCEL gBuiltInAccelerators[] = {
     {FCONTROL | FVIRTKEY, 'W', CmdClose},
     {FSHIFT | FCONTROL | FVIRTKEY, 'W', CmdCloseAllTabs},
     {FCONTROL | FVIRTKEY, 'N', CmdNewWindow},
+    {FSHIFT | FVIRTKEY, 'N', CmdDuplicateTab},
     {FSHIFT | FCONTROL | FVIRTKEY, 'N', CmdDuplicateInNewWindow},
     {FCONTROL | FVIRTKEY, 'S', CmdSaveAs},
     {FALT | FSHIFT | FCONTROL | FVIRTKEY, 'S', CmdCreateShortcutToFile},

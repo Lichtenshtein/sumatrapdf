@@ -267,6 +267,10 @@ static MenuDef menuDefContextTab[] = {
         CmdDuplicateInNewWindow,
     },
     {
+        _TRN("Duplicate tab"),
+        CmdDuplicateTab,
+    },
+    {
         kMenuSeparator,
         0,
     },
@@ -333,6 +337,12 @@ void CloseAllTabs(MainWindow* win) {
     for (WindowTab* t : toClose) {
         CloseTab(t, false);
     }
+}
+
+void ReOpenCurrent(WindowTab* tab) {
+    const char* path = tab->filePath;
+    LoadArgs args(path, tab->win);
+    LoadDocument(&args);
 }
 
 // TODO: add "Move to another window" sub-menu
@@ -409,6 +419,10 @@ static void TabsContextMenu(ContextMenuEvent* ev) {
         }
         case CmdDuplicateInNewWindow: {
             DuplicateTabInNewWindow(tabUnderMouse);
+            break;
+        }
+        case CmdDuplicateTab: {
+            ReOpenCurrent(tabUnderMouse);
             break;
         }
         case CmdProperties: {
