@@ -1058,6 +1058,23 @@ static Static* CreateStatic(HWND parent, const char* s = nullptr) {
     return w;
 }
 
+// Double click to activate a popup menu, now only delete selected annotation is available.
+constexpr auto IDM_FIR = 1001;
+static void CreateListItemPopUp(EditAnnotationsWindow* ew) {
+    POINT pt;
+    GetCursorPos(&pt);
+    HMENU hMenu;
+    hMenu = CreatePopupMenu();
+    AppendMenu(hMenu, MF_STRING, IDM_FIR, L"Delete selected annotation");
+    AppendMenu(hMenu, MF_SEPARATOR, 0, NULL);
+    BOOL choice = TrackPopupMenu(hMenu, TPM_RIGHTBUTTON | TPM_RETURNCMD, pt.x, pt.y, NULL, ew->hwnd, NULL);
+    switch (choice) {
+        case IDM_FIR:
+            DeleteSelectedAnnotation(ew);
+            break;
+    }
+}
+
 static void CreateMainLayout(EditAnnotationsWindow* ew) {
     HWND parent = ew->hwnd;
     auto vbox = new VBox();
@@ -1076,6 +1093,7 @@ static void CreateMainLayout(EditAnnotationsWindow* ew) {
         auto lbModel = new ListBoxModelStrings();
         w->SetModel(lbModel);
         w->onSelectionChanged = MkFunc0(ListBoxSelectionChanged, ew);
+        w->onDoubleClick = MkFunc0(CreateListItemPopUp, ew);
         ew->listBox = w;
         vbox->AddChild(w);
     }
