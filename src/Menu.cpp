@@ -192,6 +192,10 @@ static MenuDef menuDefFile[] = {
         CmdExtractPages,
     },
     {
+        _TRN("Convert to &Images..."),
+        CmdConvertPdfToImages,
+    },
+    {
         kMenuSeparator,
         0,
     },
