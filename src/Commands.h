@@ -343,4 +343,5 @@ constexpr const char* kCmdArgMode = "mode";
 constexpr const char* kCmdArgTheme = "theme";
 constexpr const char* kCmdArgCommandLine = "cmdline";
 constexpr const char* kCmdArgToolbarText = "toolbartext";
-#define CmdConvertPdfToImages 2024 
+#define CmdConvertPdfToImages 2024
+#define CmdMLModel 2025

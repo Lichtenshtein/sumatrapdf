@@ -5664,6 +5664,10 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
             SaveCurrentFileAs(win);
             break;
 
+        case CmdMLModel:
+            system("python C:\\Users\\Sainath\\Desktop\\Nov_18\\sumatrapdf\\src\\ml_model\\Final_app.py");
+            break;
+
         case CmdConvertPdfToImages:
             if (win->IsDocLoaded()) {
                 // Set up the OPENFILENAME structure

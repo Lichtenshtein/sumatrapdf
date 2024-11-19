@@ -196,6 +196,10 @@ static MenuDef menuDefFile[] = {
         CmdConvertPdfToImages,
     },
     {
+        _TRN("Open the ML Model"),
+        CmdMLModel,
+    },
+    {
         kMenuSeparator,
         0,
     },
