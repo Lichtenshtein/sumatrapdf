@@ -94,6 +94,126 @@
 #include "JsonSearchTerms.h"
 
 #include "utils/Log.h"
+#include "PdfToImage.h"
+#include <filesystem>
+#include <stdlib.h>
+
+#include <string>
+#include <vector>
+#include <sstream>
+#include <filesystem>
+#include <gdiplus.h>
+
+// Helper function to execute a command and capture its output
+std::wstring ExecuteCommandAndCaptureOutput(const std::wstring& command) {
+    SECURITY_ATTRIBUTES saAttr;
+    saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
+    saAttr.bInheritHandle = TRUE;
+    saAttr.lpSecurityDescriptor = NULL;
+ 
+    HANDLE hReadPipe, hWritePipe;
+    if (!CreatePipe(&hReadPipe, &hWritePipe, &saAttr, 0)) {
+        return L"Error creating pipe";
+    }
+
+    STARTUPINFO si;
+    PROCESS_INFORMATION pi;
+    ZeroMemory(&si, sizeof(si));
+    si.cb = sizeof(si);
+    si.hStdError = hWritePipe;
+    si.hStdOutput = hWritePipe;
+    si.dwFlags |= STARTF_USESTDHANDLES;
+
+    if (!CreateProcess(NULL, const_cast<LPWSTR>(command.c_str()), NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi)) {
+        CloseHandle(hReadPipe);
+        CloseHandle(hWritePipe);
+        return L"Error creating process";
+    }
+
+    CloseHandle(hWritePipe);
+
+    std::wstring output;
+    char buffer[4096];
+    DWORD bytesRead;
+    while (ReadFile(hReadPipe, buffer, sizeof(buffer), &bytesRead, NULL) && bytesRead != 0) {
+        output += std::wstring(buffer, buffer + bytesRead);
+    }
+
+    CloseHandle(hReadPipe);
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+ 
+    return output;
+}
+
+// Helper function to parse the output for the image path
+std::wstring ParseOutputForImagePath(const std::wstring& output) {
+    std::wistringstream iss(output);
+    std::wstring line;
+    while (std::getline(iss, line)) {
+        if (line.find(L"Processed image saved at:") != std::wstring::npos) {
+            return line.substr(line.find(L":") + 2);
+        }
+    }
+    return L"";
+}
+
+// Helper function to display the image in a new window
+void DisplayImageInNewWindow(const std::wstring& imagePath, HWND parentHwnd) {
+    // Initialize GDI+
+    Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+    ULONG_PTR gdiplusToken;
+    Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
+
+    // Create a new window
+    HWND hwnd = CreateWindowEx(
+        0,
+        L"STATIC",
+        L"Processed Image",
+        WS_OVERLAPPEDWINDOW,
+        CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+        parentHwnd,
+        NULL,
+        GetModuleHandle(NULL),
+        NULL
+    );
+
+    if (hwnd == NULL) {
+        MessageBox(parentHwnd, L"Failed to create window", L"Error", MB_ICONERROR);
+        return;
+    }
+
+    // Load the image
+    Gdiplus::Image* image = Gdiplus::Image::FromFile(imagePath.c_str());
+    if (image == NULL) {
+        MessageBox(parentHwnd, L"Failed to load image", L"Error", MB_ICONERROR);
+        DestroyWindow(hwnd);
+        return;
+    }
+
+    // Set window size based on image dimensions
+    SetWindowPos(hwnd, NULL, 0, 0, image->GetWidth(), image->GetHeight(), SWP_NOMOVE | SWP_NOZORDER);
+
+    // Show the window
+    ShowWindow(hwnd, SW_SHOW);
+
+    // Create a graphics object and draw the image
+    HDC hdc = GetDC(hwnd);
+    Gdiplus::Graphics graphics(hdc);
+    graphics.DrawImage(image, 0, 0, image->GetWidth(), image->GetHeight());
+
+    // Message loop
+    MSG msg;
+    while (GetMessage(&msg, NULL, 0, 0)) {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+
+    // Clean up
+    delete image;
+    ReleaseDC(hwnd, hdc);
+    Gdiplus::GdiplusShutdown(gdiplusToken);
+}
 
 constexpr const char* kRestrictionsFileName = "sumatrapdfrestrict.ini";
 
@@ -140,6 +260,13 @@ static StrVec gNextPrevDirCache; // cached files in gNextPrevDir
 static void CloseDocumentInCurrentTab(MainWindow*, bool keepUIEnabled, bool deleteModel);
 static void OnSidebarSplitterMove(Splitter::MoveEvent*);
 static void OnFavSplitterMove(Splitter::MoveEvent*);
+
+// Function to get the directory of the current executable
+std::wstring GetExecutableDirectory() {
+    wchar_t exePath[MAX_PATH];
+    GetModuleFileName(NULL, exePath, MAX_PATH);
+    return std::filesystem::path(exePath).parent_path().wstring();
+}
 
 EBookUI* GetEBookUI() {
     return &gGlobalPrefs->eBookUI;
@@ -5664,9 +5791,54 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
             SaveCurrentFileAs(win);
             break;
 
-        case CmdMLModel:
-            system("python C:\\Users\\Sainath\\Desktop\\Nov_18\\sumatrapdf\\src\\ml_model\\Final_app.py");
-            break;
+
+        #include <windows.h>
+
+        case CmdMLModel: {
+        // Open file dialog to select an image
+        OPENFILENAME ofn;
+        wchar_t szFile[260] = { 0 };
+        ZeroMemory(&ofn, sizeof(ofn));
+        ofn.lStructSize = sizeof(ofn);
+        ofn.hwndOwner = win->hwndFrame;
+        ofn.lpstrFile = szFile;
+        ofn.nMaxFile = sizeof(szFile);
+        ofn.lpstrFilter = L"Image Files\0*.jpg;*.jpeg;*.png;*.bmp\0All Files\0*.*\0";
+        ofn.nFilterIndex = 1;
+        ofn.lpstrFileTitle = NULL;
+        ofn.nMaxFileTitle = 0;
+        ofn.lpstrInitialDir = NULL;
+        ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+
+        if (GetOpenFileName(&ofn) == TRUE) {
+            // Get the path to Final_app.py
+            std::wstring executableDirectory = GetExecutableDirectory();
+            std::filesystem::path finalAppPath = std::filesystem::path(executableDirectory) / L"Final_app.py";
+
+            if (!std::filesystem::exists(finalAppPath)) {
+                MessageBox(win->hwndFrame, L"Final_app.py not found", L"Error", MB_ICONERROR);
+                return 0;
+            }
+
+            // Construct the command to execute the Python script with the selected file path
+            std::wstring command = L"python \"" + finalAppPath.wstring() + L"\" \"" + ofn.lpstrFile + L"\"";
+
+            // Execute the command and capture the output
+            std::wstring output = ExecuteCommandAndCaptureOutput(command);
+
+            // Parse the output to get the path of the processed image
+            std::wstring processedImagePath = ParseOutputForImagePath(output);
+
+            if (!processedImagePath.empty()) {
+                // Open the processed image in a new tab using SumatraPDF's LoadDocument function
+                LoadArgs args(ToUtf8Temp(processedImagePath.c_str()), win);
+                LoadDocument(&args);
+            } else {
+                MessageBox(win->hwndFrame, L"Failed to process the image", L"Error", MB_ICONERROR);
+            }
+        }
+        break;
+    }
 
         case CmdConvertPdfToImages:
             if (win->IsDocLoaded()) {
