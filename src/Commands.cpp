@@ -63,7 +63,7 @@ static NO_INLINE int GetCommandIdByNameOrDesc(SeqStrings commands, const char* s
     if (idx < 0) {
         return -1;
     }
-    ReportIf(idx >= dimofi(gCommandIds));
+    ReportDebugIf(idx >= dimofi(gCommandIds));
     int cmdId = gCommandIds[idx];
     return (int)cmdId;
 }
@@ -144,8 +144,7 @@ CommandArg* FindArg(CommandArg* first, const char* name, CommandArg::Type type) 
             if (curr->type == type) {
                 return curr;
             }
-            logf("FindArgByName: found arg of name '%s' by different type (wanted: %d, is: %d)\n", name, type,
-                 curr->type);
+            // logf("FindArgByName: found arg of name '%s' by different type (wanted: %d, is: %d)\n", name, type, curr->type);
         }
         curr = curr->next;
     }
@@ -249,7 +248,7 @@ static CommandArg* ParseArgOfType(const char* argName, CommandArg::Type type, co
         ParseColor(col, val);
         if (!col.parsedOk) {
             // invalid value, skip it
-            logf("parseArgOfType: invalid color value '%s'\n", val);
+            // logf("parseArgOfType: invalid color value '%s'\n", val);
             return nullptr;
         }
         auto arg = NewArg(type, argName);
@@ -269,7 +268,7 @@ static CommandArg* ParseArgOfType(const char* argName, CommandArg::Type type, co
         return arg;
     }
 
-    ReportIf(true);
+    ReportDebugIf(true);
     return nullptr;
 }
 
@@ -405,7 +404,7 @@ CustomCommand* CreateCommandFromDefinition(const char* definition) {
     int cmdId = GetCommandIdByName(cmd);
     if (cmdId < 0) {
         // TODO: make it a notification
-        logf("CreateCommandFromDefinition: unknown cmd name in '%s'\n", definition);
+        // logf("CreateCommandFromDefinition: unknown cmd name in '%s'\n", definition);
         return nullptr;
     }
     if (parts.Size() == 1) {
@@ -451,7 +450,7 @@ CustomCommand* CreateCommandFromDefinition(const char* definition) {
         int id = argSpecs[i].cmdId;
         if (id == CmdNone) {
             // the command doesn't accept any arguments
-            logf("CreateCommandFromDefinition: cmd '%s' doesn't accept arguments\n", definition);
+            // logf("CreateCommandFromDefinition: cmd '%s' doesn't accept arguments\n", definition);
             return CreateCustomCommand(definition, cmdId, nullptr);
         }
         if (id != argCmdId) {
@@ -462,9 +461,8 @@ CustomCommand* CreateCommandFromDefinition(const char* definition) {
     }
     if (firstArgIdx < 0) {
         // shouldn't happen, we already filtered commands without arguments
-        logf("CreateCommandFromDefinition: didn't find arguments for: '%s', cmdId: %d, argCmdId: '%d'\n", definition,
-             cmdId, argCmdId);
-        ReportIf(true);
+        // logf("CreateCommandFromDefinition: didn't find arguments for: '%s', cmdId: %d, argCmdId: '%d'\n", definition, cmdId, argCmdId);
+        ReportDebugIf(true);
         return nullptr;
     }
 
@@ -482,7 +480,7 @@ CustomCommand* CreateCommandFromDefinition(const char* definition) {
         }
     }
     if (!firstArg) {
-        logf("CreateCommandFromDefinition: failed to parse arguments for '%s'\n", definition);
+        // logf("CreateCommandFromDefinition: failed to parse arguments for '%s'\n", definition);
         return nullptr;
     }
 
@@ -491,7 +489,7 @@ CustomCommand* CreateCommandFromDefinition(const char* definition) {
         const char* s = firstArg->strVal;
         static SeqStrings validModes = ">\0#\0@\0:\0"; // TODO: "@@\0" ?
         if (seqstrings::StrToIdx(validModes, s) < 0) {
-            logf("CreateCommandFromDefinition: invalid CmdCommandPalette mode in '%s'\n", definition);
+            // logf("CreateCommandFromDefinition: invalid CmdCommandPalette mode in '%s'\n", definition);
             FreeCommandArgs(firstArg);
             firstArg = nullptr;
         }
@@ -503,7 +501,7 @@ CustomCommand* CreateCommandFromDefinition(const char* definition) {
         float zoomVal = ZoomFromString(firstArg->strVal, 0);
         if (0 == zoomVal) {
             FreeCommandArgs(firstArg);
-            logf("CreateCommandFromDefinition: failed to parse arguments in '%s'\n", definition);
+            // logf("CreateCommandFromDefinition: failed to parse arguments in '%s'\n", definition);
             return nullptr;
         }
         firstArg->type = CommandArg::Type::Float;

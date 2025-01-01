@@ -218,12 +218,12 @@ HtmlWindow* FindHtmlWindowById(int windowId) {
 static int GenNewWindowId(HtmlWindow* htmlWin) {
     int newWindowId = (int)gHtmlWindows.size();
     gHtmlWindows.Append(htmlWin);
-    ReportIf(htmlWin != FindHtmlWindowById(newWindowId));
+    ReportDebugIf(htmlWin != FindHtmlWindowById(newWindowId));
     return newWindowId;
 }
 
 static void FreeWindowId(int windowId) {
-    ReportIf(nullptr == gHtmlWindows.at(windowId));
+    ReportDebugIf(nullptr == gHtmlWindows.at(windowId));
     gHtmlWindows.at(windowId) = nullptr;
 }
 
@@ -283,7 +283,7 @@ class HW_IInternetProtocolInfo : public IInternetProtocolInfo {
 
 ULONG STDMETHODCALLTYPE HW_IInternetProtocolInfo::Release() {
     LONG res = InterlockedDecrement(&refCount);
-    ReportIf(res < 0);
+    ReportDebugIf(res < 0);
     if (0 == res) {
         delete this;
     }
@@ -348,7 +348,7 @@ class HW_IInternetProtocol : public IInternetProtocol {
 
 ULONG STDMETHODCALLTYPE HW_IInternetProtocol::Release() {
     LONG res = InterlockedDecrement(&refCount);
-    ReportIf(res < 0);
+    ReportDebugIf(res < 0);
     if (0 == res) {
         delete this;
     }
@@ -449,7 +449,7 @@ STDMETHODIMP HW_IInternetProtocol::Start(LPCWSTR szUrl, IInternetProtocolSink* p
     // TODO: this now happens due to events happening on HtmlWindow
     // used to take a screenshot, so ignore it. Is there a way
     // to cancel things and not get her?
-    // ReportIf(!win);
+    // ReportDebugIf(!win);
     if (!win) {
         return INET_E_OBJECT_NOT_FOUND;
     }
@@ -469,7 +469,7 @@ STDMETHODIMP HW_IInternetProtocol::Start(LPCWSTR szUrl, IInternetProtocolSink* p
     pIProtSink->ReportProgress(BINDSTATUS_VERIFIEDMIMETYPEAVAILABLE, mimeW);
 #ifdef _WIN64
     // not going to report data in parts for unexpectedly huge webpages
-    ReportIf(data.size() > ULONG_MAX);
+    ReportDebugIf(data.size() > ULONG_MAX);
 #endif
     pIProtSink->ReportData(BSCF_FIRSTDATANOTIFICATION | BSCF_LASTDATANOTIFICATION | BSCF_DATAFULLYAVAILABLE,
                            (ULONG)data.size(), (ULONG)data.size());
@@ -528,7 +528,7 @@ class HW_IInternetProtocolFactory : public IClassFactory {
 
 STDMETHODIMP_(ULONG) HW_IInternetProtocolFactory::Release() {
     LONG res = InterlockedDecrement(&refCount);
-    ReportIf(res < 0);
+    ReportDebugIf(res < 0);
     if (0 == res) {
         delete this;
     }
@@ -568,12 +568,12 @@ static void RegisterInternetProtocolFactory() {
 
     ScopedComPtr<IInternetSession> internetSession;
     HRESULT hr = CoInternetGetSession(0, &internetSession, 0);
-    ReportIf(FAILED(hr));
-    ReportIf(nullptr != gInternetProtocolFactory);
+    ReportDebugIf(FAILED(hr));
+    ReportDebugIf(nullptr != gInternetProtocolFactory);
     gInternetProtocolFactory = new HW_IInternetProtocolFactory();
     hr = internetSession->RegisterNameSpace(gInternetProtocolFactory, CLSID_HW_IInternetProtocol, HW_PROTO_PREFIX, 0,
                                             nullptr, 0);
-    ReportIf(FAILED(hr));
+    ReportDebugIf(FAILED(hr));
 }
 
 static void UnregisterInternetProtocolFactory() {
@@ -583,10 +583,10 @@ static void UnregisterInternetProtocolFactory() {
     }
     ScopedComPtr<IInternetSession> internetSession;
     HRESULT hr = CoInternetGetSession(0, &internetSession, 0);
-    ReportIf(FAILED(hr));
+    ReportDebugIf(FAILED(hr));
     internetSession->UnregisterNameSpace(gInternetProtocolFactory, HW_PROTO_PREFIX);
     ULONG refCount = gInternetProtocolFactory->Release();
-    ReportIf(refCount != 0);
+    ReportDebugIf(refCount != 0);
     gInternetProtocolFactory = nullptr;
 }
 
@@ -1129,7 +1129,7 @@ class HW_IDownloadManager : public IDownloadManager {
     }
     ULONG STDMETHODCALLTYPE Release() override {
         LONG res = InterlockedDecrement(&refCount);
-        ReportIf(res < 0);
+        ReportDebugIf(res < 0);
         if (0 == res) {
             delete this;
         }
@@ -1370,7 +1370,7 @@ ULONG STDMETHODCALLTYPE HtmlMoniker::AddRef() {
 
 ULONG STDMETHODCALLTYPE HtmlMoniker::Release() {
     LONG res = InterlockedDecrement(&refCount);
-    ReportIf(res < 0);
+    ReportDebugIf(res < 0);
     if (0 == res) {
         delete this;
     }
@@ -1431,10 +1431,10 @@ static LRESULT CALLBACK WndProcParent2(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
 }
 
 void HtmlWindow::SubclassHwnd() {
-    ReportIf(subclassId); // don't subclass multiple times
+    ReportDebugIf(subclassId); // don't subclass multiple times
     subclassId = NextSubclassId();
     BOOL ok = SetWindowSubclass(hwndParent, WndProcParent2, subclassId, (DWORD_PTR)this);
-    ReportIf(!ok);
+    ReportDebugIf(!ok);
     SetWindowLongPtr(hwndParent, GWLP_USERDATA, (LONG_PTR)this);
 }
 
@@ -1447,7 +1447,7 @@ void HtmlWindow::UnsubclassHwnd() {
 }
 
 HtmlWindow::HtmlWindow(HWND parent, HtmlWindowCallback* cb) {
-    ReportIf(!parent);
+    ReportDebugIf(!parent);
     hwndParent = parent;
     htmlWinCb = cb;
     RegisterInternetProtocolFactory();
@@ -1491,7 +1491,7 @@ bool HtmlWindow::CreateBrowser() {
     ScopedComQIPtr<IPersistStreamInit> psInit(p);
     if (psInit) {
         hr = psInit->InitNew();
-        ReportIf(!SUCCEEDED(hr));
+        ReportDebugIf(!SUCCEEDED(hr));
     }
 
     hr = p->QueryInterface(&oleInPlaceObject);
@@ -1590,7 +1590,7 @@ HtmlWindow::~HtmlWindow() {
     }
     if (webBrowser) {
         ULONG refCount = webBrowser->Release();
-        ReportIf(refCount != 0);
+        ReportDebugIf(refCount != 0);
     }
 
     FreeWindowId(windowId);
@@ -1658,7 +1658,7 @@ int HtmlWindow::GetZoomPercent() {
         return 100;
     }
     int zoom = vtOut.lVal;
-    ReportIf(zoomDPI < 96);
+    ReportDebugIf(zoomDPI < 96);
     zoom = (zoom * 96) / zoomDPI; // undo what we do in SetZoomPercent()
     return zoom;
 }
@@ -1666,7 +1666,7 @@ int HtmlWindow::GetZoomPercent() {
 void HtmlWindow::SetZoomPercent(int zoom) {
     VARIANT vtIn{};
     VARIANT vtOut{};
-    ReportIf(zoomDPI < 96);
+    ReportDebugIf(zoomDPI < 96);
     zoom = (zoom * zoomDPI) / 96;
     VariantSetLong(&vtIn, zoom);
     webBrowser->ExecWB(OLECMDID_OPTICAL_ZOOM, OLECMDEXECOPT_DONTPROMPTUSER, &vtIn, &vtOut);
@@ -1733,7 +1733,7 @@ void HtmlWindow::SetHtmlReal(const ByteSlice& d) {
     }
     ScopedComQIPtr<IMoniker> htmlMon(htmlContent);
     hr = perstMon->Load(TRUE, htmlMon, nullptr, STGM_READ);
-    ReportIf(FAILED(hr));
+    ReportDebugIf(FAILED(hr));
 }
 
 // http://stackoverflow.com/questions/9778206/how-i-can-get-information-about-the-scrollbars-of-an-webbrowser-control-instance
@@ -1765,7 +1765,7 @@ void HtmlWindow::SetScrollbarToAuto() {
 
     BSTR s = SysAllocString(L"auto");
     hr = body->put_scroll(s);
-    ReportIf(FAILED(hr));
+    ReportDebugIf(FAILED(hr));
     SysFreeString(s);
 }
 
@@ -1829,7 +1829,7 @@ bool HtmlWindow::OnBeforeNavigate(const WCHAR* urlW, bool newWindow) {
     int protoWindowId;
     AutoFreeStr urlReal = str::Dup(url);
     bool ok = ParseProtoUrl(url, &protoWindowId, &urlReal);
-    ReportIf(ok && (protoWindowId != windowId));
+    ReportDebugIf(ok && (protoWindowId != windowId));
     bool shouldNavigate = htmlWinCb->OnBeforeNavigate(urlReal, newWindow);
     return shouldNavigate;
 }
@@ -1865,7 +1865,7 @@ void HtmlWindow::OnDocumentComplete(const WCHAR* urlW) {
     int protoWindowId;
     AutoFreeStr urlReal = str::Dup(url);
     bool ok = ParseProtoUrl(url, &protoWindowId, &urlReal);
-    ReportIf(ok && (protoWindowId != windowId));
+    ReportDebugIf(ok && (protoWindowId != windowId));
 
     currentURL.Set(urlReal.StealData());
     if (htmlWinCb) {
@@ -2004,7 +2004,7 @@ STDMETHODIMP FrameSite::QueryInterface(REFIID riid, void** ppv) {
 
 ULONG STDMETHODCALLTYPE FrameSite::Release() {
     LONG res = InterlockedDecrement(&refCount);
-    ReportIf(res < 0);
+    ReportDebugIf(res < 0);
     if (0 == res) {
         delete this;
     }

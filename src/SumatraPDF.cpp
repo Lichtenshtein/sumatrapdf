@@ -383,11 +383,11 @@ LoadArgs::LoadArgs(const char* origPath, MainWindow* win) {
     const char* cleanPath = origPath;
     if (fileArgs) {
         cleanPath = fileArgs->cleanPath;
-        logf("LoadArgs: origPath='%s', cleanPath='%s'\n", origPath, cleanPath);
+        // logf("LoadArgs: origPath='%s', cleanPath='%s'\n", origPath, cleanPath);
     }
     char* path = path::NormalizeTemp(cleanPath);
     if (!str::EqI(path, cleanPath)) {
-        logf("LoadArgs: cleanPath='%s', path='%s'\n", cleanPath, path);
+        // logf("LoadArgs: cleanPath='%s', path='%s'\n", cleanPath, path);
     }
     this->fileName.SetCopy(path);
     this->win = win;
@@ -434,8 +434,8 @@ void SetCurrentLang(const char* langCode) {
 
 void InitializePolicies(bool restrict) {
     // default configuration should be to restrict everything
-    ReportIf(gPolicyRestrictions != Perm::RestrictedUse);
-    ReportIf(gAllowedLinkProtocols.Size() != 0 || gAllowedFileTypes.Size() != 0);
+    ReportDebugIf(gPolicyRestrictions != Perm::RestrictedUse);
+    ReportDebugIf(gAllowedLinkProtocols.Size() != 0 || gAllowedFileTypes.Size() != 0);
 
     // the -restrict command line flag overrides any sumatrapdfrestrict.ini configuration
     if (restrict) {
@@ -522,7 +522,7 @@ bool AnnotationsAreDisabled() {
 bool SumatraLaunchBrowser(const char* url) {
     if (gPluginMode) {
         // pass the URI back to the browser
-        ReportIf(gWindows.empty());
+        ReportDebugIf(gWindows.empty());
         if (gWindows.empty()) {
             return false;
         }
@@ -746,7 +746,7 @@ char* HwndPasswordUI::GetPassword(const char* path, u8* fileDigest, u8 decryptio
 
     // check if the window is still valid as it might have been closed by now
     if (!IsWindow(hwnd)) {
-        ReportIf(true);
+        ReportDebugIf(true);
         hwnd = GetForegroundWindow();
     }
     // make sure that the password dialog is visible
@@ -795,7 +795,7 @@ static void UpdateDisplayStateWindowRect(MainWindow* win, FileState* fs, bool up
 }
 
 static void UpdateSidebarDisplayState(WindowTab* tab, FileState* fs) {
-    ReportIf(!tab);
+    ReportDebugIf(!tab);
     MainWindow* win = tab->win;
     fs->showToc = tab->showToc;
     if (win->tocLoaded && tab == win->CurrentTab()) {
@@ -1005,7 +1005,7 @@ static void CreateThumbnailForFile(MainWindow* win, FileState* ds) {
         return;
     }
 
-    ReportIf(!win->IsDocLoaded());
+    ReportDebugIf(!win->IsDocLoaded());
     if (!win->IsDocLoaded()) {
         return;
     }
@@ -1032,7 +1032,7 @@ static void CreateThumbnailForFile(MainWindow* win, FileState* ds) {
 
 /* Send the request to render a given page to a rendering thread */
 void ControllerCallbackHandler::RequestRendering(int pageNo) {
-    ReportIf(!win->AsFixed());
+    ReportDebugIf(!win->AsFixed());
     if (!win->AsFixed()) {
         return;
     }
@@ -1071,7 +1071,7 @@ static void makeFullScrollbar(SCROLLINFO& si) {
 }
 
 void ControllerCallbackHandler::UpdateScrollbars(Size canvas) {
-    ReportIf(!win->AsFixed());
+    ReportDebugIf(!win->AsFixed());
     DisplayModel* dm = win->AsFixed();
 
     bool hideScrollbar = gGlobalPrefs->fixedPageUI.hideScrollbars;
@@ -1188,7 +1188,7 @@ void ControllerCallbackHandler::PageNoChanged(DocController* ctrl, int pageNo) {
         return;
     }
 
-    ReportIf(!win->ctrl || win->ctrl->PageCount() <= 0);
+    ReportDebugIf(!win->ctrl || win->ctrl->PageCount() <= 0);
     if (!win->ctrl || win->ctrl->PageCount() == 0) {
         return;
     }
@@ -1227,8 +1227,8 @@ static NO_INLINE void VerifyController(DocController* ctrl, const char* path) {
     }
     const char* s1 = ctrlFilePath ? ctrlFilePath : "<null>";
     const char* s2 = path ? path : "<null>";
-    logf("VerifyController: ctrl->FilePath: '%s', filePath: '%s'\n", s1, s2);
-    ReportIf(true);
+    // logf("VerifyController: ctrl->FilePath: '%s', filePath: '%s'\n", s1, s2);
+    ReportDebugIf(true);
 }
 
 static DocController* CreateControllerForChm(const char* path, PasswordUI* pwdUI, MainWindow* win) {
@@ -1247,7 +1247,7 @@ static DocController* CreateControllerForChm(const char* path, PasswordUI* pwdUI
     // advertise itself for Chm documents but could be tricked into
     // loading one nonetheless); note: this crash should never happen,
     // since gGlobalPrefs->chmUI.useFixedPageUI is set in SetupPluginMode
-    ReportIf(gPluginMode);
+    ReportDebugIf(gPluginMode);
     // if CLSID_WebBrowser isn't available, fall back on ChmEngine
     DocController* ctrl = nullptr;
     if (!chmModel->SetParentHwnd(win->hwndCanvas)) {
@@ -1256,16 +1256,16 @@ static DocController* CreateControllerForChm(const char* path, PasswordUI* pwdUI
         if (!engine) {
             return nullptr;
         }
-        ReportIf(engine->kind != kindEngineChm);
+        ReportDebugIf(engine->kind != kindEngineChm);
         ctrl = new DisplayModel(engine, win->cbHandler);
-        ReportIf(!ctrl || !ctrl->AsFixed() || ctrl->AsChm());
+        ReportDebugIf(!ctrl || !ctrl->AsFixed() || ctrl->AsChm());
     } else {
         // another ChmModel might still be active
         chmModel->RemoveParentHwnd();
         ctrl = chmModel;
-        ReportIf(!ctrl->AsChm() || ctrl->AsFixed());
+        ReportDebugIf(!ctrl->AsChm() || ctrl->AsFixed());
     }
-    ReportIf(!ctrl);
+    ReportDebugIf(!ctrl);
     VerifyController(ctrl, path);
     return ctrl;
 }
@@ -1298,14 +1298,14 @@ DocController* CreateControllerForEngineOrFile(EngineBase* engine, const char* p
     }
     int nPages = engine ? engine->pageCount : 0;
     auto dur = TimeSinceInMs(timeStart);
-    logf("CreateControllerForEngineOrFile: '%s', %d pages, took %2.f ms\n", path, nPages, dur);
+    // logf("CreateControllerForEngineOrFile: '%s', %d pages, took %2.f ms\n", path, nPages, dur);
     if (nPages <= 0) {
         // seen nPages < 0 in a crash in epub file
         SafeEngineRelease(&engine);
         return nullptr;
     }
     DocController* ctrl = new DisplayModel(engine, win->cbHandler);
-    ReportIf(!ctrl || !ctrl->AsFixed() || ctrl->AsChm());
+    ReportDebugIf(!ctrl || !ctrl->AsFixed() || ctrl->AsChm());
     VerifyController(ctrl, path);
     gMostRecentlyOpenedDoc = ctrl;
     return ctrl;
@@ -1458,12 +1458,12 @@ static DisplayMode GetDirDefaultDisplayMode(const char* filePath) {
 //   before (isNewWindow=false)
 static void ReplaceDocumentInCurrentTab(LoadArgs* args, DocController* ctrl, FileState* fs) {
     MainWindow* win = args->win;
-    ReportIf(!win);
+    ReportDebugIf(!win);
     if (!win) {
         return;
     }
     WindowTab* tab = win->CurrentTab();
-    ReportIf(!tab);
+    ReportDebugIf(!tab);
 
     // Never load settings from a preexisting state if the user doesn't wish to
     // (unless we're just refreshing the document, i.e. only if state && !state->useDefaultState)
@@ -1530,7 +1530,7 @@ static void ReplaceDocumentInCurrentTab(LoadArgs* args, DocController* ctrl, Fil
     ClearMouseState(win);
 
     // TODO: this crashes with new tabs
-    // ReportIf(win->IsAboutWindow() || win->IsDocLoaded() != (win->ctrl != nullptr));
+    // ReportDebugIf(win->IsAboutWindow() || win->IsDocLoaded() != (win->ctrl != nullptr));
     // TODO: https://code.google.com/p/sumatrapdf/issues/detail?id=1570
     if (win->ctrl) {
         DisplayModel* dm = win->AsFixed();
@@ -1559,7 +1559,7 @@ static void ReplaceDocumentInCurrentTab(LoadArgs* args, DocController* ctrl, Fil
             ss.page = limitValue(ss.page, 1, win->ctrl->PageCount());
             win->ctrl->GoToPage(ss.page, false);
         } else {
-            ReportIf(true);
+            ReportDebugIf(true);
         }
     } else {
         fs = nullptr;
@@ -1567,7 +1567,7 @@ static void ReplaceDocumentInCurrentTab(LoadArgs* args, DocController* ctrl, Fil
     delete prevCtrl;
 
     if (fs) {
-        ReportIf(!win->IsDocLoaded());
+        ReportDebugIf(!win->IsDocLoaded());
         zoomVirtual = ZoomFromString(fs->zoom, kZoomFitPage);
         if (win->ctrl->ValidPageNo(ss.page)) {
             if (kZoomFitContent != zoomVirtual) {
@@ -1602,7 +1602,7 @@ static void ReplaceDocumentInCurrentTab(LoadArgs* args, DocController* ctrl, Fil
     UpdateUiForCurrentTab(win);
 
     if (CanAccessDisk() && tab->GetEngineType() == kindEngineMupdf) {
-        ReportIf(!win->AsFixed() || win->AsFixed()->pdfSync);
+        ReportDebugIf(!win->AsFixed() || win->AsFixed()->pdfSync);
         path = args->FilePath();
         int res = Synchronizer::Create(path, win->AsFixed()->GetEngine(), &win->AsFixed()->pdfSync);
         // expose SyncTeX in the UI
@@ -1634,7 +1634,7 @@ static void ReplaceDocumentInCurrentTab(LoadArgs* args, DocController* ctrl, Fil
     // if the window isn't shown and win.canvasRc is still empty, zoom
     // has not been determined yet
     // cf. https://code.google.com/p/sumatrapdf/issues/detail?id=2541
-    // ReportIf(win->IsDocLoaded() && args->showWin && win->canvasRc.IsEmpty() && !win->AsChm());
+    // ReportDebugIf(win->IsDocLoaded() && args->showWin && win->canvasRc.IsEmpty() && !win->AsChm());
 
     SetSidebarVisibility(win, showToc, gGlobalPrefs->showFavorites);
     // restore scroll state after the canvas size has been restored
@@ -1693,7 +1693,7 @@ void ReloadDocument(MainWindow* win, bool autoRefresh) {
         if (!autoRefresh) {
             // TODO: seen a crash
             if (str::IsEmpty(tab->filePath)) {
-                logf("tab->filePath is empty\n");
+                // logf("tab->filePath is empty\n");
             }
             LoadArgs args(tab->filePath, win);
             args.forceReuse = true;
@@ -1882,7 +1882,7 @@ static MainWindow* CreateMainWindow() {
         return nullptr;
     }
 
-    ReportIf(nullptr != FindMainWindowByHwnd(hwndFrame));
+    ReportDebugIf(nullptr != FindMainWindowByHwnd(hwndFrame));
     MainWindow* win = new MainWindow(hwndFrame);
 
     // don't add a WS_EX_STATICEDGE so that the scrollbars touch the
@@ -1912,7 +1912,7 @@ static MainWindow* CreateMainWindow() {
     Func0 fn = MkFunc0(ScrollTimerThread, win);
     win->scrollTimerThread = StartThread(fn, "Scroll Thread");
 
-    ReportIf(win->menu);
+    ReportDebugIf(win->menu);
     win->menu = BuildMenu(win);
     win->isMenuHidden = !gGlobalPrefs->showMenubar;
     if (!win->isMenuHidden) {
@@ -1968,7 +1968,7 @@ MainWindow* CreateAndShowMainWindow(SessionData* data) {
         return nullptr;
     }
     // CreateMainWindow shouldn't change the windowState value
-    ReportIf(windowState != gGlobalPrefs->windowState);
+    ReportDebugIf(windowState != gGlobalPrefs->windowState);
 
     if (data) {
         windowState = data->windowState;
@@ -1997,10 +1997,9 @@ void DeleteMainWindow(MainWindow* win) {
     int winIdx = gWindows.Remove(win);
 
     int nWindowsLeft = gWindows.Size();
-    logf("DeleteMainWindow: win: 0x%p, hwndFrame: 0x%p, hwndCanvas: 0x%p, winIdx : %d, nWindowsLeft: %d\n", win,
-         win->hwndFrame, win->hwndCanvas, winIdx, nWindowsLeft);
+    // logf("DeleteMainWindow: win: 0x%p, hwndFrame: 0x%p, hwndCanvas: 0x%p, winIdx : %d, nWindowsLeft: %d\n", win, win->hwndFrame, win->hwndCanvas, winIdx, nWindowsLeft);
     if (winIdx < 0) {
-        logf("  not deleting because not in gWindows, probably already deleted\n");
+        // logf("  not deleting because not in gWindows, probably already deleted\n");
         return;
     }
 
@@ -2008,8 +2007,8 @@ void DeleteMainWindow(MainWindow* win) {
     ImageList_Destroy((HIMAGELIST)SendMessageW(win->hwndToolbar, TB_GETIMAGELIST, 0, 0));
     DragAcceptFiles(win->hwndCanvas, FALSE);
 
-    ReportIf(win->findThread && WaitForSingleObject(win->findThread, 0) == WAIT_TIMEOUT);
-    ReportIf(win->printThread && WaitForSingleObject(win->printThread, 0) == WAIT_TIMEOUT);
+    ReportDebugIf(win->findThread && WaitForSingleObject(win->findThread, 0) == WAIT_TIMEOUT);
+    ReportDebugIf(win->printThread && WaitForSingleObject(win->printThread, 0) == WAIT_TIMEOUT);
 
     if (win->uiaProvider) {
         // tell UIA to release all objects cached in its store
@@ -2046,7 +2045,7 @@ void UpdateAfterThemeChange() {
 }
 
 static void RenameFileInHistory(const char* oldPath, const char* newPath) {
-    logf("RenameFileInHistory: oldPath: '%s', newPath: '%s'\n", oldPath, newPath);
+    // logf("RenameFileInHistory: oldPath: '%s', newPath: '%s'\n", oldPath, newPath);
     if (path::IsSame(oldPath, newPath)) {
         return;
     }
@@ -2163,7 +2162,7 @@ MainWindow* LoadDocumentFinish(LoadArgs* args) {
     const char* fullPath = args->FilePath();
 
     bool openNewTab = gGlobalPrefs->useTabs && !args->forceReuse;
-    ReportIf(openNewTab && args->forceReuse);
+    ReportDebugIf(openNewTab && args->forceReuse);
 
     if (win->IsCurrentTabAbout()) {
         // TODO: probably need to do it when switching tabs
@@ -2187,12 +2186,12 @@ MainWindow* LoadDocumentFinish(LoadArgs* args) {
         tab->SetFilePath(fullPath);
         win->currentTabTemp = AddTabToWindow(win, tab);
 
-        // logf("LoadDocument: !forceReuse, created win->CurrentTab() at 0x%p\n", win->CurrentTab());
+        // // logf("LoadDocument: !forceReuse, created win->CurrentTab() at 0x%p\n", win->CurrentTab());
     } else {
         win->CurrentTab()->SetFilePath(fullPath);
 #if 0
         auto path = ToUtf8Temp(fullPath);
-        logf("LoadDocument: forceReuse, set win->CurrentTab() (0x%p) filePath to '%s'\n", win->CurrentTab(), path.Get());
+        // logf("LoadDocument: forceReuse, set win->CurrentTab() (0x%p) filePath to '%s'\n", win->CurrentTab(), path.Get());
 #endif
     }
 
@@ -2205,8 +2204,7 @@ MainWindow* LoadDocumentFinish(LoadArgs* args) {
         // Clear from args so they aren't freed
         args->editModeOriginalPath = nullptr;
         args->editModeTempPath = nullptr;
-        logf("LoadDocumentFinish: set up edit mode for '%s' (temp: '%s')\n",
-             currTab->originalFilePath, currTab->editModeTempPath);
+        // logf("LoadDocumentFinish: set up edit mode for '%s' (temp: '%s')\n", currTab->originalFilePath, currTab->editModeTempPath);
     }
 
     // TODO: stop remembering/restoring window positions when using tabs?
@@ -2230,8 +2228,7 @@ MainWindow* LoadDocumentFinish(LoadArgs* args) {
     if (currTab->ctrl) {
         nPages = currTab->ctrl->PageCount();
     }
-    logf("LoadDocument: after ReplaceDocumentInCurrentTab win->CurrentTab() is 0x%p, path: '%s', %d pages\n", currTab,
-         path, nPages);
+    // logf("LoadDocument: after ReplaceDocumentInCurrentTab win->CurrentTab() is 0x%p, path: '%s', %d pages\n", currTab, path, nPages);
 #endif
     // when lazy loading: first time remember tab state, second time is
     // real loading so restore tab state
@@ -2245,7 +2242,7 @@ MainWindow* LoadDocumentFinish(LoadArgs* args) {
     // happens when opening 3 files via "Open With"
     // the first file is loaded via cmd-line arg, the rest
     // via DDE Open command.
-    ReportIf(currTab->watcher);
+    ReportDebugIf(currTab->watcher);
 
     if (gGlobalPrefs->reloadModifiedDocuments && !currTab->originalFilePath) {
         // Only set up file watcher for non-edit-mode files
@@ -2469,14 +2466,14 @@ static bool CreateTempCopyForEditMode(LoadArgs* args) {
     // Generate unique temp file path
     TempStr tempFile = GetTempFilePathTemp("SumatraPDF_edit");
     if (!tempFile) {
-        logf("CreateTempCopyForEditMode: failed to get temp path\n");
+        // logf("CreateTempCopyForEditMode: failed to get temp path\n");
         return false;
     }
 
     // Copy original to temp
     bool ok = file::Copy(tempFile, path, false);
     if (!ok) {
-        logf("CreateTempCopyForEditMode: failed to copy '%s' to '%s'\n", path, tempFile);
+        // logf("CreateTempCopyForEditMode: failed to copy '%s' to '%s'\n", path, tempFile);
         return false;
     }
 
@@ -2487,7 +2484,7 @@ static bool CreateTempCopyForEditMode(LoadArgs* args) {
     // Update the file path to load from temp
     args->SetFilePath(tempFile);
 
-    logf("CreateTempCopyForEditMode: created temp copy '%s' for '%s'\n", tempFile, path);
+    // logf("CreateTempCopyForEditMode: created temp copy '%s' for '%s'\n", tempFile, path);
     return true;
 }
 
@@ -2512,7 +2509,7 @@ void SaveChanges(MainWindow* win) {
     // Update UI (remove "[Unsaved]" from title)
     UpdateWindowTitle(win);
 
-    logf("SaveChanges: saved changes to '%s'\n", tab->originalFilePath);
+    // logf("SaveChanges: saved changes to '%s'\n", tab->originalFilePath);
 }
 
 // Discard changes and reload from original file
@@ -2573,7 +2570,7 @@ void DiscardChanges(MainWindow* win) {
     // Update UI
     UpdateWindowTitle(win);
 
-    logf("DiscardChanges: reloaded from '%s'\n", tab->originalFilePath);
+    // logf("DiscardChanges: reloaded from '%s'\n", tab->originalFilePath);
 }
 
 MainWindow* LoadDocument(LoadArgs* args) {
@@ -2640,9 +2637,9 @@ MainWindow* LoadDocument(LoadArgs* args) {
             auto durMs = TimeSinceInMs(timeStart);
             if (ctrl) {
                 int nPages = ctrl->PageCount();
-                logf("LoadDocument: %.2f ms, %d pages for '%s'\n", (float)durMs, nPages, path);
+                // logf("LoadDocument: %.2f ms, %d pages for '%s'\n", (float)durMs, nPages, path);
             } else {
-                logf("LoadDocument: failed to load '%s' in %.2f ms\n", path, (float)durMs);
+                // logf("LoadDocument: failed to load '%s' in %.2f ms\n", path, (float)durMs);
                 AppendIfNotExists(&gFilesFailedToOpen, path);
             }
         }
@@ -2784,7 +2781,7 @@ static TempStr FormatCursorPositionTemp(EngineBase* engine, PointF pt, Measureme
 
 static auto cursorPosUnit = MeasurementUnit::pt;
 void UpdateCursorPositionHelper(MainWindow* win, Point pos, NotificationWnd* wnd) {
-    ReportIf(!win->AsFixed());
+    ReportDebugIf(!win->AsFixed());
     EngineBase* engine = win->AsFixed()->GetEngine();
     PointF pt = win->AsFixed()->CvtFromScreen(pos);
     char* posStr = FormatCursorPositionTemp(engine, pt, cursorPosUnit);
@@ -2962,7 +2959,7 @@ static void CloseDocumentInCurrentTab(MainWindow* win, bool keepUIEnabled, bool 
         ShowScrollBar(win->hwndCanvas, SB_BOTH, FALSE);
         win->RedrawAll();
         HwndSetText(win->hwndFrame, kSumatraWindowTitle);
-        ReportIf(win->TabCount() != 0 || win->CurrentTab());
+        ReportDebugIf(win->TabCount() != 0 || win->CurrentTab());
     }
 
     // Note: this causes https://code.google.com/p/sumatrapdf/issues/detail?id=2702. For whatever reason
@@ -3204,7 +3201,7 @@ SaveChoice ShouldSaveAnnotationsDialog(HWND hwndParent, const char* filePath) {
     int buttonPressedId = 0;
 
     auto hr = TaskDialogIndirect(&dialogConfig, &buttonPressedId, nullptr, nullptr);
-    ReportIf(hr == E_INVALIDARG);
+    ReportDebugIf(hr == E_INVALIDARG);
     bool discard = (hr != S_OK) || (buttonPressedId == kBtnIdDiscard);
     if (discard) {
         return SaveChoice::Discard;
@@ -3219,7 +3216,7 @@ SaveChoice ShouldSaveAnnotationsDialog(HWND hwndParent, const char* filePath) {
         case IDCANCEL:
             return SaveChoice::Cancel;
     }
-    ReportIf(true);
+    ReportDebugIf(true);
     return SaveChoice::Cancel;
 }
 
@@ -3306,7 +3303,7 @@ static bool MaybeSaveAnnotations(WindowTab* tab) {
             tab->askedToSaveAnnotations = false;
             return false;
         default:
-            ReportIf(true);
+            ReportDebugIf(true);
     }
     return true;
 }
@@ -3316,7 +3313,7 @@ void CloseTab(WindowTab* tab, bool quitIfLast) {
         return;
     }
     MainWindow* win = tab->win;
-    logf("CloseTab: tab: 0x%p win: 0x%p, hwndFrame: 0x%x, quitIfLast: %d\n", tab, win, win->hwndFrame, (int)quitIfLast);
+    // logf("CloseTab: tab: 0x%p win: 0x%p, hwndFrame: 0x%x, quitIfLast: %d\n", tab, win, win->hwndFrame, (int)quitIfLast);
 
     AbortFinding(win, true);
     ClearFindBox(win);
@@ -3345,7 +3342,7 @@ void CloseTab(WindowTab* tab, bool quitIfLast) {
             return;
         }
     } else {
-        ReportIf(gPluginMode && !gWindows.Contains(win));
+        ReportDebugIf(gPluginMode && !gWindows.Contains(win));
         RemoveTab(tab);
         delete tab;
     }
@@ -3372,8 +3369,7 @@ void CloseTab(WindowTab* tab, bool quitIfLast) {
 // are other windows, else the Frequently Read page is displayed
 void CloseCurrentTab(MainWindow* win, bool quitIfLast) {
     WindowTab* tab = win->CurrentTab();
-    logf("CloseCurrentTab: tab: 0x%p win: 0x%p, hwndFrame: 0x%x, quitIfLast: %d\n", tab, win, win->hwndFrame,
-         (int)quitIfLast);
+    // logf("CloseCurrentTab: tab: 0x%p win: 0x%p, hwndFrame: 0x%x, quitIfLast: %d\n", tab, win, win->hwndFrame, (int)quitIfLast);
     if (tab) {
         CloseTab(tab, quitIfLast);
     } else {
@@ -3412,9 +3408,8 @@ void CloseWindow(MainWindow* win, bool quitIfLast, bool forceClose) {
     if (!win) {
         return;
     }
-    logf("CloseWindow: win: 0x%p, hwndFrame: 0x%x, quitIfLast: %d, forceClose: %d\n", win, win->hwndFrame,
-         (int)quitIfLast, (int)forceClose);
-    ReportIf(forceClose && !quitIfLast);
+    // logf("CloseWindow: win: 0x%p, hwndFrame: 0x%x, quitIfLast: %d, forceClose: %d\n", win, win->hwndFrame, (int)quitIfLast, (int)forceClose);
+    ReportDebugIf(forceClose && !quitIfLast);
     if (forceClose) {
         quitIfLast = true;
     }
@@ -3483,7 +3478,7 @@ void CloseWindow(MainWindow* win, bool quitIfLast, bool forceClose) {
         /* last window - don't delete it */
         CloseDocumentInCurrentTab(win, false, false);
         HwndSetFocus(win->hwndFrame);
-        ReportIf(!gWindows.Contains(win));
+        ReportDebugIf(!gWindows.Contains(win));
     } else {
         FreeMenuOwnerDrawInfoData(win->menu);
         HWND hwndToDestroy = win->hwndFrame;
@@ -3493,7 +3488,7 @@ void CloseWindow(MainWindow* win, bool quitIfLast, bool forceClose) {
 
     if (lastWindow && quitIfLast) {
         int nWindows = gWindows.size();
-        logf("Calling PostQuitMessage() in CloseWindow() because closing lastWindow, nWindows: %d\n", nWindows);
+        // logf("Calling PostQuitMessage() in CloseWindow() because closing lastWindow, nWindows: %d\n", nWindows);
         ReportDebugIf(nWindows != 0);
         PostQuitMessage(0);
     }
@@ -3560,7 +3555,7 @@ static void SaveCurrentFileAs(MainWindow* win) {
         }
     }
 
-    ReportIf(!srcFileName);
+    ReportDebugIf(!srcFileName);
     if (!srcFileName) {
         return;
     }
@@ -3636,14 +3631,14 @@ static void SaveCurrentFileAs(MainWindow* win) {
         realDstFileName = str::JoinTemp(realDstFileName, defExt);
     }
 
-    logf("Saving '%s' to '%s'\n", srcFileName, realDstFileName);
+    // logf("Saving '%s' to '%s'\n", srcFileName, realDstFileName);
 
     // TODO: engine->SaveFileA() is stupid
     // Replace with EngineGetDocumentData() and save that if not empty
     TempStr errorMsg = nullptr;
     if (!file::Exists(srcFileName) && engine) {
         // Recreate inexistant files from memory...
-        logf("calling engine->SaveFileAs(%s)\n", realDstFileName);
+        // logf("calling engine->SaveFileAs(%s)\n", realDstFileName);
         ok = engine->SaveFileAs(realDstFileName);
     } else if (!path::IsSame(srcFileName, realDstFileName)) {
         ok = file::Copy(realDstFileName, srcFileName, false);
@@ -3663,7 +3658,7 @@ static void SaveCurrentFileAs(MainWindow* win) {
     }
     if (!ok) {
         TempStr msg = (errorMsg != nullptr) ? errorMsg : (TempStr)_TRA("Failed to save a file");
-        logf("SaveCurrentFileAs() failed with '%s'\n", msg);
+        // logf("SaveCurrentFileAs() failed with '%s'\n", msg);
         MessageBoxWarning(win->hwndFrame, msg);
     }
 
@@ -3734,7 +3729,7 @@ static void RenameCurrentFile(MainWindow* win) {
     TempWStr defExtW = ToWStrTemp(defExt);
     str::Str fileFilter(256);
     bool ok = AppendFileFilterForDoc(ctrl, fileFilter);
-    ReportIf(!ok);
+    ReportDebugIf(!ok);
     fileFilter.AppendFmt("\1*%s\1", defExt);
     str::TransCharsInPlace(fileFilter.Get(), "\1", "\0");
 
@@ -3924,7 +3919,7 @@ void DuplicateTabInNewWindow(WindowTab* tab) {
     SaveSettings();
 
     const char* path = tab->filePath;
-    ReportIf(!path);
+    ReportDebugIf(!path);
     if (!path) {
         return;
     }
@@ -3959,7 +3954,7 @@ void DuplicateTabInNewTab(WindowTab* tab) {
         return;
     }
     const char* path = tab->filePath;
-    ReportIf(!path);
+    ReportDebugIf(!path);
     if (!path) {
         return;
     }
@@ -4043,7 +4038,7 @@ static TempWStr GetFileFilterTemp() {
             fileFilter.AppendChar(';');
         }
     }
-    ReportIf(fileFilter.Last() != ';');
+    ReportDebugIf(fileFilter.Last() != ';');
     fileFilter.Last() = '\1';
     for (int i = 0; i < dimof(fileFormats); i++) {
         if (fileFormats[i].available && fileFormats[i].name) {
@@ -4152,7 +4147,7 @@ static StrVec& CollectNextPrevFilesIfChanged(const char* path) {
 }
 
 static void OpenNextPrevFileInFolder(MainWindow* win, bool forward) {
-    ReportIf(win->IsCurrentTabAbout());
+    ReportDebugIf(win->IsCurrentTabAbout());
     if (win->IsCurrentTabAbout()) {
         return;
     }
@@ -4404,7 +4399,7 @@ static void OpenFileWithTextEditor(const char* path) {
     const char* cmd = editors[0]->openFileCmd;
 
     char* cmdLine = BuildOpenFileCmd(cmd, path, 1, 1);
-    logf("OpenFileWithTextEditor: '%s'\n", cmdLine);
+    // logf("OpenFileWithTextEditor: '%s'\n", cmdLine);
     char* appDir = GetSelfExeDirTemp();
     AutoCloseHandle process(LaunchProcess(cmdLine, appDir));
     str::Free(cmdLine);
@@ -4727,9 +4722,9 @@ void EnterFullScreen(MainWindow* win, bool presentation) {
         return;
     }
 
-    ReportIf(presentation ? win->isFullScreen : win->presentation);
+    ReportDebugIf(presentation ? win->isFullScreen : win->presentation);
     if (presentation) {
-        ReportIf(!win->ctrl);
+        ReportDebugIf(!win->ctrl);
         if (!win->IsDocLoaded()) {
             return;
         }
@@ -4826,8 +4821,8 @@ void ExitFullScreen(MainWindow* win) {
     uint flags = SWP_FRAMECHANGED | SWP_NOZORDER | SWP_NOSIZE | SWP_NOMOVE;
     SetWindowPos(win->hwndFrame, nullptr, 0, 0, 0, 0, flags);
     MoveWindow(win->hwndFrame, win->nonFullScreenFrameRect);
-    // TODO: this ReportIf() fires in pre-release e.g. 64011
-    // ReportIf(WindowRect(win.hwndFrame) != win.nonFullScreenFrameRect);
+    // TODO: this ReportDebugIf() fires in pre-release e.g. 64011
+    // ReportDebugIf(WindowRect(win.hwndFrame) != win.nonFullScreenFrameRect);
     // We have to relayout here, because it isn't done in the SetWindowPos nor MoveWindow,
     // if the client rectangle hasn't changed.
     if (ClientRect(win->hwndFrame) == cr) {
@@ -4884,7 +4879,7 @@ void AdvanceFocus(MainWindow* win) {
     if (gGlobalPrefs->showFavorites) {
         tabOrder[nWindows++] = win->favTreeView->hwnd;
     }
-    ReportIf(nWindows > MAX_WINDOWS);
+    ReportDebugIf(nWindows > MAX_WINDOWS);
 
     // find the currently focused element
     HWND focused = GetFocus();
@@ -5004,40 +4999,40 @@ static bool FrameOnKeydown(MainWindow* win, WPARAM key, LPARAM lp) {
     // the parts that are commented out should now be handled
     // in OnCommand via accelerators
     if (VK_UP == key) {
-        logf("VK_UP\n");
+        // logf("VK_UP\n");
     } else if (VK_DOWN == key) {
-        logf("VK_DOWN\n");
+        // logf("VK_DOWN\n");
     } else if (VK_PRIOR == key && isCtrl) {
         // win->ctrl->GoToPrevPage();
-        logf("CTRL + VK_PRIOR\n");
+        // logf("CTRL + VK_PRIOR\n");
     } else if (VK_NEXT == key && isCtrl) {
         // win->ctrl->GoToNextPage();
-        logf("CTRL + VK_NEXTds\n");
+        // logf("CTRL + VK_NEXTds\n");
     } else if (VK_HOME == key && isCtrl) {
-        logf("CTRL + VK_HOME\n");
+        // logf("CTRL + VK_HOME\n");
         // win->ctrl->GoToFirstPage();
     } else if (VK_END == key && isCtrl) {
-        logf("CTRL + VK_END\n");
+        // logf("CTRL + VK_END\n");
         if (!win->ctrl->GoToLastPage()) {
             //    SendMessageW(win->hwndCanvas, WM_VSCROLL, SB_BOTTOM, 0);
         }
     } else if (VK_LEFT == key) {
-        logf("VK_LEFT\n");
+        // logf("VK_LEFT\n");
     } else if (VK_RIGHT == key) {
-        logf("VK_RIGHT\n");
+        // logf("VK_RIGHT\n");
     } else if (VK_HOME == key) {
-        logf("VK_HOME\n");
+        // logf("VK_HOME\n");
         // win->ctrl->GoToFirstPage();
     } else if (VK_END == key) {
-        logf("VK_END\n");
+        // logf("VK_END\n");
         if (!win->ctrl->GoToLastPage()) {
             // SendMessageW(win->hwndCanvas, WM_VSCROLL, SB_BOTTOM, 0);
         }
     } else if (VK_MULTIPLY == key && dm) {
-        logf("VK_MULTIPLY\n");
+        // logf("VK_MULTIPLY\n");
         dm->RotateBy(90);
     } else if (VK_DIVIDE == key && dm) {
-        logf("VK_DIVIDE\n");
+        // logf("VK_DIVIDE\n");
         dm->RotateBy(-90);
         gIsDivideKeyDown = true;
     } else {
@@ -5352,12 +5347,12 @@ void CreateHighlightAnnotationsForKeyTerms(void* tabPtr) {
     
     // Create hierarchical bookmarks if we found any search terms
     if (termPageData.Size() > 0) {
-        logf("CreateHighlightAnnotationsForKeyTerms: Creating hierarchical bookmarks for search results\n");
+        // logf("CreateHighlightAnnotationsForKeyTerms: Creating hierarchical bookmarks for search results\n");
         bool bookmarkSuccess = CreateHierarchicalSearchBookmarks(engine, termPageData);
         if (!bookmarkSuccess) {
-            logf("CreateHighlightAnnotationsForKeyTerms: Failed to create hierarchical bookmarks\n");
+            // logf("CreateHighlightAnnotationsForKeyTerms: Failed to create hierarchical bookmarks\n");
         } else {
-            logf("CreateHighlightAnnotationsForKeyTerms: Successfully created hierarchical bookmarks\n");
+            // logf("CreateHighlightAnnotationsForKeyTerms: Successfully created hierarchical bookmarks\n");
         }
     }
     
@@ -5372,7 +5367,7 @@ void CreateHighlightAnnotationsForKeyTerms(void* tabPtr) {
             if (win->tocVisible) {
                 ClearTocBox(win);
                 LoadTocTree(win);
-                logf("CreateHighlightAnnotationsForKeyTerms: Refreshed TOC display\n");
+                // logf("CreateHighlightAnnotationsForKeyTerms: Refreshed TOC display\n");
             }
         }
     }
@@ -5423,7 +5418,7 @@ static void ToggleCursorPositionInDoc(MainWindow* win) {
                 RemoveNotificationsForGroup(win->hwndCanvas, kNotifCursorPos);
                 return;
             default:
-                ReportIf(true);
+                ReportDebugIf(true);
         }
     }
     Point pt = HwndGetCursorPos(win->hwndCanvas);
@@ -5541,7 +5536,7 @@ static void OnFavSplitterMove(Splitter::MoveEvent* ev) {
     // make sure to keep this in sync with the calculations in RelayoutFrame
     Rect rFrame = ClientRect(win->hwndFrame);
     Rect rToc = ClientRect(win->hwndTocBox);
-    ReportIf(rToc.dx != ClientRect(win->hwndFavBox).dx);
+    ReportDebugIf(rToc.dx != ClientRect(win->hwndFavBox).dx);
     int minDy = std::min(kTocMinDy, rToc.dy);
     int maxDy = std::max(rFrame.dy - kTocMinDy, rToc.dy);
     if (tocDy < minDy || tocDy > maxDy) {
@@ -5568,7 +5563,7 @@ void SetSidebarVisibility(MainWindow* win, bool tocVisible, bool showFavorites) 
 
     if (tocVisible) {
         LoadTocTree(win);
-        ReportIf(!win->tocLoaded);
+        ReportDebugIf(!win->tocLoaded);
     }
 
     if (showFavorites) {
@@ -5576,7 +5571,7 @@ void SetSidebarVisibility(MainWindow* win, bool tocVisible, bool showFavorites) 
     }
 
     if (!win->CurrentTab()) {
-        ReportIf(tocVisible);
+        ReportDebugIf(tocVisible);
     } else if (!win->presentation) {
         win->CurrentTab()->showToc = tocVisible;
     } else if (PM_ENABLED == win->presentation) {
@@ -6059,7 +6054,7 @@ void DebugCorruptMemory() {
 }
 
 static bool ExtractFiles(lzma::SimpleArchive* archive, const char* destDir) {
-    logf("ExtractFiles(): dir '%s'\n", destDir);
+    // logf("ExtractFiles(): dir '%s'\n", destDir);
     lzma::FileInfo* fi;
     u8* uncompressed;
     bool ok;
@@ -6071,13 +6066,13 @@ static bool ExtractFiles(lzma::SimpleArchive* archive, const char* destDir) {
         uncompressed = lzma::GetFileDataByIdx(archive, i, nullptr);
 
         if (!uncompressed) {
-            logf("ExtractFiles: lzma::GetFileDataByIdx() failed\n");
+            // logf("ExtractFiles: lzma::GetFileDataByIdx() failed\n");
             return false;
         }
         TempStr filePath = path::JoinTemp(destDir, fi->name);
         ok = dir::CreateForFile(filePath);
         if (!ok) {
-            logf("ExtractFiles: dir::CreateForFile(%s) failed\n", filePath);
+            // logf("ExtractFiles: dir::CreateForFile(%s) failed\n", filePath);
             free(uncompressed);
             return false;
         }
@@ -6086,10 +6081,10 @@ static bool ExtractFiles(lzma::SimpleArchive* archive, const char* destDir) {
         ok = file::WriteFile(filePath, d);
         free(uncompressed);
         if (!ok) {
-            logf("ExtractFiles: lzma::Write(%s) failed\n", filePath);
+            // logf("ExtractFiles: lzma::Write(%s) failed\n", filePath);
             return false;
         }
-        logf("  extracted '%s'\n", filePath);
+        // logf("  extracted '%s'\n", filePath);
     }
 
     return true;
@@ -6119,7 +6114,7 @@ static void OpenManualAtFile(const char* htmlFileName) {
     // in debug build we force extraction because those could be stale files
     bool ok = !gIsDebugBuild && file::Exists(htmlFilePath);
     if (ok) {
-        logf("OpenManualAtFile: '%s' already exists\n", htmlFilePath);
+        // logf("OpenManualAtFile: '%s' already exists\n", htmlFilePath);
         goto OpenFileInBrowser;
     }
 
@@ -6127,17 +6122,17 @@ static void OpenManualAtFile(const char* htmlFileName) {
     if (!ok) {
         ok = LockDataResource(IDR_MANUAL_PAK, &gManualArchiveData);
         if (!ok) {
-            logf("OpenManualAtFile(): LockDataResource() failed\n");
+            // logf("OpenManualAtFile(): LockDataResource() failed\n");
             return;
         }
         auto data = gManualArchiveData.data;
         auto size = gManualArchiveData.dataSize;
         ok = lzma::ParseSimpleArchive(data, (size_t)size, &gManualArchive);
         if (!ok) {
-            logf("OpenManualAtFile: lzma:ParseSimpleArchive() failed\n");
+            // logf("OpenManualAtFile: lzma:ParseSimpleArchive() failed\n");
             return;
         }
-        logf("OpenManualAtFile(): opened manual.dat, %d files\n", gManualArchive.filesCount);
+        // logf("OpenManualAtFile(): opened manual.dat, %d files\n", gManualArchive.filesCount);
         ok = gManualArchive.filesCount > 0;
         if (!ok) {
             return;
@@ -6181,7 +6176,7 @@ static void SetAnnotCreateArgs(AnnotCreateArgs& args, CustomCommand* cmd) {
         args.copyToClipboard = GetCommandBoolArg(cmd, kCmdArgCopyToClipboard, false);
         args.setContent = GetCommandBoolArg(cmd, kCmdArgSetContent, false);
         auto col = GetCommandArg(cmd, kCmdArgColor);
-        ReportIf(col && !col->colorVal.parsedOk);
+        ReportDebugIf(col && !col->colorVal.parsedOk);
         if (col && col->colorVal.parsedOk) {
             args.col = col->colorVal;
             return;
@@ -6203,8 +6198,8 @@ static void SetAnnotCreateArgs(AnnotCreateArgs& args, CustomCommand* cmd) {
     } else if (typ == AnnotationType::FreeText) {
         col = GetParsedColor(a.freeTextColor, a.freeTextColorParsed);
     } else {
-        logf("SetAnnotCreateArgs: unexpected type %d for default prefs color\n", (int)typ);
-        // ReportIf(true);
+        // logf("SetAnnotCreateArgs: unexpected type %d for default prefs color\n", (int)typ);
+        // ReportDebugIf(true);
     }
     if (col && col->parsedOk) {
         args.col = *col;
@@ -6406,7 +6401,7 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
                     if (win->tocVisible) {
                         ClearTocBox(win);
                         LoadTocTree(win);
-                        logf("DeleteAllBookmarks: Refreshed TOC display\n");
+                        // logf("DeleteAllBookmarks: Refreshed TOC display\n");
                     }
 
                     // In edit mode, mark as unsaved
@@ -6467,22 +6462,22 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
         }
 
         case CmdExtractPages: {
-            logf("=== EXTRACT_PAGES: Command started (Memory-Safe Version) ===");
+            // logf("=== EXTRACT_PAGES: Command started (Memory-Safe Version) ===");
             
             if (!win->IsDocLoaded()) {
-                logf("EXTRACT_PAGES: ERROR - No document loaded");
+                // logf("EXTRACT_PAGES: ERROR - No document loaded");
                 break;
             }
             
             WindowTab* currentTab = win->CurrentTab();
             if (!currentTab) {
-                logf("EXTRACT_PAGES: ERROR - No current tab");
+                // logf("EXTRACT_PAGES: ERROR - No current tab");
                 break;
             }
             
             EngineBase* engine = currentTab->GetEngine();
             if (!engine || engine->kind != kindEngineMupdf) {
-                logf("EXTRACT_PAGES: ERROR - Not a PDF document");
+                // logf("EXTRACT_PAGES: ERROR - Not a PDF document");
                 MessageBoxA(win->hwndFrame,
                            "Page extraction is currently only supported for PDF documents.",
                            "Extract Pages", MB_OK | MB_ICONINFORMATION);
@@ -6491,20 +6486,20 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
             
             int pageCount = engine->PageCount();
             int currentPage = win->currPageNo;
-            logf("EXTRACT_PAGES: Document info - pageCount=%d, currentPage=%d", pageCount, currentPage);
+            // logf("EXTRACT_PAGES: Document info - pageCount=%d, currentPage=%d", pageCount, currentPage);
             
             // Use new memory-safe page range input function
             char* rangeInput = GetPageRangeFromUser(win->hwndFrame, pageCount, currentPage);
             if (!rangeInput) {
-                logf("EXTRACT_PAGES: User cancelled");
+                // logf("EXTRACT_PAGES: User cancelled");
                 break;
             }
-            logf("EXTRACT_PAGES: User entered range: '%s'", rangeInput);
+            // logf("EXTRACT_PAGES: User entered range: '%s'", rangeInput);
             
             // Parse using memory-safe function (stack allocated)
             PageRangeData rangeData = {}; // Stack allocation - no cleanup needed
             if (!ParsePageRangesSafe(rangeInput, pageCount, &rangeData)) {
-                logf("EXTRACT_PAGES: ERROR - ParsePageRangesSafe failed for input '%s'", rangeInput);
+                // logf("EXTRACT_PAGES: ERROR - ParsePageRangesSafe failed for input '%s'", rangeInput);
                 MessageBoxA(win->hwndFrame,
                            "Invalid page range. Please enter valid page numbers or ranges.\n"
                            "Examples: '5' (single page), '1-10' (range), '1-5,8,12-15' (complex)",
@@ -6513,7 +6508,7 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
                 break;
             }
             
-            logf("EXTRACT_PAGES: Successfully parsed %d pages from input '%s'", rangeData.count, rangeInput);
+            // logf("EXTRACT_PAGES: Successfully parsed %d pages from input '%s'", rangeData.count, rangeInput);
             str::Free(rangeInput);
 
             // Generate suggested filename - use original path in edit mode, not temp file
@@ -6536,10 +6531,10 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
             // Show save dialog
             char* outputPath = GetExtractPagesSavePath(win->hwndFrame, srcPath, suggestedFileName);
             if (!outputPath) {
-                logf("EXTRACT_PAGES: User cancelled save dialog");
+                // logf("EXTRACT_PAGES: User cancelled save dialog");
                 break;
             }
-            logf("EXTRACT_PAGES: User selected output path: %s", outputPath);
+            // logf("EXTRACT_PAGES: User selected output path: %s", outputPath);
 
             // Extract using memory-safe function
             bool success = ExtractPageRangeToNewPDF(engine, &rangeData, outputPath);
@@ -6554,7 +6549,7 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
                                                        rangeData.count, outputPath);
                     MessageBoxA(win->hwndFrame, successMsg, "Extract Pages", MB_OK | MB_ICONINFORMATION);
                 }
-                logf("EXTRACT_PAGES: SUCCESS - Extracted %d pages", rangeData.count);
+                // logf("EXTRACT_PAGES: SUCCESS - Extracted %d pages", rangeData.count);
             } else {
                 if (rangeData.count == 1) {
                     TempStr errorMsg = str::FormatTemp("Failed to extract page %d", rangeData.pages[0]);
@@ -6563,30 +6558,30 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
                     TempStr errorMsg = str::FormatTemp("Failed to extract %d pages", rangeData.count);
                     MessageBoxA(win->hwndFrame, errorMsg, "Extract Pages", MB_OK | MB_ICONERROR);
                 }
-                logf("EXTRACT_PAGES: ERROR - Failed to extract %d pages", rangeData.count);
+                // logf("EXTRACT_PAGES: ERROR - Failed to extract %d pages", rangeData.count);
             }
             
-            logf("EXTRACT_PAGES: Command completed (Memory-Safe Version)");
+            // logf("EXTRACT_PAGES: Command completed (Memory-Safe Version)");
             break;
         }
 
         case CmdDeletePages: {
-            logf("=== DELETE_PAGES: Command started ===");
+            // logf("=== DELETE_PAGES: Command started ===");
 
             if (!win->IsDocLoaded()) {
-                logf("DELETE_PAGES: ERROR - No document loaded");
+                // logf("DELETE_PAGES: ERROR - No document loaded");
                 break;
             }
 
             WindowTab* currentTab = win->CurrentTab();
             if (!currentTab) {
-                logf("DELETE_PAGES: ERROR - No current tab");
+                // logf("DELETE_PAGES: ERROR - No current tab");
                 break;
             }
 
             EngineBase* engine = currentTab->GetEngine();
             if (!engine || engine->kind != kindEngineMupdf) {
-                logf("DELETE_PAGES: ERROR - Not a PDF document");
+                // logf("DELETE_PAGES: ERROR - Not a PDF document");
                 MessageBoxA(win->hwndFrame,
                            "Page deletion is currently only supported for PDF documents.",
                            "Delete Pages", MB_OK | MB_ICONINFORMATION);
@@ -6599,7 +6594,7 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
             // Get pages to delete from user
             char* rangeInput = GetPageRangeFromUser(win->hwndFrame, pageCount, currentPage);
             if (!rangeInput) {
-                logf("DELETE_PAGES: User cancelled");
+                // logf("DELETE_PAGES: User cancelled");
                 break;
             }
 
@@ -6646,12 +6641,12 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
                 MessageBoxA(win->hwndFrame, "Failed to delete pages.", "Delete Pages", MB_OK | MB_ICONERROR);
             }
 
-            logf("DELETE_PAGES: Command completed");
+            // logf("DELETE_PAGES: Command completed");
             break;
         }
 
         case CmdCombinePDFs: {
-            logf("=== COMBINE_PDFS: Command started ===");
+            // logf("=== COMBINE_PDFS: Command started ===");
 
             // Get files to combine using Open File dialog
             OPENFILENAMEA ofn = {};
@@ -6667,7 +6662,7 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
             ofn.Flags = OFN_ALLOWMULTISELECT | OFN_EXPLORER | OFN_FILEMUSTEXIST;
 
             if (!GetOpenFileNameA(&ofn)) {
-                logf("COMBINE_PDFS: User cancelled");
+                // logf("COMBINE_PDFS: User cancelled");
                 break;
             }
 
@@ -6696,7 +6691,7 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
                 break;
             }
 
-            logf("COMBINE_PDFS: Selected %d files to combine", (int)filePaths.Size());
+            // logf("COMBINE_PDFS: Selected %d files to combine", (int)filePaths.Size());
 
             // Ask where to save combined PDF
             char szOutput[MAX_PATH] = "combined.pdf";
@@ -6711,7 +6706,7 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
             ofnSave.Flags = OFN_OVERWRITEPROMPT;
 
             if (!GetSaveFileNameA(&ofnSave)) {
-                logf("COMBINE_PDFS: User cancelled save dialog");
+                // logf("COMBINE_PDFS: User cancelled save dialog");
                 for (char* p : filePaths) str::Free(p);
                 break;
             }
@@ -6737,14 +6732,14 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
                 MessageBoxA(win->hwndFrame, "Failed to combine PDFs.", "Combine PDFs", MB_OK | MB_ICONERROR);
             }
 
-            logf("COMBINE_PDFS: Command completed");
+            // logf("COMBINE_PDFS: Command completed");
             break;
         }
 
         case CmdInsertTemplate: {
             // Timing diagnostics to investigate delay
             DWORD t0 = GetTickCount();
-            logf("=== INSERT_TEMPLATE: Command started at %lu ===", t0);
+            // logf("=== INSERT_TEMPLATE: Command started at %lu ===", t0);
 
             if (!win->IsDocLoaded()) {
                 MessageBoxA(win->hwndFrame, "Please open a PDF document first.",
@@ -6770,7 +6765,7 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
             }
 
             DWORD t1 = GetTickCount();
-            logf("INSERT_TEMPLATE: Before file dialog at %lu (delta=%lu ms)", t1, t1 - t0);
+            // logf("INSERT_TEMPLATE: Before file dialog at %lu (delta=%lu ms)", t1, t1 - t0);
 
             // Select PDF to insert
             OPENFILENAMEA ofn = {};
@@ -6785,41 +6780,41 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
             ofn.Flags = OFN_FILEMUSTEXIST;
 
             if (!GetOpenFileNameA(&ofn)) {
-                logf("INSERT_TEMPLATE: User cancelled file selection");
+                // logf("INSERT_TEMPLATE: User cancelled file selection");
                 break;
             }
 
             DWORD t2 = GetTickCount();
-            logf("INSERT_TEMPLATE: After file dialog at %lu (delta=%lu ms)", t2, t2 - t1);
+            // logf("INSERT_TEMPLATE: After file dialog at %lu (delta=%lu ms)", t2, t2 - t1);
 
             // Ask where to insert (after which page)
             int pageCount = engine->PageCount();
             DWORD t3 = GetTickCount();
-            logf("INSERT_TEMPLATE: After PageCount() at %lu (delta=%lu ms)", t3, t3 - t2);
+            // logf("INSERT_TEMPLATE: After PageCount() at %lu (delta=%lu ms)", t3, t3 - t2);
 
             int currentPage = win->currPageNo;
             DWORD t4 = GetTickCount();
-            logf("INSERT_TEMPLATE: Before position dialog at %lu (delta=%lu ms)", t4, t4 - t3);
+            // logf("INSERT_TEMPLATE: Before position dialog at %lu (delta=%lu ms)", t4, t4 - t3);
 
             // Use dedicated insert position dialog
             int insertAfter = GetInsertPositionFromUser(win->hwndFrame, pageCount, currentPage);
             DWORD t5 = GetTickCount();
-            logf("INSERT_TEMPLATE: After position dialog at %lu (delta=%lu ms)", t5, t5 - t4);
+            // logf("INSERT_TEMPLATE: After position dialog at %lu (delta=%lu ms)", t5, t5 - t4);
 
             if (insertAfter < 0) {
-                logf("INSERT_TEMPLATE: User cancelled position selection");
+                // logf("INSERT_TEMPLATE: User cancelled position selection");
                 break;
             }
 
             // Generate temporary output path for insertion result
             TempStr tempOutputPath = GetTempFilePathTemp("SumatraPDF_insert");
-            logf("INSERT_TEMPLATE: Inserting after page %d, output to %s", insertAfter, tempOutputPath);
+            // logf("INSERT_TEMPLATE: Inserting after page %d, output to %s", insertAfter, tempOutputPath);
 
             DWORD t6 = GetTickCount();
             // Perform insertion: current temp file + insert file -> new temp output
             bool success = InsertPDFPages(engine, szFile, insertAfter, tempOutputPath);
             DWORD t7 = GetTickCount();
-            logf("INSERT_TEMPLATE: InsertPDFPages took %lu ms, success=%d", t7 - t6, success);
+            // logf("INSERT_TEMPLATE: InsertPDFPages took %lu ms, success=%d", t7 - t6, success);
 
             if (success) {
                 // Replace our working temp file with the new version
@@ -6835,7 +6830,7 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
                     DWORD t8 = GetTickCount();
                     ReloadDocument(win, false);
                     DWORD t9 = GetTickCount();
-                    logf("INSERT_TEMPLATE: ReloadDocument took %lu ms", t9 - t8);
+                    // logf("INSERT_TEMPLATE: ReloadDocument took %lu ms", t9 - t8);
 
                     // Refresh thumbnail panel with new DisplayModel to prevent crash
                     LoadThumbnailPanel(win);
@@ -6854,12 +6849,12 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
                            "Insert Template", MB_OK | MB_ICONERROR);
             }
 
-            logf("INSERT_TEMPLATE: Command completed, total time %lu ms", GetTickCount() - t0);
+            // logf("INSERT_TEMPLATE: Command completed, total time %lu ms", GetTickCount() - t0);
             break;
         }
 
         case CmdSendToLLM: {
-            logf("=== SEND_TO_LLM: Command started ===");
+            // logf("=== SEND_TO_LLM: Command started ===");
 
             if (!win->IsDocLoaded()) {
                 MessageBoxA(win->hwndFrame, "Please open a PDF document first.",
@@ -6885,7 +6880,7 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
             }
 
             int textLen = (int)str::Len(allText);
-            logf("SEND_TO_LLM: Extracted %d characters", textLen);
+            // logf("SEND_TO_LLM: Extracted %d characters", textLen);
 
             // For now, copy to clipboard and show instructions
             // Future: Direct API integration
@@ -6935,12 +6930,12 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
             }
 
             str::Free(allText);
-            logf("SEND_TO_LLM: Command completed");
+            // logf("SEND_TO_LLM: Command completed");
             break;
         }
 
         case CmdDeleteSelectedPages: {
-            logf("=== DELETE_SELECTED_PAGES: Command started ===");
+            // logf("=== DELETE_SELECTED_PAGES: Command started ===");
 
             if (!win->IsDocLoaded()) {
                 break;
@@ -6948,7 +6943,7 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
 
             ThumbnailPanel* thumbPanel = win->thumbnailPanel;
             if (!thumbPanel) {
-                logf("DELETE_SELECTED_PAGES: No thumbnail panel");
+                // logf("DELETE_SELECTED_PAGES: No thumbnail panel");
                 break;
             }
 
@@ -7028,7 +7023,7 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
                         if (win->thumbnailPanel && win->thumbnailsVisible) {
                             LoadThumbnailPanel(win);
                         }
-                        logf("DELETE_SELECTED_PAGES: Edit mode - deleted %d pages", rangeData.count);
+                        // logf("DELETE_SELECTED_PAGES: Edit mode - deleted %d pages", rangeData.count);
                     }
                 }
             } else {
@@ -7058,12 +7053,12 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
                 MessageBoxA(win->hwndFrame, "Failed to delete pages.", "Delete Selected Pages", MB_OK | MB_ICONERROR);
             }
 
-            logf("DELETE_SELECTED_PAGES: Command completed");
+            // logf("DELETE_SELECTED_PAGES: Command completed");
             break;
         }
 
         case CmdExtractSelectedPages: {
-            logf("=== EXTRACT_SELECTED_PAGES: Command started ===");
+            // logf("=== EXTRACT_SELECTED_PAGES: Command started ===");
 
             if (!win->IsDocLoaded()) {
                 break;
@@ -7071,7 +7066,7 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
 
             ThumbnailPanel* thumbPanel = win->thumbnailPanel;
             if (!thumbPanel) {
-                logf("EXTRACT_SELECTED_PAGES: No thumbnail panel");
+                // logf("EXTRACT_SELECTED_PAGES: No thumbnail panel");
                 break;
             }
 
@@ -7116,10 +7111,10 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
             // Show save dialog
             char* outputPath = GetExtractPagesSavePath(win->hwndFrame, srcPath, suggestedFileName);
             if (!outputPath) {
-                logf("EXTRACT_SELECTED_PAGES: User cancelled save dialog");
+                // logf("EXTRACT_SELECTED_PAGES: User cancelled save dialog");
                 break;
             }
-            logf("EXTRACT_SELECTED_PAGES: User selected output path: %s", outputPath);
+            // logf("EXTRACT_SELECTED_PAGES: User selected output path: %s", outputPath);
 
             bool success = ExtractPageRangeToNewPDF(engine, &rangeData, outputPath);
 
@@ -7135,7 +7130,7 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
                 MessageBoxA(win->hwndFrame, "Failed to extract pages.", "Extract Selected Pages", MB_OK | MB_ICONERROR);
             }
 
-            logf("EXTRACT_SELECTED_PAGES: Command completed");
+            // logf("EXTRACT_SELECTED_PAGES: Command completed");
             break;
         }
 
@@ -8117,7 +8112,7 @@ LRESULT CALLBACK WndProcSumatraFrame(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) 
                 RememberDefaultWindowPosition(win);
                 int dx = LOWORD(lp);
                 int dy = HIWORD(lp);
-                // dbglog::LogF("dx: %d, dy: %d", dx, dy);
+                // dbglog::// logf("dx: %d, dy: %d", dx, dy);
                 FrameOnSize(win, dx, dy);
             }
             break;
@@ -8266,7 +8261,7 @@ LRESULT CALLBACK WndProcSumatraFrame(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) 
             if (win->AsChm()) {
                 return win->AsChm()->PassUIMsg(msg, wp, lp);
             }
-            ReportIf(!win->AsFixed());
+            ReportDebugIf(!win->AsFixed());
             // Pass the message to the canvas' window procedure
             // (required since the canvas itself never has the focus and thus
             // never receives WM_MOUSEWHEEL messages)
@@ -8274,8 +8269,8 @@ LRESULT CALLBACK WndProcSumatraFrame(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) 
 
         case WM_CLOSE: {
             if (!win) {
-                logf("WM_CLOSE to 0x%p, but didn't find MainWindow for it\n", hwnd);
-                ReportIf(true);
+                // logf("WM_CLOSE to 0x%p, but didn't find MainWindow for it\n", hwnd);
+                ReportDebugIf(true);
             }
             if (CanCloseWindow(win)) {
                 CloseWindow(win, true, false);

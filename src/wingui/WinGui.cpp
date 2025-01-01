@@ -195,7 +195,7 @@ static bool WndListRemove(Wnd* w) {
     while (gWndList.RemoveFast(w) >= 0) {
         removed = true;
     }
-    // logf("WndMapRemoveWnd: failed to remove w: 0x%p\n", w);
+    // // logf("WndMapRemoveWnd: failed to remove w: 0x%p\n", w);
     return removed;
 }
 
@@ -226,7 +226,7 @@ static LRESULT CALLBACK WndWindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM
 
     if (msg == WM_NCCREATE) {
         CREATESTRUCT* cs = (CREATESTRUCT*)(lparam);
-        ReportIf(wnd);
+        ReportDebugIf(wnd);
         wnd = (Wnd*)(cs->lpCreateParams);
         wnd->hwnd = hwnd;
         WndListAdd(wnd);
@@ -273,7 +273,7 @@ TempStr Wnd::GetTextTemp() {
 }
 
 void Wnd::SetVisibility(Visibility newVisibility) {
-    ReportIf(!hwnd);
+    ReportDebugIf(!hwnd);
     visibility = newVisibility;
     bool isVisible = IsVisible();
     // TODO: a different way to determine if is top level vs. child window?
@@ -525,7 +525,7 @@ int Wnd::MinIntrinsicWidth(int) {
 }
 
 void Wnd::Close() {
-    ReportIf(!::IsWindow(hwnd));
+    ReportDebugIf(!::IsWindow(hwnd));
     PostMessageW(hwnd, WM_CLOSE, 0, 0);
 }
 
@@ -880,8 +880,8 @@ bool Wnd::PreTranslateMessage(MSG& msg) {
 }
 
 void Wnd::Attach(HWND hwnd) {
-    ReportIf(!IsWindow(hwnd));
-    ReportIf(WndListFindByHwnd(hwnd));
+    ReportDebugIf(!IsWindow(hwnd));
+    ReportDebugIf(WndListFindByHwnd(hwnd));
 
     this->hwnd = hwnd;
     Subclass();
@@ -890,7 +890,7 @@ void Wnd::Attach(HWND hwnd) {
 
 // Attaches a CWnd object to a dialog item.
 void Wnd::AttachDlgItem(UINT id, HWND parent) {
-    ReportIf(!::IsWindow(parent));
+    ReportDebugIf(!::IsWindow(parent));
     HWND wnd = ::GetDlgItem(parent, id);
     Attach(wnd);
 }
@@ -927,11 +927,11 @@ static void WndRegisterClass(const WCHAR* className) {
     wc.hCursor = ::LoadCursor(nullptr, IDC_ARROW);
     wc.hbrBackground = reinterpret_cast<HBRUSH>(::GetStockObject(WHITE_BRUSH));
     ATOM atom = ::RegisterClassExW(&wc);
-    ReportIf(!atom);
+    ReportDebugIf(!atom);
 }
 
 HWND Wnd::CreateControl(const CreateControlArgs& args) {
-    ReportIf(!args.className);
+    ReportDebugIf(!args.className);
     // TODO: validate that className is one of the known controls?
 
     font = args.font;
@@ -961,7 +961,7 @@ HWND Wnd::CreateControl(const CreateControlArgs& args) {
     void* createParams = this;
     hwnd = ::CreateWindowExW(exStyle, className, L"", style, x, y, dx, dy, parent, id, inst, createParams);
     HwndSetFont(hwnd, font);
-    ReportIf(!hwnd);
+    ReportDebugIf(!hwnd);
 
     // TODO: validate that
     Subclass();
@@ -1015,7 +1015,7 @@ HWND Wnd::CreateCustom(const CreateCustomArgs& args) {
 
     DWORD tmpStyle = style & ~WS_VISIBLE;
     DWORD exStyle = args.exStyle;
-    ReportIf(args.menu && args.cmdId);
+    ReportDebugIf(args.menu && args.cmdId);
     HMENU m = args.menu;
     if (m == nullptr) {
         m = (HMENU)(INT_PTR)args.cmdId;
@@ -1026,10 +1026,10 @@ HWND Wnd::CreateCustom(const CreateCustomArgs& args) {
 
     HWND hwndTmp = ::CreateWindowExW(exStyle, className, titleW, style, x, y, dx, dy, parent, m, inst, createParams);
 
-    ReportIf(!hwndTmp);
+    ReportDebugIf(!hwndTmp);
     // hwnd should be assigned in WM_CREATE
-    ReportIf(hwndTmp != hwnd);
-    ReportIf(this != WndListFindByHwnd(hwndTmp));
+    ReportDebugIf(hwndTmp != hwnd);
+    ReportDebugIf(this != WndListFindByHwnd(hwndTmp));
     if (!hwnd) {
         return nullptr;
     }
@@ -1057,8 +1057,8 @@ void Wnd::SetInsetsPt(int top, int right, int bottom, int left) {
 }
 
 void Wnd::Subclass() {
-    ReportIf(!IsWindow(hwnd));
-    ReportIf(subclassId); // don't subclass multiple times
+    ReportDebugIf(!IsWindow(hwnd));
+    ReportDebugIf(subclassId); // don't subclass multiple times
     if (subclassId) {
         return;
     }
@@ -1066,7 +1066,7 @@ void Wnd::Subclass() {
 
     subclassId = NextSubclassId();
     BOOL ok = SetWindowSubclass(hwnd, WndSubclassedWindowProc, subclassId, (DWORD_PTR)this);
-    ReportIf(!ok);
+    ReportDebugIf(!ok);
 }
 
 void Wnd::UnSubclass() {
@@ -1087,7 +1087,7 @@ void Wnd::SetFont(HFONT fontIn) {
 }
 
 void Wnd::SetIsEnabled(bool isEnabled) const {
-    ReportIf(!hwnd);
+    ReportDebugIf(!hwnd);
     BOOL enabled = isEnabled ? TRUE : FALSE;
     ::EnableWindow(hwnd, enabled);
 }
@@ -1177,7 +1177,7 @@ HWND Static::Create(const CreateArgs& args) {
 }
 
 Size Static::GetIdealSize() {
-    ReportIf(!hwnd);
+    ReportDebugIf(!hwnd);
     char* txt = HwndGetTextTemp(hwnd);
     HFONT hfont = GetWindowFont(hwnd);
     return HwndMeasureText(hwnd, txt, hfont);
@@ -1335,7 +1335,7 @@ int TooltipGetId(HWND hwnd, int idx) {
     ti.cbSize = sizeof(ti);
     ti.lpszText = buf;
     BOOL ok = SendMessageW(hwnd, TTM_ENUMTOOLS, idx, (LPARAM)&ti);
-    ReportIf(!ok);
+    ReportDebugIf(!ok);
     if (!ok) {
         return -1;
     }
@@ -1491,7 +1491,7 @@ int Tooltip::SetSingle(const char* s, const Rect& rc, bool multiline) {
     }
     int n = Count();
     // if want to use more tooltips, use Add() and Update()
-    ReportIf(n > 1);
+    ReportDebugIf(n > 1);
     if (n == 0) {
         return Add(s, rc, multiline);
     }
@@ -1503,7 +1503,7 @@ int Tooltip::SetSingle(const char* s, const Rect& rc, bool multiline) {
 int Tooltip::Count() {
     int n = TooltipGetCount(hwnd);
     int n2 = tooltipIds.Size();
-    ReportIf(n != n2);
+    ReportDebugIf(n != n2);
     return n;
 }
 
@@ -1516,11 +1516,11 @@ void Tooltip::Delete(int id) {
     if (id == 0) {
         // 0 means delete a single tool
         // should only be used if we only have single tool
-        ReportIf(Count() > 1);
+        ReportDebugIf(Count() > 1);
         id = tooltipIds[0];
     } else {
         removeIdx = tooltipIds.Find(id);
-        ReportIf(removeIdx < 0);
+        ReportDebugIf(removeIdx < 0);
     }
 
     TOOLINFOW ti{};
@@ -1530,7 +1530,7 @@ void Tooltip::Delete(int id) {
     int n1 = (int)SendMessageW(hwnd, TTM_GETTOOLCOUNT, 0, 0);
     SendMessageW(hwnd, TTM_DELTOOLW, 0, (LPARAM)&ti);
     int n2 = (int)SendMessageW(hwnd, TTM_GETTOOLCOUNT, 0, 0);
-    ReportIf(n1 != n2 + 1);
+    ReportDebugIf(n1 != n2 + 1);
     tooltipIds.RemoveAt(removeIdx);
 }
 
@@ -1538,9 +1538,9 @@ void Tooltip::Delete(int id) {
 // type is: TTDT_AUTOPOP, TTDT_INITIAL, TTDT_RESHOW, TTDT_AUTOMATIC
 // timeInMs is max 32767 (~32 secs)
 void Tooltip::SetDelayTime(int type, int timeInMs) {
-    ReportIf(!IsValidDelayType(type));
-    ReportIf(timeInMs < 0);
-    ReportIf(timeInMs > 32767); // TODO: or is it 65535?
+    ReportDebugIf(!IsValidDelayType(type));
+    ReportDebugIf(timeInMs < 0);
+    ReportDebugIf(timeInMs > 32767); // TODO: or is it 65535?
     SendMessageW(hwnd, TTM_SETDELAYTIME, type, (LPARAM)timeInMs);
 }
 
@@ -1656,10 +1656,10 @@ bool Edit::HasBorder() {
 Size Edit::GetIdealSize() {
     HFONT hfont = HwndGetFont(hwnd);
     Size s1 = HwndMeasureText(hwnd, "Minimal", hfont);
-    // logf("Edit::GetIdealSize: s1.dx=%d, s2.dy=%d\n", (int)s1.cx, (int)s1.cy);
+    // // logf("Edit::GetIdealSize: s1.dx=%d, s2.dy=%d\n", (int)s1.cx, (int)s1.cy);
     char* txt = HwndGetTextTemp(hwnd);
     Size s2 = HwndMeasureText(hwnd, txt, hfont);
-    // logf("Edit::GetIdealSize: s2.dx=%d, s2.dy=%d\n", (int)s2.cx, (int)s2.cy);
+    // // logf("Edit::GetIdealSize: s2.dx=%d, s2.dy=%d\n", (int)s2.cx, (int)s2.cy);
 
     int dx = std::max(s1.dx, s2.dx);
     if (maxDx > 0 && dx > maxDx) {
@@ -1672,7 +1672,7 @@ Size Edit::GetIdealSize() {
         dy = std::max(s1.dy, s2.dy);
     }
     dy = dy * idealSizeLines;
-    // logf("Edit::GetIdealSize: dx=%d, dy=%d\n", (int)dx, (int)dy);
+    // // logf("Edit::GetIdealSize: dx=%d, dy=%d\n", (int)dx, (int)dy);
 
     LRESULT margins = SendMessageW(hwnd, EM_GETMARGINS, 0, 0);
     int lm = (int)LOWORD(margins);
@@ -1683,7 +1683,7 @@ Size Edit::GetIdealSize() {
         dx += DpiScale(hwnd, 4);
         dy += DpiScale(hwnd, 8);
     }
-    // logf("Edit::GetIdealSize(): dx=%d, dy=%d\n", int(res.cx), int(res.cy));
+    // // logf("Edit::GetIdealSize(): dx=%d, dy=%d\n", int(res.cx), int(res.cy));
     return {dx, dy};
 }
 
@@ -1860,7 +1860,7 @@ static Checkbox::State GetButtonState(HWND hwnd) {
 }
 
 static void SetButtonState(HWND hwnd, Checkbox::State newState) {
-    ReportIf(!hwnd);
+    ReportDebugIf(!hwnd);
     Button_SetCheck(hwnd, newState);
 }
 
@@ -1895,7 +1895,7 @@ Size Checkbox::GetIdealSize() {
 }
 
 void Checkbox::SetState(State newState) {
-    ReportIf(!hwnd);
+    ReportDebugIf(!hwnd);
     SetButtonState(hwnd, newState);
 }
 
@@ -1904,13 +1904,13 @@ Checkbox::State Checkbox::GetState() const {
 }
 
 void Checkbox::SetIsChecked(bool isChecked) {
-    ReportIf(!hwnd);
+    ReportDebugIf(!hwnd);
     Checkbox::State newState = isChecked ? Checkbox::State::Checked : Checkbox::State::Unchecked;
     SetButtonState(hwnd, newState);
 }
 
 bool Checkbox::IsChecked() const {
-    ReportIf(!hwnd);
+    ReportDebugIf(!hwnd);
     auto state = GetState();
     return state == Checkbox::State::Checked;
 }
@@ -2024,7 +2024,7 @@ void DropDown::SetCurrentSelection(int n) {
         return;
     }
     int nItems = items.Size();
-    ReportIf(n >= nItems);
+    ReportDebugIf(n >= nItems);
     ComboBox_SetCurSel(hwnd, n);
 }
 
@@ -2265,7 +2265,7 @@ Splitter::~Splitter() {
 }
 
 HWND Splitter::Create(const CreateArgs& args) {
-    ReportIf(!args.parent);
+    ReportDebugIf(!args.parent);
 
     isLive = args.isLive;
     type = args.type;
@@ -2276,9 +2276,9 @@ HWND Splitter::Create(const CreateArgs& args) {
     SetColors(kColorUnset, bgCol);
 
     bmp = CreateBitmap(8, 8, 1, 1, dotPatternBmp);
-    ReportIf(!bmp);
+    ReportDebugIf(!bmp);
     brush = CreatePatternBrush(bmp);
-    ReportIf(!brush);
+    ReportDebugIf(!brush);
 
     DWORD style = GetWindowLong(args.parent, GWL_STYLE);
     parentClipsChildren = bit::IsMaskSet<DWORD>(style, WS_CLIPCHILDREN);
@@ -2486,9 +2486,9 @@ Size TreeView::GetIdealSize() {
 }
 
 void TreeView::SetToolTipsDelayTime(int type, int timeInMs) {
-    ReportIf(!IsValidDelayType(type));
-    ReportIf(timeInMs < 0);
-    ReportIf(timeInMs > 32767); // TODO: or is it 65535?
+    ReportDebugIf(!IsValidDelayType(type));
+    ReportDebugIf(timeInMs < 0);
+    ReportDebugIf(timeInMs > 32767); // TODO: or is it 65535?
     HWND hwndToolTips = GetToolTipsHwnd();
     SendMessageW(hwndToolTips, TTM_SETDELAYTIME, type, (LPARAM)timeInMs);
 }
@@ -2743,7 +2743,7 @@ HTREEITEM insertItemFront(TreeView* treeView, TreeItem ti, HTREEITEM parent) {
 
 bool TreeView::UpdateItem(TreeItem ti) {
     HTREEITEM ht = GetHandleByTreeItem(ti);
-    ReportIf(!ht);
+    ReportDebugIf(!ht);
     if (!ht) {
         return false;
     }
@@ -2765,7 +2765,7 @@ void PopulateTreeItem(TreeView* treeView, TreeItem item, HTREEITEM parent) {
     // insert backwards, so gather the items in v first
     for (int i = 0; i < n; i++) {
         auto ti = tm->ChildAt(item, i);
-        ReportIf(ti == 0);
+        ReportDebugIf(ti == 0);
         a[n - 1 - i] = ti;
     }
 
@@ -2786,7 +2786,7 @@ static void PopulateTree(TreeView* treeView, TreeModel* tm) {
 }
 
 void TreeView::SetTreeModel(TreeModel* tm) {
-    ReportIf(!tm);
+    ReportDebugIf(!tm);
 
     SuspendRedraw();
 
@@ -2802,13 +2802,13 @@ void TreeView::SetTreeModel(TreeModel* tm) {
 
 void TreeView::SetState(TreeItem item, bool enable) {
     HTREEITEM hi = GetHandleByTreeItem(item);
-    ReportIf(!hi);
+    ReportDebugIf(!hi);
     TreeView_SetCheckState(hwnd, hi, enable);
 }
 
 bool TreeView::GetState(TreeItem item) {
     HTREEITEM hi = GetHandleByTreeItem(item);
-    ReportIf(!hi);
+    ReportDebugIf(!hi);
     auto res = TreeView_GetCheckState(hwnd, hi);
     return res != 0;
 }
@@ -2817,7 +2817,7 @@ TreeItemState TreeView::GetItemState(TreeItem ti) {
     TreeItemState res;
 
     TVITEMW* it = GetTVITEM(this, ti);
-    ReportIf(!it);
+    ReportDebugIf(!it);
     if (!it) {
         return res;
     }
@@ -2899,7 +2899,7 @@ LRESULT TreeView::OnNotifyReflect(WPARAM wp, LPARAM lp) {
         ev.treeItem = GetTreeItemByHandle(hItem);
         // TODO: seeing this in crash reports because GetTVITEM() returns nullptr
         // should log more info
-        // SubmitBugReportIf(!a.treeItem);
+        // SubmitBugReportDebugIf(!a.treeItem);
         if (!ev.treeItem) {
             return CDRF_DODEFAULT;
         }
@@ -3579,7 +3579,7 @@ LRESULT TabsCtrl::WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
 
             if (hl != tabUnderMouse) {
                 tabHighlighted = tabUnderMouse;
-                // logf("tab: WM_MOUSEMOVE: tabHighlighted = tabUnderMouse: %d\n", tabHighlighted);
+                // // logf("tab: WM_MOUSEMOVE: tabHighlighted = tabUnderMouse: %d\n", tabHighlighted);
                 // note: hl == -1 possible repro: we start drag, a file gets loaded via DDE etc.
                 // which re-layouts tabs and mouse is no longer over a tab
                 if (isDragging && hl != -1) {
@@ -3786,7 +3786,7 @@ int TabsCtrl::TabCount() {
 
 // takes ownership of tab
 int TabsCtrl::InsertTab(int idx, TabInfo* tab) {
-    ReportIf(idx < 0);
+    ReportDebugIf(idx < 0);
     TCITEMW item{};
     item.mask = TCIF_TEXT;
     item.pszText = ToWStrTemp(tab->text);
@@ -3813,10 +3813,10 @@ void TabsCtrl::SetTextAndTooltip(int idx, const char* text, const char* tooltip)
 
 // returns userData because it's not owned by TabsCtrl
 UINT_PTR TabsCtrl::RemoveTab(int idx) {
-    ReportIf(idx < 0);
-    ReportIf(idx >= TabCount());
+    ReportDebugIf(idx < 0);
+    ReportDebugIf(idx >= TabCount());
     BOOL ok = TabCtrl_DeleteItem(hwnd, idx);
-    ReportIf(!ok);
+    ReportDebugIf(!ok);
     TabInfo* tab = tabs[idx];
     UINT_PTR userData = tab->userData;
     tabs.RemoveAt(idx);
@@ -3859,9 +3859,9 @@ int TabsCtrl::GetSelected() {
 int TabsCtrl::SetSelected(int idx) {
     int nTabs = TabCount();
     if (idx < 0 || idx >= nTabs) {
-        logf("TabsCtrl::SetSelected(): idx: %d, TabsCount(): %d\n", idx, nTabs);
+        // logf("TabsCtrl::SetSelected(): idx: %d, TabsCount(): %d\n", idx, nTabs);
     }
-    ReportIf(idx < 0 || idx >= nTabs);
+    ReportDebugIf(idx < 0 || idx >= nTabs);
     int prevSelectedIdx = TabCtrl_SetCurSel(hwnd, idx);
     return prevSelectedIdx;
 }
@@ -3937,12 +3937,12 @@ void RunModalWindow(HWND hwndDialog, HWND hwndParent) {
 #if 0
 // sets initial position of w within hwnd. Assumes w->initialSize is set.
 void PositionCloseTo(Wnd* w, HWND hwnd) {
-    ReportIf(!hwnd);
+    ReportDebugIf(!hwnd);
     Size is = w->initialSize;
-    ReportIf(is.IsEmpty());
+    ReportDebugIf(is.IsEmpty());
     RECT r{};
     BOOL ok = GetWindowRect(hwnd, &r);
-    ReportIf(!ok);
+    ReportDebugIf(!ok);
 
     // position w in the the center of hwnd
     // if window is bigger than hwnd, let the system position

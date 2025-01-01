@@ -28,8 +28,8 @@ class AutoCloseHandle {
     }
 
     AutoCloseHandle& operator=(HANDLE h) {
-        ReportIf(handle != nullptr);
-        ReportIf(h == nullptr);
+        ReportDebugIf(handle != nullptr);
+        ReportDebugIf(h == nullptr);
         handle = h;
         return *this;
     }
@@ -59,7 +59,7 @@ class ScopedComPtr {
         }
     }
     bool Create(const CLSID clsid) {
-        ReportIf(ptr);
+        ReportDebugIf(ptr);
         if (ptr) {
             return false;
         }
@@ -107,7 +107,7 @@ class ScopedComQIPtr {
         }
     }
     bool Create(const CLSID clsid) {
-        ReportIf(ptr);
+        ReportDebugIf(ptr);
         if (ptr)
             return false;
         HRESULT hr = CoCreateInstance(clsid, nullptr, CLSCTX_ALL, IID_PPV_ARGS(&ptr));

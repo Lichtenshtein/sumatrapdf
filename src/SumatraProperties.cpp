@@ -323,7 +323,7 @@ static Rect CalcPropertiesLayout(PropertiesLayout* layoutData, HDC hdc) {
         lineCount++;
     }
 
-    ReportIf(!(lineCount > 0 && textDy > 0));
+    ReportDebugIf(!(lineCount > 0 && textDy > 0));
     int totalDx = leftMaxDx + kLeftRightPaddingDx + rightMaxDx;
 
     int totalDy = 4;
@@ -399,13 +399,13 @@ static bool CreatePropertiesWindow(HWND hParent, PropertiesLayout* layoutData, b
         FillWndClassEx(wcex, kPropertiesWinClassName, WndProcProperties);
         WCHAR* iconName = MAKEINTRESOURCEW(GetAppIconID());
         wcex.hIcon = LoadIconW(h, iconName);
-        ReportIf(!wcex.hIcon);
+        ReportDebugIf(!wcex.hIcon);
         ATOM atom = RegisterClassEx(&wcex);
-        ReportIf(!atom);
+        ReportDebugIf(!atom);
         gDidRegister = true;
     }
 
-    ReportIf(layoutData->hwnd);
+    ReportDebugIf(layoutData->hwnd);
     DWORD dwStyle = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU;
     auto clsName = kPropertiesWinClassName;
     auto title = ToWStrTemp(_TRA("Document Properties"));
@@ -486,7 +486,7 @@ static const char* propToName[] = {
 
 static void AddPropTranslated(PropertiesLayout* layoutData, const char* propName, const char* val) {
     const char* s = GetMatchingString(propToName, propName);
-    ReportIf(!s);
+    ReportDebugIf(!s);
     const char* trans = trans::GetTranslation(s);
     layoutData->AddProperty(trans, val);
 }
@@ -539,7 +539,7 @@ constexpr const char* leftToRightEmbeding = "\xe2\x80\xaa";
 constexpr const char* popDirectionalFormatting = "\xe2\x80\xac";
 
 static void GetProps(DocController* ctrl, PropertiesLayout* layoutData, bool extended) {
-    ReportIf(!ctrl);
+    ReportDebugIf(!ctrl);
 
     const char* path = gPluginMode ? gPluginURL : ctrl->GetFilePath();
     layoutData->AddProperty(_TRA("File:"), path, true);
@@ -727,7 +727,7 @@ LRESULT CALLBACK WndProcProperties(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
 
         case WM_DESTROY:
             pl = FindPropertyWindowByHwnd(hwnd);
-            ReportIf(!pl);
+            ReportDebugIf(!pl);
             gPropertiesWindows.Remove(pl);
             delete pl;
             break;

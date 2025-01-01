@@ -38,7 +38,7 @@ static bool IsSpecialDir(const char* s) {
 }
 
 static void AdvanceDirIter(DirIter::iterator* it, int n) {
-    ReportIf(n != 1);
+    ReportDebugIf(n != 1);
     if (it->didFinish) {
         return;
     }

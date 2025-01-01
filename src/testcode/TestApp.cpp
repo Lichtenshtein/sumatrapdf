@@ -66,7 +66,7 @@ void TestApp(HINSTANCE hInstance) {
     args.pos = {CW_USEDEFAULT, CW_USEDEFAULT, 480, 640};
     args.title = "a little test app";
     HWND hwnd = w->CreateCustom(args);
-    ReportIf(!hwnd);
+    ReportDebugIf(!hwnd);
 
     w->layout = CreateMainLayout(w->hwnd);
     LayoutToSize(w->layout, {480, 640});

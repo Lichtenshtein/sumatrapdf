@@ -198,7 +198,7 @@ bool TocItem::PageNumbersMatch() const {
         return true; // TODO: should be false?
     }
     if (pageNo != destPageNo) {
-        logf("pageNo: %d, dest->pageNo: %d\n", pageNo, destPageNo);
+        // logf("pageNo: %d, dest->pageNo: %d\n", pageNo, destPageNo);
         return false;
     }
     return true;
@@ -247,13 +247,13 @@ bool TocTree::IsChecked(TreeItem ti) {
 }
 
 void TocTree::SetHandle(TreeItem ti, HTREEITEM hItem) {
-    ReportIf(ti < 0);
+    ReportDebugIf(ti < 0);
     TocItem* tocItem = (TocItem*)ti;
     tocItem->hItem = hItem;
 }
 
 HTREEITEM TocTree::GetHandle(TreeItem ti) {
-    ReportIf(ti < 0);
+    ReportDebugIf(ti < 0);
     TocItem* tocItem = (TocItem*)ti;
     return tocItem->hItem;
 }
@@ -338,7 +338,7 @@ EngineBase::~EngineBase() {
 }
 
 int EngineBase::PageCount() const {
-    ReportIf(pageCount < 0);
+    ReportDebugIf(pageCount < 0);
     return pageCount;
 }
 

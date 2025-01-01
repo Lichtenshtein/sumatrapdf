@@ -421,7 +421,7 @@ again:
     // check for keys like F1, Del, Backspace etc.
     int idx = seqstrings::StrToIdxIS(gVirtKeyNames, toFind);
     if (idx >= 0) {
-        ReportIf(idx >= dimofi(gVirtKeysIds));
+        ReportDebugIf(idx >= dimofi(gVirtKeysIds));
         accel.key = gVirtKeysIds[idx];
         accel.fVirt |= FVIRTKEY;
         return true;
@@ -449,7 +449,7 @@ again:
         HKL kl = GetKeyboardLayout(0);
         SHORT key = VkKeyScanExW(wc, kl);
         if (key == -1) {
-            logf("can't map char 0x%x\n", (int)wc);
+            // logf("can't map char 0x%x\n", (int)wc);
             return false;
         } else {
             // https://docs.microsoft.com/en-gb/windows/win32/api/winuser/nf-winuser-vkkeyscanexw
@@ -459,7 +459,7 @@ again:
             // 4 Either ALT key is pressed.
             BYTE shiftState = HIBYTE(key);
             BYTE k = LOBYTE(key);
-            logf("mapped char 0x%x as %d (0x%x), shift state: %d\n", (int)wc, (int)k, (int)k, (int)shiftState);
+            // logf("mapped char 0x%x as %d (0x%x), shift state: %d\n", (int)wc, (int)k, (int)k, (int)shiftState);
             key = (SHORT)k;
             if (shiftState & 0x1) {
                 accel.fVirt |= (FSHIFT | FVIRTKEY);
@@ -576,8 +576,8 @@ static TempStr appendAccelKeyToMenuStringTemp(TempStr menuStr, const ACCEL& a) {
         goto Exit;
     }
 
-    logf("Unknown key: 0x%x, virt: 0x%x\n", key, virt);
-    ReportIf(true);
+    // logf("Unknown key: 0x%x, virt: 0x%x\n", key, virt);
+    ReportDebugIf(true);
     return menuStr;
 Exit:
     TempStr res = str::JoinTemp(menuStr, str.Get());
@@ -673,7 +673,7 @@ static HACCEL gAccelTables[3] = {
 /* returns a pointer to HACCEL so that we can update it and message loop will use
 the latest version */
 void CreateSumatraAcceleratorTable() {
-    ReportIf(gAccelTables[0] || gAccelTables[1] || gAccelTables[2]);
+    ReportDebugIf(gAccelTables[0] || gAccelTables[1] || gAccelTables[2]);
 
     int nMax = (int)dimof(gBuiltInAccelerators);
     auto curr = gFirstCustomCommand;
@@ -737,11 +737,11 @@ void CreateSumatraAcceleratorTable() {
     gAccelsCount = nAccels;
 
     gAccelTables[0] = CreateAcceleratorTableW(gAccels, gAccelsCount);
-    ReportIf(gAccelTables[0] == nullptr);
+    ReportDebugIf(gAccelTables[0] == nullptr);
     gAccelTables[1] = CreateAcceleratorTableW(editAccels, nEditAccels);
-    ReportIf(gAccelTables[1] == nullptr);
+    ReportDebugIf(gAccelTables[1] == nullptr);
     gAccelTables[2] = CreateAcceleratorTableW(treeViewAccels, nTreeViewAccels);
-    ReportIf(gAccelTables[2] == nullptr);
+    ReportDebugIf(gAccelTables[2] == nullptr);
 
     free(editAccels);
 }

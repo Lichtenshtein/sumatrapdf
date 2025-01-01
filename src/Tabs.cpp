@@ -102,7 +102,7 @@ void RemoveTab(WindowTab* tab) {
     win->tabSelectionHistory->Remove(tab);
     int idx = win->GetTabIdx(tab);
     WindowTab* tab2 = win->tabsCtrl->RemoveTab<WindowTab*>(idx);
-    ReportIf(tab != tab2);
+    ReportDebugIf(tab != tab2);
     bool closedCurrentTab = (tab == win->CurrentTab());
     if (closedCurrentTab) {
         win->ctrl = nullptr;
@@ -196,14 +196,14 @@ static void MigrateTab(WindowTab* tab, MainWindow* newWin) {
 void TabsSelect(MainWindow* win, int tabIndex) {
     auto tabs = win->Tabs();
     int nTabs = tabs.Size();
-    logf("TabsSelect: tabIndex: %d, nTabs: %d\n", tabIndex, nTabs);
+    // logf("TabsSelect: tabIndex: %d, nTabs: %d\n", tabIndex, nTabs);
     if (nTabs == 0) {
-        logf("TabsSelect: skipping because nTabs = %d\n", nTabs);
+        // logf("TabsSelect: skipping because nTabs = %d\n", nTabs);
         return;
     }
     if (tabIndex < 0 || tabIndex >= nTabs) {
         tabIndex = 0;
-        logf("TabsSelect: fixing tabIndex to 0\n");
+        // logf("TabsSelect: fixing tabIndex to 0\n");
     }
     TabsCtrl* tabsCtrl = win->tabsCtrl;
     int currIdx = tabsCtrl->GetSelected();
@@ -239,8 +239,7 @@ int TabsGetLastViewedNdx(MainWindow* win, int advance) {
     bool ctrlTabSmartLastViewed = gGlobalPrefs->ctrlTabSmartLastViewed;
 
     int curNdx = win->tabsCtrl->GetSelected();
-    logf("TabsGetLastViewedNdx: ctrlTabSmartLastViewed = %d, curNdx = %d, lastViewedNdx = %d, count = %d\n",
-        ctrlTabSmartLastViewed, curNdx, lastViewedNdx, count);
+    // logf("TabsGetLastViewedNdx: ctrlTabSmartLastViewed = %d, curNdx = %d, lastViewedNdx = %d, count = %d\n", ctrlTabSmartLastViewed, curNdx, lastViewedNdx, count);
     if (!ctrlTabSmartLastViewed || (lastViewedNdx < 0) || (lastViewedNdx >= count) || (lastViewedNdx == curNdx)) {
         return advance;
     } else {
@@ -528,14 +527,14 @@ void CreateTabbar(MainWindow* win) {
 
 // verifies that WindowTab state is consistent with MainWindow state
 static NO_INLINE void VerifyWindowTab(MainWindow* win, WindowTab* tdata) {
-    ReportIf(tdata->ctrl != win->ctrl);
+    ReportDebugIf(tdata->ctrl != win->ctrl);
 #if 0
     // disabling this check. best I can tell, external apps can change window
     // title and trigger this
     auto winTitle = win::GetTextTemp(win->hwndFrame);
     if (!str::Eq(winTitle.Get(), tdata->frameTitle.Get())) {
-        logf(L"VerifyWindowTab: winTitle: '%s', tdata->frameTitle: '%s'\n", winTitle.Get(), tdata->frameTitle.Get());
-        ReportIf(!str::Eq(winTitle.Get(), tdata->frameTitle));
+        // logf(L"VerifyWindowTab: winTitle: '%s', tdata->frameTitle: '%s'\n", winTitle.Get(), tdata->frameTitle.Get());
+        ReportDebugIf(!str::Eq(winTitle.Get(), tdata->frameTitle));
     }
 #endif
     bool expectedTocVisibility = tdata->showToc; // if not in presentation mode
@@ -545,8 +544,8 @@ static NO_INLINE void VerifyWindowTab(MainWindow* win, WindowTab* tdata) {
             expectedTocVisibility = tdata->showTocPresentation;
         }
     }
-    ReportIf(win->tocVisible != expectedTocVisibility);
-    ReportIf(tdata->canvasRc != win->canvasRc);
+    ReportDebugIf(win->tocVisible != expectedTocVisibility);
+    ReportDebugIf(tdata->canvasRc != win->canvasRc);
 }
 
 // Must be called when the active tab is losing selection.
@@ -564,7 +563,7 @@ void SaveCurrentWindowTab(MainWindow* win) {
         lastViewedNdx = current;
     }
     if (win->CurrentTab() != win->Tabs().at(current)) {
-        return; // TODO: restore ReportIf() ?
+        return; // TODO: restore ReportDebugIf() ?
     }
 
     WindowTab* tab = win->CurrentTab();
@@ -580,7 +579,7 @@ void SaveCurrentWindowTab(MainWindow* win) {
 }
 
 WindowTab* AddTabToWindow(MainWindow* win, WindowTab* tab) {
-    ReportIf(!win);
+    ReportDebugIf(!win);
     if (!win) {
         return nullptr;
     }
@@ -601,7 +600,7 @@ WindowTab* AddTabToWindow(MainWindow* win, WindowTab* tab) {
         newTab->canClose = true;
         newTab->userData = (UINT_PTR)homeTab;
         int insertedIdx = tabs->InsertTab(idx, newTab);
-        ReportIf(insertedIdx != 0);
+        ReportDebugIf(insertedIdx != 0);
         idx++;
     }
 
@@ -612,7 +611,7 @@ WindowTab* AddTabToWindow(MainWindow* win, WindowTab* tab) {
     newTab->userData = (UINT_PTR)tab;
 
     int insertedIdx = tabs->InsertTab(idx, newTab);
-    ReportIf(insertedIdx == -1);
+    ReportDebugIf(insertedIdx == -1);
     tabs->SetSelected(insertedIdx);
     UpdateTabWidth(win);
     return tab;
@@ -621,7 +620,7 @@ WindowTab* AddTabToWindow(MainWindow* win, WindowTab* tab) {
 // Refresh the tab's title
 void TabsOnChangedDoc(MainWindow* win) {
     WindowTab* tab = win->CurrentTab();
-    ReportIf(!tab != !win->TabCount());
+    ReportDebugIf(!tab != !win->TabCount());
     if (!tab) {
         return;
     }
@@ -629,7 +628,7 @@ void TabsOnChangedDoc(MainWindow* win) {
     int tabIdx = win->GetTabIdx(tab);
     int selectedIdx = win->tabsCtrl->GetSelected();
     if (tabIdx != selectedIdx) {
-        logf("TabsonChangeDoc: tabIdx (%d) != selectedIdx (%d)\n", tabIdx, selectedIdx);
+        // logf("TabsonChangeDoc: tabIdx (%d) != selectedIdx (%d)\n", tabIdx, selectedIdx);
         ReportDebugIf(tabIdx != selectedIdx);
     }
     VerifyWindowTab(win, tab);

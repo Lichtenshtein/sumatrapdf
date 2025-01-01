@@ -68,42 +68,42 @@ static void BenchLoadRender(EngineBase* engine, int pagenum) {
     bool ok = engine->BenchLoadPage(pagenum);
 
     if (!ok) {
-        logf("Error: failed to load page %d\n", pagenum);
+        // logf("Error: failed to load page %d\n", pagenum);
         return;
     }
     double timeMs = TimeSinceInMs(t);
-    logf("pageload   %3d: %.2f ms\n", pagenum, timeMs);
+    // logf("pageload   %3d: %.2f ms\n", pagenum, timeMs);
 
     t = TimeGet();
     RenderPageArgs args(pagenum, 1.0, 0);
     RenderedBitmap* rendered = engine->RenderPage(args);
 
     if (!rendered) {
-        logf("Error: failed to render page %d\n", pagenum);
+        // logf("Error: failed to render page %d\n", pagenum);
         return;
     }
     delete rendered;
     timeMs = TimeSinceInMs(t);
-    logf("pagerender %3d: %.2f ms\n", pagenum, timeMs);
+    // logf("pagerender %3d: %.2f ms\n", pagenum, timeMs);
 }
 
 static void BenchChmLoadOnly(const char* filePath) {
     auto total = TimeGet();
-    logf("Starting: %s\n", filePath);
+    // logf("Starting: %s\n", filePath);
 
     auto t = TimeGet();
     ChmModel* chmModel = ChmModel::Create(filePath, nullptr);
     if (!chmModel) {
-        logf("Error: failed to load %s\n", filePath);
+        // logf("Error: failed to load %s\n", filePath);
         return;
     }
 
     double timeMs = TimeSinceInMs(t);
-    logf("load: %.2f ms\n", timeMs);
+    // logf("load: %.2f ms\n", timeMs);
 
     delete chmModel;
 
-    logf("Finished (in %.2f ms): %s\n", TimeSinceInMs(total), filePath);
+    // logf("Finished (in %.2f ms): %s\n", TimeSinceInMs(total), filePath);
 }
 
 static void BenchFile(const char* path, const char* pagesSpec) {
@@ -126,19 +126,19 @@ static void BenchFile(const char* path, const char* pagesSpec) {
     }
 
     auto total = TimeGet();
-    logf("Starting: %s\n", path);
+    // logf("Starting: %s\n", path);
 
     auto t = TimeGet();
     EngineBase* engine = CreateEngineFromFile(path, nullptr, true);
     if (!engine) {
-        logf("Error: failed to load %s\n", path);
+        // logf("Error: failed to load %s\n", path);
         return;
     }
 
     double timeMs = TimeSinceInMs(t);
-    logf("load: %.2f ms\n", timeMs);
+    // logf("load: %.2f ms\n", timeMs);
     int pages = engine->PageCount();
-    logf("page count: %d\n", pages);
+    // logf("page count: %d\n", pages);
 
     if (!pagesSpec) {
         for (int i = 1; i <= pages; i++) {
@@ -146,7 +146,7 @@ static void BenchFile(const char* path, const char* pagesSpec) {
         }
     }
 
-    ReportIf(pagesSpec && !IsBenchPagesInfo(pagesSpec));
+    ReportDebugIf(pagesSpec && !IsBenchPagesInfo(pagesSpec));
     Vec<PageRange> ranges;
     if (ParsePageRanges(pagesSpec, ranges)) {
         for (size_t i = 0; i < ranges.size(); i++) {
@@ -160,7 +160,7 @@ static void BenchFile(const char* path, const char* pagesSpec) {
 
     SafeEngineRelease(&engine);
 
-    logf("Finished (in %.2f ms): %s\n", TimeSinceInMs(total), path);
+    // logf("Finished (in %.2f ms): %s\n", TimeSinceInMs(total), path);
 }
 
 static bool IsFileToBench(const char* path) {
@@ -202,7 +202,7 @@ void BenchFileOrDir(StrVec& pathsToBench) {
         } else if (dir::Exists(path)) {
             BenchDir(path);
         } else {
-            logf("Error: file or dir %s doesn't exist", path);
+            // logf("Error: file or dir %s doesn't exist", path);
         }
     }
 }
@@ -389,10 +389,10 @@ again:
         auto fn = MkFunc1(GetNextFileCb, &path);
         bool ok = queue.Access(fn);
         if (!ok) {
-            ReportIf(path);
+            ReportDebugIf(path);
             return nullptr;
         }
-        ReportIf(!path);
+        ReportDebugIf(!path);
         if (!IsStressTestSupportedFile(path, fileFilter.Get())) {
             goto again;
         }
@@ -443,7 +443,7 @@ struct StressTest {
 template <typename T>
 T RemoveRandomElementFromVec(Vec<T>& v) {
     auto n = v.Size();
-    ReportIf(n <= 0);
+    ReportDebugIf(n <= 0);
     int idx = rand() % n;
     int res = v.PopAt((size_t)idx);
     return res;
@@ -548,7 +548,7 @@ static bool OpenFile(StressTest* st, const char* fileName) {
 #if 0
     // transfer ownership of stressTest object to a new window and close the
     // current one
-    ReportIf(st != st->win->stressTest);
+    ReportDebugIf(st != st->win->stressTest);
     if (w != st->win) {
         if (st->win->IsDocLoaded()) {
             // try to provoke a crash in RenderCache cleanup code
@@ -787,7 +787,7 @@ static void OnTimer(StressTest* st, int timerIdGot) {
     DisplayModel* dm;
     bool didRender;
 
-    ReportIf(st->timerId != timerIdGot);
+    ReportDebugIf(st->timerId != timerIdGot);
     KillTimer(st->win->hwndFrame, st->timerId);
     if (!st->win->IsDocLoaded()) {
         if (!GoToNextFile(st)) {

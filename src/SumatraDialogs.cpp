@@ -47,12 +47,12 @@ struct DLGTEMPLATEEX {
 
 DLGTEMPLATE* DupTemplate(int dlgId) {
     HRSRC dialogRC = FindResourceW(nullptr, MAKEINTRESOURCE(dlgId), RT_DIALOG);
-    ReportIf(!dialogRC);
+    ReportDebugIf(!dialogRC);
     HGLOBAL dlgTemplate = LoadResource(nullptr, dialogRC);
-    ReportIf(!dlgTemplate);
+    ReportDebugIf(!dlgTemplate);
     void* orig = LockResource(dlgTemplate);
     size_t size = SizeofResource(nullptr, dialogRC);
-    ReportIf(size == 0);
+    ReportDebugIf(size == 0);
     DLGTEMPLATE* ret = (DLGTEMPLATE*)memdup(orig, size);
     UnlockResource(orig);
     return ret;
@@ -100,7 +100,7 @@ static bool IsDlgTemplateEx(DLGTEMPLATE* tpl) {
     return tpl->style == MAKELONG(0x0001, 0xFFFF);
 }
 
-static bool HasDlgTemplateExFont(DLGTEMPLATEEX* tpl) {
+[[maybe_unused]] static bool HasDlgTemplateExFont(DLGTEMPLATEEX* tpl) {
     DWORD style = tpl->style & (DS_SETFONT | DS_FIXEDSYS);
     return style != 0;
 }
@@ -124,12 +124,12 @@ static int ToFontPointSize(int fontSize) {
 // TODO: if changing font name would have do more complicated dance of replacing
 // variable string in the middle of the struct
 static void SetDlgTemplateExFont(DLGTEMPLATE* tmp, bool isRtl, int fontSize) {
-    ReportIf(!IsDlgTemplateEx(tmp));
+    ReportDebugIf(!IsDlgTemplateEx(tmp));
     if (isRtl) {
         SetDlgTemplateRtl(tmp);
     }
     DLGTEMPLATEEX* tpl = (DLGTEMPLATEEX*)tmp;
-    ReportIf(!HasDlgTemplateExFont(tpl));
+    ReportDebugIf(!HasDlgTemplateExFont(tpl));
     u8* d = (u8*)tpl;
     d += sizeof(DLGTEMPLATEEX);
     // sz_Or_Ord menu
@@ -277,7 +277,7 @@ static INT_PTR CALLBACK Dialog_GoToPage_Proc(HWND hDlg, UINT msg, WPARAM wp, LPA
         if (!data->onlyNumeric) {
             SetWindowLong(editPageNo, GWL_STYLE, GetWindowLong(editPageNo, GWL_STYLE) & ~ES_NUMBER);
         }
-        ReportIf(!data->currPageLabel);
+        ReportDebugIf(!data->currPageLabel);
         HwndSetDlgItemText(hDlg, IDC_GOTO_PAGE_EDIT, data->currPageLabel);
         TempStr totalCount = str::FormatTemp(_TRA("(of %d)"), data->pageCount);
         HwndSetDlgItemText(hDlg, IDC_GOTO_PAGE_LABEL_OF, totalCount);
@@ -523,9 +523,9 @@ static INT_PTR CALLBACK Dialog_ChangeLanguage_Proc(HWND hDlg, UINT msg, WPARAM w
         case WM_COMMAND:
             data = (Dialog_ChangeLanguage_Data*)GetWindowLongPtr(hDlg, GWLP_USERDATA);
             if (HIWORD(wp) == LBN_DBLCLK) {
-                ReportIf(IDC_CHANGE_LANG_LANG_LIST != LOWORD(wp));
+                ReportDebugIf(IDC_CHANGE_LANG_LANG_LIST != LOWORD(wp));
                 langList = GetDlgItem(hDlg, IDC_CHANGE_LANG_LANG_LIST);
-                ReportIf(langList != (HWND)lp);
+                ReportDebugIf(langList != (HWND)lp);
                 int langIdx = (int)ListBox_GetCurSel(langList);
                 data->langCode = trans::GetLangCodeByIdx(langIdx);
                 EndDialog(hDlg, IDOK);
@@ -1184,26 +1184,26 @@ char* Dialog_ExtractPages(HWND hwnd, int pageCount, int currentPage) {
 // Simplified: Parse single page number from input
 // Returns 0 if parsing fails, otherwise returns the page number (1-based)
 int ParseSinglePage(const char* input, int totalPages) {
-    logf("=== ParseSinglePage: ENTRY ===");
-    logf("ParseSinglePage: input='%s', totalPages=%d", input ? input : "NULL", totalPages);
+    // logf("=== ParseSinglePage: ENTRY ===");
+    // logf("ParseSinglePage: input='%s', totalPages=%d", input ? input : "NULL", totalPages);
     
     if (!input || !*input || totalPages <= 0) {
-        logf("ParseSinglePage: ERROR - Invalid parameters (input=%p, totalPages=%d)", input, totalPages);
+        // logf("ParseSinglePage: ERROR - Invalid parameters (input=%p, totalPages=%d)", input, totalPages);
         return 0;
     }
     
     // Simple parsing - just convert to integer
-    logf("ParseSinglePage: Parsing input as integer...");
+    // logf("ParseSinglePage: Parsing input as integer...");
     int pageNumber = atoi(input);
-    logf("ParseSinglePage: Parsed page number: %d", pageNumber);
+    // logf("ParseSinglePage: Parsed page number: %d", pageNumber);
     
     // Validate page number
     if (pageNumber <= 0 || pageNumber > totalPages) {
-        logf("ParseSinglePage: ERROR - Invalid page number %d (valid range: 1-%d)", pageNumber, totalPages);
+        // logf("ParseSinglePage: ERROR - Invalid page number %d (valid range: 1-%d)", pageNumber, totalPages);
         return 0;
     }
     
-    logf("=== ParseSinglePage: SUCCESS - Returning page %d ===", pageNumber);
+    // logf("=== ParseSinglePage: SUCCESS - Returning page %d ===", pageNumber);
     return pageNumber;
 }
 
@@ -1269,8 +1269,8 @@ static INT_PTR CALLBACK SimplePageInputProc(HWND hDlg, UINT msg, WPARAM wp, LPAR
 
 // Simple page input using JSON-style memory patterns (no complex ownership)
 char* GetPageNumberFromUser(HWND hwnd, int pageCount, int currentPage) {
-    logf("=== GetPageNumberFromUser: ENTRY ===");
-    logf("GetPageNumberFromUser: pageCount=%d, currentPage=%d", pageCount, currentPage);
+    // logf("=== GetPageNumberFromUser: ENTRY ===");
+    // logf("GetPageNumberFromUser: pageCount=%d, currentPage=%d", pageCount, currentPage);
     
     // Simple stack-allocated state (JSON pattern)
     SimplePageInputData data = {};
@@ -1280,7 +1280,7 @@ char* GetPageNumberFromUser(HWND hwnd, int pageCount, int currentPage) {
     // Set default text
     sprintf_s(data.userInput, sizeof(data.userInput), "%d", currentPage);
     
-    logf("GetPageNumberFromUser: Showing dialog with default='%s'", data.userInput);
+    // logf("GetPageNumberFromUser: Showing dialog with default='%s'", data.userInput);
     
     // Show dialog using simple procedure
     INT_PTR result = DialogBoxParam(GetModuleHandle(nullptr), 
@@ -1290,29 +1290,29 @@ char* GetPageNumberFromUser(HWND hwnd, int pageCount, int currentPage) {
                                    (LPARAM)&data);
     
     if (result != IDOK || !data.userClickedOK) {
-        logf("GetPageNumberFromUser: User cancelled (result=%d, clickedOK=%d)", (int)result, data.userClickedOK);
+        // logf("GetPageNumberFromUser: User cancelled (result=%d, clickedOK=%d)", (int)result, data.userClickedOK);
         return nullptr;
     }
     
-    logf("GetPageNumberFromUser: User entered='%s'", data.userInput);
+    // logf("GetPageNumberFromUser: User entered='%s'", data.userInput);
     
     // Simple validation and return (JSON pattern - return str::Dup or nullptr)
     int pageNum = atoi(data.userInput);
     if (pageNum <= 0 || pageNum > pageCount) {
-        logf("GetPageNumberFromUser: Invalid page number %d (valid range: 1-%d)", pageNum, pageCount);
+        // logf("GetPageNumberFromUser: Invalid page number %d (valid range: 1-%d)", pageNum, pageCount);
         return nullptr;
     }
     
 // Return simple duplicated string (JSON pattern)
 char* returnResult = str::Dup(data.userInput);
-logf("GetPageNumberFromUser: SUCCESS - Returning '%s'", returnResult);
+// logf("GetPageNumberFromUser: SUCCESS - Returning '%s'", returnResult);
 return returnResult;
 }
 
 // Enhanced page range input using JSON-style memory patterns (no complex ownership)
 char* GetPageRangeFromUser(HWND hwnd, int pageCount, int currentPage) {
-    logf("=== GetPageRangeFromUser: ENTRY ===");
-    logf("GetPageRangeFromUser: pageCount=%d, currentPage=%d", pageCount, currentPage);
+    // logf("=== GetPageRangeFromUser: ENTRY ===");
+    // logf("GetPageRangeFromUser: pageCount=%d, currentPage=%d", pageCount, currentPage);
     
     // Simple stack-allocated state (JSON pattern)
     SimplePageInputData data = {};
@@ -1322,8 +1322,8 @@ char* GetPageRangeFromUser(HWND hwnd, int pageCount, int currentPage) {
     // Set default text to current page (user can modify for ranges)
     sprintf_s(data.userInput, sizeof(data.userInput), "%d", currentPage);
     
-    logf("GetPageRangeFromUser: Showing dialog with default='%s'", data.userInput);
-    logf("GetPageRangeFromUser: User can enter single page or ranges like '1-5,8,12-15'");
+    // logf("GetPageRangeFromUser: Showing dialog with default='%s'", data.userInput);
+    // logf("GetPageRangeFromUser: User can enter single page or ranges like '1-5,8,12-15'");
     
     // Show dialog using simple procedure (same dialog as single page)
     INT_PTR result = DialogBoxParam(GetModuleHandle(nullptr), 
@@ -1333,24 +1333,24 @@ char* GetPageRangeFromUser(HWND hwnd, int pageCount, int currentPage) {
                                    (LPARAM)&data);
     
     if (result != IDOK || !data.userClickedOK) {
-        logf("GetPageRangeFromUser: User cancelled (result=%d, clickedOK=%d)", (int)result, data.userClickedOK);
+        // logf("GetPageRangeFromUser: User cancelled (result=%d, clickedOK=%d)", (int)result, data.userClickedOK);
         return nullptr;
     }
     
-    logf("GetPageRangeFromUser: User entered='%s'", data.userInput);
+    // logf("GetPageRangeFromUser: User entered='%s'", data.userInput);
     
     // Validate the input using our safe parsing function
     PageRangeData rangeData = {};
     if (!ParsePageRangesSafe(data.userInput, pageCount, &rangeData)) {
-        logf("GetPageRangeFromUser: ERROR - Invalid page range '%s'", data.userInput);
+        // logf("GetPageRangeFromUser: ERROR - Invalid page range '%s'", data.userInput);
         return nullptr;
     }
     
-    logf("GetPageRangeFromUser: Successfully parsed %d pages from range '%s'", rangeData.count, data.userInput);
+    // logf("GetPageRangeFromUser: Successfully parsed %d pages from range '%s'", rangeData.count, data.userInput);
     
     // Return simple duplicated string (JSON pattern)
     char* returnResult = str::Dup(data.userInput);
-    logf("GetPageRangeFromUser: SUCCESS - Returning '%s'", returnResult);
+    // logf("GetPageRangeFromUser: SUCCESS - Returning '%s'", returnResult);
     return returnResult;
 }
 
@@ -1427,8 +1427,8 @@ static INT_PTR CALLBACK InsertPageInputProc(HWND hDlg, UINT msg, WPARAM wp, LPAR
 
 // Get insert position from user - returns page number to insert after (0 = beginning), or -1 if cancelled
 int GetInsertPositionFromUser(HWND hwnd, int pageCount, int currentPage) {
-    logf("=== GetInsertPositionFromUser: ENTRY ===");
-    logf("GetInsertPositionFromUser: pageCount=%d, currentPage=%d", pageCount, currentPage);
+    // logf("=== GetInsertPositionFromUser: ENTRY ===");
+    // logf("GetInsertPositionFromUser: pageCount=%d, currentPage=%d", pageCount, currentPage);
 
     // Simple stack-allocated state (JSON pattern)
     InsertPageInputData data = {};
@@ -1438,7 +1438,7 @@ int GetInsertPositionFromUser(HWND hwnd, int pageCount, int currentPage) {
     // Set default text to current page
     sprintf_s(data.userInput, sizeof(data.userInput), "%d", currentPage);
 
-    logf("GetInsertPositionFromUser: Showing dialog with default='%s'", data.userInput);
+    // logf("GetInsertPositionFromUser: Showing dialog with default='%s'", data.userInput);
 
     // Show dialog using insert page procedure
     INT_PTR result = DialogBoxParam(GetModuleHandle(nullptr),
@@ -1448,20 +1448,20 @@ int GetInsertPositionFromUser(HWND hwnd, int pageCount, int currentPage) {
                                    (LPARAM)&data);
 
     if (result != IDOK || !data.userClickedOK) {
-        logf("GetInsertPositionFromUser: User cancelled (result=%d, clickedOK=%d)", (int)result, data.userClickedOK);
+        // logf("GetInsertPositionFromUser: User cancelled (result=%d, clickedOK=%d)", (int)result, data.userClickedOK);
         return -1;  // Cancelled
     }
 
-    logf("GetInsertPositionFromUser: User entered='%s'", data.userInput);
+    // logf("GetInsertPositionFromUser: User entered='%s'", data.userInput);
 
     // Parse and validate - 0 is valid (insert at beginning), pageCount is max (insert at end)
     int insertAfter = atoi(data.userInput);
     if (insertAfter < 0 || insertAfter > pageCount) {
-        logf("GetInsertPositionFromUser: Invalid position %d (valid range: 0-%d)", insertAfter, pageCount);
+        // logf("GetInsertPositionFromUser: Invalid position %d (valid range: 0-%d)", insertAfter, pageCount);
         return -1;  // Invalid
     }
 
-    logf("GetInsertPositionFromUser: SUCCESS - Returning position %d", insertAfter);
+    // logf("GetInsertPositionFromUser: SUCCESS - Returning position %d", insertAfter);
     return insertAfter;
 }
 
@@ -1483,11 +1483,11 @@ static int IntCmp(const void* a, const void* b) {
 // Returns nullptr if parsing fails, otherwise returns sorted list of valid page numbers
 // WARNING: This function uses Vec<int> which has caused heap corruption issues
 Vec<int>* ParsePageRangeString(const char* input, int totalPages) {
-    logf("=== ParsePageRangeString: ENTRY ===");
-    logf("ParsePageRangeString: input='%s', totalPages=%d", input ? input : "NULL", totalPages);
+    // logf("=== ParsePageRangeString: ENTRY ===");
+    // logf("ParsePageRangeString: input='%s', totalPages=%d", input ? input : "NULL", totalPages);
     
     if (!input || !*input || totalPages <= 0) {
-        logf("ParsePageRangeString: ERROR - Invalid parameters");
+        // logf("ParsePageRangeString: ERROR - Invalid parameters");
         return nullptr;
     }
     
@@ -1504,7 +1504,7 @@ Vec<int>* ParsePageRangeString(const char* input, int totalPages) {
     for (const char* part : parts) {
         if (!part || !*part) continue;
         
-        logf("ParsePageRangeString: Processing part='%s'", part);
+        // logf("ParsePageRangeString: Processing part='%s'", part);
         
         // Check if this part contains a range (has '-')
         const char* dashPos = str::Find(part, "-");
@@ -1518,17 +1518,17 @@ Vec<int>* ParsePageRangeString(const char* input, int totalPages) {
             int startPage = atoi(startStr);
             int endPage = atoi(endStr);
             
-            logf("ParsePageRangeString: Range %d-%d", startPage, endPage);
+            // logf("ParsePageRangeString: Range %d-%d", startPage, endPage);
             
             // Validate range
             if (startPage <= 0 || endPage <= 0 || startPage > totalPages || endPage > totalPages) {
-                logf("ParsePageRangeString: ERROR - Invalid range %d-%d (valid: 1-%d)", startPage, endPage, totalPages);
+                // logf("ParsePageRangeString: ERROR - Invalid range %d-%d (valid: 1-%d)", startPage, endPage, totalPages);
                 delete pages;
                 return nullptr;
             }
             
             if (startPage > endPage) {
-                logf("ParsePageRangeString: ERROR - Start page %d > end page %d", startPage, endPage);
+                // logf("ParsePageRangeString: ERROR - Start page %d > end page %d", startPage, endPage);
                 delete pages;
                 return nullptr;
             }
@@ -1540,10 +1540,10 @@ Vec<int>* ParsePageRangeString(const char* input, int totalPages) {
         } else {
             // Parse single page
             int pageNum = atoi(part);
-            logf("ParsePageRangeString: Single page %d", pageNum);
+            // logf("ParsePageRangeString: Single page %d", pageNum);
             
             if (pageNum <= 0 || pageNum > totalPages) {
-                logf("ParsePageRangeString: ERROR - Invalid page %d (valid: 1-%d)", pageNum, totalPages);
+                // logf("ParsePageRangeString: ERROR - Invalid page %d (valid: 1-%d)", pageNum, totalPages);
                 delete pages;
                 return nullptr;
             }
@@ -1553,7 +1553,7 @@ Vec<int>* ParsePageRangeString(const char* input, int totalPages) {
     }
     
     if (pages->Size() == 0) {
-        logf("ParsePageRangeString: ERROR - No valid pages found");
+        // logf("ParsePageRangeString: ERROR - No valid pages found");
         delete pages;
         return nullptr;
     }
@@ -1568,19 +1568,19 @@ Vec<int>* ParsePageRangeString(const char* input, int totalPages) {
         }
     }
     
-    logf("ParsePageRangeString: SUCCESS - Found %d unique pages", pages->Size());
+    // logf("ParsePageRangeString: SUCCESS - Found %d unique pages", pages->Size());
     return pages;
 }
 
 // DEPRECATED: Legacy function for compatibility - DO NOT USE
 // Use ParseSinglePage() and ExtractSinglePageToNewPDF() instead
 Vec<int>* ParsePageRanges(const char* input, int totalPages) {
-    logf("=== ParsePageRanges: DEPRECATED FUNCTION CALLED ===");
-    logf("ParsePageRanges: This function is deprecated and should not be used");
-    logf("ParsePageRanges: Use ParsePageRangeString() instead");
+    // logf("=== ParsePageRanges: DEPRECATED FUNCTION CALLED ===");
+    // logf("ParsePageRanges: This function is deprecated and should not be used");
+    // logf("ParsePageRanges: Use ParsePageRangeString() instead");
     
     // Return nullptr to indicate this function should not be used
-    logf("ParsePageRanges: Returning nullptr - caller should use ParsePageRangeString");
+    // logf("ParsePageRanges: Returning nullptr - caller should use ParsePageRangeString");
     return nullptr;
 }
 
@@ -1595,11 +1595,11 @@ static int PageNumberCompare(const void* a, const void* b) {
 
 // Helper function to add a page number with bounds checking and duplicate prevention
 static void AddPageToRange(PageRangeData* data, int pageNumber) {
-    logf("AddPageToRange: Adding page %d (current count: %d)", pageNumber, data->count);
+    // logf("AddPageToRange: Adding page %d (current count: %d)", pageNumber, data->count);
     
     // Bounds check
     if (data->count >= 1000) {
-        logf("AddPageToRange: ERROR - Cannot add page %d, array full (max 1000)", pageNumber);
+        // logf("AddPageToRange: ERROR - Cannot add page %d, array full (max 1000)", pageNumber);
         data->isValid = false;
         return;
     }
@@ -1607,7 +1607,7 @@ static void AddPageToRange(PageRangeData* data, int pageNumber) {
     // Check for duplicates (simple linear search since we'll sort later)
     for (int i = 0; i < data->count; i++) {
         if (data->pages[i] == pageNumber) {
-            logf("AddPageToRange: Page %d already exists, skipping duplicate", pageNumber);
+            // logf("AddPageToRange: Page %d already exists, skipping duplicate", pageNumber);
             return;
         }
     }
@@ -1615,15 +1615,15 @@ static void AddPageToRange(PageRangeData* data, int pageNumber) {
     // Add the page
     data->pages[data->count] = pageNumber;
     data->count++;
-    logf("AddPageToRange: Successfully added page %d (new count: %d)", pageNumber, data->count);
+    // logf("AddPageToRange: Successfully added page %d (new count: %d)", pageNumber, data->count);
 }
 
 // Helper function to sort and deduplicate pages
 static void SortAndDeduplicatePages(PageRangeData* data) {
-    logf("SortAndDeduplicatePages: Sorting %d pages", data->count);
+    // logf("SortAndDeduplicatePages: Sorting %d pages", data->count);
     
     if (data->count <= 1) {
-        logf("SortAndDeduplicatePages: %d pages, no sorting needed", data->count);
+        // logf("SortAndDeduplicatePages: %d pages, no sorting needed", data->count);
         return;
     }
     
@@ -1641,15 +1641,15 @@ static void SortAndDeduplicatePages(PageRangeData* data) {
     
     int originalCount = data->count;
     data->count = writeIndex;
-    logf("SortAndDeduplicatePages: Reduced from %d to %d pages after deduplication", originalCount, data->count);
+    // logf("SortAndDeduplicatePages: Reduced from %d to %d pages after deduplication", originalCount, data->count);
 }
 
 // Helper function to process a single range part like "5" or "1-10"
 static void ProcessRangePart(const char* part, int totalPages, PageRangeData* data) {
-    logf("ProcessRangePart: Processing part='%s'", part);
+    // logf("ProcessRangePart: Processing part='%s'", part);
     
     if (!part || !*part) {
-        logf("ProcessRangePart: ERROR - Empty part");
+        // logf("ProcessRangePart: ERROR - Empty part");
         data->isValid = false;
         return;
     }
@@ -1657,7 +1657,7 @@ static void ProcessRangePart(const char* part, int totalPages, PageRangeData* da
     // Trim whitespace
     while (*part && (*part == ' ' || *part == '\t')) part++;
     if (!*part) {
-        logf("ProcessRangePart: ERROR - Part is only whitespace");
+        // logf("ProcessRangePart: ERROR - Part is only whitespace");
         data->isValid = false;
         return;
     }
@@ -1668,10 +1668,10 @@ static void ProcessRangePart(const char* part, int totalPages, PageRangeData* da
     if (!dashPos) {
         // Single page number
         int pageNum = atoi(part);
-        logf("ProcessRangePart: Single page %d", pageNum);
+        // logf("ProcessRangePart: Single page %d", pageNum);
         
         if (pageNum <= 0 || pageNum > totalPages) {
-            logf("ProcessRangePart: ERROR - Invalid page %d (valid: 1-%d)", pageNum, totalPages);
+            // logf("ProcessRangePart: ERROR - Invalid page %d (valid: 1-%d)", pageNum, totalPages);
             data->isValid = false;
             return;
         }
@@ -1685,7 +1685,7 @@ static void ProcessRangePart(const char* part, int totalPages, PageRangeData* da
         
         size_t startLen = dashPos - part;
         if (startLen >= sizeof(startBuffer)) {
-            logf("ProcessRangePart: ERROR - Start number too long");
+            // logf("ProcessRangePart: ERROR - Start number too long");
             data->isValid = false;
             return;
         }
@@ -1704,17 +1704,17 @@ static void ProcessRangePart(const char* part, int totalPages, PageRangeData* da
         int startPage = atoi(startStr);
         int endPage = atoi(endStr);
         
-        logf("ProcessRangePart: Range %d-%d", startPage, endPage);
+        // logf("ProcessRangePart: Range %d-%d", startPage, endPage);
         
         // Validate range
         if (startPage <= 0 || endPage <= 0 || startPage > totalPages || endPage > totalPages) {
-            logf("ProcessRangePart: ERROR - Invalid range %d-%d (valid: 1-%d)", startPage, endPage, totalPages);
+            // logf("ProcessRangePart: ERROR - Invalid range %d-%d (valid: 1-%d)", startPage, endPage, totalPages);
             data->isValid = false;
             return;
         }
         
         if (startPage > endPage) {
-            logf("ProcessRangePart: ERROR - Start page %d > end page %d", startPage, endPage);
+            // logf("ProcessRangePart: ERROR - Start page %d > end page %d", startPage, endPage);
             data->isValid = false;
             return;
         }
@@ -1723,7 +1723,7 @@ static void ProcessRangePart(const char* part, int totalPages, PageRangeData* da
         for (int page = startPage; page <= endPage; page++) {
             AddPageToRange(data, page);
             if (!data->isValid) {
-                logf("ProcessRangePart: ERROR - Failed to add page %d", page);
+                // logf("ProcessRangePart: ERROR - Failed to add page %d", page);
                 return;
             }
         }
@@ -1732,12 +1732,11 @@ static void ProcessRangePart(const char* part, int totalPages, PageRangeData* da
 
 // Memory-safe page range parsing function (JSON pattern - no dynamic allocation)
 bool ParsePageRangesSafe(const char* input, int totalPages, PageRangeData* data) {
-    logf("=== ParsePageRangesSafe: ENTRY ===");
-    logf("ParsePageRangesSafe: input='%s', totalPages=%d", input ? input : "NULL", totalPages);
+    // logf("=== ParsePageRangesSafe: ENTRY ===");
+    // logf("ParsePageRangesSafe: input='%s', totalPages=%d", input ? input : "NULL", totalPages);
     
     if (!input || !*input || totalPages <= 0 || !data) {
-        logf("ParsePageRangesSafe: ERROR - Invalid parameters (input=%p, totalPages=%d, data=%p)", 
-             input, totalPages, data);
+        // logf("ParsePageRangesSafe: ERROR - Invalid parameters (input=%p, totalPages=%d, data=%p)", input, totalPages, data);
         if (data) {
             data->isValid = false;
             data->count = 0;
@@ -1754,7 +1753,7 @@ bool ParsePageRangesSafe(const char* input, int totalPages, PageRangeData* data)
     char workBuffer[256];
     strncpy_s(workBuffer, sizeof(workBuffer), input, _TRUNCATE);
     
-    logf("ParsePageRangesSafe: Processing input in work buffer");
+    // logf("ParsePageRangesSafe: Processing input in work buffer");
     
     // Process comma-separated parts using safe tokenization
     char* context = nullptr;
@@ -1766,13 +1765,13 @@ bool ParsePageRangesSafe(const char* input, int totalPages, PageRangeData* data)
     }
     
     if (!data->isValid) {
-        logf("ParsePageRangesSafe: ERROR - Parsing failed");
+        // logf("ParsePageRangesSafe: ERROR - Parsing failed");
         data->count = 0;
         return false;
     }
     
     if (data->count == 0) {
-        logf("ParsePageRangesSafe: ERROR - No valid pages found");
+        // logf("ParsePageRangesSafe: ERROR - No valid pages found");
         data->isValid = false;
         return false;
     }
@@ -1780,18 +1779,18 @@ bool ParsePageRangesSafe(const char* input, int totalPages, PageRangeData* data)
     // Sort and deduplicate pages
     SortAndDeduplicatePages(data);
     
-    logf("ParsePageRangesSafe: SUCCESS - Found %d unique pages", data->count);
+    // logf("ParsePageRangesSafe: SUCCESS - Found %d unique pages", data->count);
     
     // Log the first few and last few pages for debugging
     if (data->count > 0) {
         int logCount = (data->count > 10) ? 5 : data->count;
         for (int i = 0; i < logCount; i++) {
-            logf("ParsePageRangesSafe: Page[%d] = %d", i, data->pages[i]);
+            // logf("ParsePageRangesSafe: Page[%d] = %d", i, data->pages[i]);
         }
         if (data->count > 10) {
-            logf("ParsePageRangesSafe: ... (%d pages total) ...", data->count);
+            // logf("ParsePageRangesSafe: ... (%d pages total) ...", data->count);
             for (int i = data->count - 5; i < data->count; i++) {
-                logf("ParsePageRangesSafe: Page[%d] = %d", i, data->pages[i]);
+                // logf("ParsePageRangesSafe: Page[%d] = %d", i, data->pages[i]);
             }
         }
     }

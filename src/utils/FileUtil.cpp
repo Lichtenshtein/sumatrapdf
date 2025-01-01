@@ -534,7 +534,7 @@ TempStr GetPathInExeDirTemp(const char* fileName) {
 namespace file {
 
 FILE* OpenFILE(const char* path) {
-    ReportIf(!path);
+    ReportDebugIf(!path);
     if (!path) {
         return nullptr;
     }
@@ -579,13 +579,12 @@ ByteSlice ReadFileWithAllocator(const char* filePath, Allocator* allocator) {
     if (nRead != size) {
         int err = ferror(fp);
         int isEof = feof(fp);
-        logf("ReadFileWithAllocator: fread() failed, path: '%s', size: %d, nRead: %d, err: %d, isEof: %d\n", filePath,
-             (int)size, (int)nRead, err, isEof);
+        // logf("ReadFileWithAllocator: fread() failed, path: '%s', size: %d, nRead: %d, err: %d, isEof: %d\n", filePath, (int)size, (int)nRead, err, isEof);
         // we should either get eof or err
         // either way shouldn't happen because we're reading the exact size of file
         // I've seen this in crash reports so maybe the files are over-written
         // between the time I do fseek() and fread()
-        ReportIf(!(isEof || (err != 0)));
+        ReportDebugIf(!(isEof || (err != 0)));
         goto Error;
     }
 
@@ -615,7 +614,7 @@ bool WriteFile(const char* path, const ByteSlice& d) {
 
     DWORD size = 0;
     BOOL ok = WriteFile(h, data, (DWORD)dataLen, &size, nullptr);
-    ReportIf(ok && (dataLen != (size_t)size));
+    ReportDebugIf(ok && (dataLen != (size_t)size));
     return ok && dataLen == (size_t)size;
 }
 
@@ -657,7 +656,7 @@ i64 GetSize(HANDLE h) {
 
 // returns -1 on error (can't use INVALID_FILE_SIZE because it won't cast right)
 i64 GetSize(const char* path) {
-    ReportIf(!path);
+    ReportDebugIf(!path);
     if (!path) {
         return -1;
     }

@@ -151,7 +151,7 @@ static void PoisonData(PoolAllocator::Block* curr) {
             d = (char*)curr + hdrSize;
             // the buffer is big so optimize to only poison the data
             // allocated in this block
-            ReportIf(d > curr->freeSpace);
+            ReportDebugIf(d > curr->freeSpace);
             size_t n = (curr->freeSpace - d);
             const char* dead = "dea_";
             const char* dea0 = "dea\0";
@@ -181,7 +181,7 @@ static void ResetBlock(PoolAllocator::Block* block) {
     block->freeSpace = start + hdrSize;
     block->end = start + block->dataSize;
     block->next = nullptr;
-    ReportIf(RoundUp(block->freeSpace, kPoolAllocatorAlign) != block->freeSpace);
+    ReportDebugIf(RoundUp(block->freeSpace, kPoolAllocatorAlign) != block->freeSpace);
 }
 
 void PoolAllocator::Reset(bool poisonFreedMemory) {
@@ -191,7 +191,7 @@ void PoolAllocator::Reset(bool poisonFreedMemory) {
     // with more effort we could preserve all blocks (not sure if worth it)
     Block* first = firstBlock;
     if (!first) {
-        ReportIf(currBlock);
+        ReportDebugIf(currBlock);
         return;
     }
     if (poisonFreedMemory) {
@@ -237,7 +237,7 @@ void* PoolAllocator::Alloc(size_t size) {
     size_t sizeRounded = RoundUp(size, kPoolAllocatorAlign);
     size_t cbNeeded = sizeRounded + sizeof(i32);
     if (currBlock) {
-        ReportIf(currBlock->freeSpace > currBlock->end);
+        ReportDebugIf(currBlock->freeSpace > currBlock->end);
         size_t cbAvail = (currBlock->end - currBlock->freeSpace);
         hasSpace = cbAvail >= cbNeeded;
     }
@@ -257,7 +257,7 @@ void* PoolAllocator::Alloc(size_t size) {
         block->dataSize = dataSize;
         ResetBlock(block);
         if (!firstBlock) {
-            ReportIf(currBlock);
+            ReportDebugIf(currBlock);
             firstBlock = block;
         } else {
             currBlock->next = block;
@@ -271,9 +271,9 @@ void* PoolAllocator::Alloc(size_t size) {
         printSize("PoolAllocator: ", size);
         printSize("overshot: ", cbOvershot);
         printSize("hdrSizet: ", hdrSize);
-        ReportIf(true);
+        ReportDebugIf(true);
     }
-    ReportIf(RoundUp(currBlock->freeSpace, kPoolAllocatorAlign) != currBlock->freeSpace);
+    ReportDebugIf(RoundUp(currBlock->freeSpace, kPoolAllocatorAlign) != currBlock->freeSpace);
 
     char* blockStart = (char*)currBlock;
     i32 offset = (i32)(res - blockStart);
@@ -289,7 +289,7 @@ void* PoolAllocator::Alloc(size_t size) {
 void* PoolAllocator::At(int i) {
     ScopedCritSec scs(&cs);
 
-    ReportIf(i < 0 || i >= nAllocs);
+    ReportDebugIf(i < 0 || i >= nAllocs);
     if (i < 0 || i >= nAllocs) {
         return nullptr;
     }
@@ -298,11 +298,11 @@ void* PoolAllocator::At(int i) {
         i -= (int)curr->nAllocs;
         curr = curr->next;
     }
-    ReportIf(!curr);
+    ReportDebugIf(!curr);
     if (!curr) {
         return nullptr;
     }
-    ReportIf((size_t)i >= curr->nAllocs);
+    ReportDebugIf((size_t)i >= curr->nAllocs);
     i32* index = (i32*)curr->end;
     // elements are in reverse
     size_t idx = curr->nAllocs - i - 1;
@@ -472,7 +472,7 @@ int limitValue(int val, int min, int max) {
     if (min > max) {
         std::swap(min, max);
     }
-    ReportIf(min > max);
+    ReportDebugIf(min > max);
     if (val < min) {
         return min;
     }
@@ -486,7 +486,7 @@ DWORD limitValue(DWORD val, DWORD min, DWORD max) {
     if (min > max) {
         std::swap(min, max);
     }
-    ReportIf(min > max);
+    ReportDebugIf(min > max);
     if (val < min) {
         return min;
     }
@@ -500,7 +500,7 @@ float limitValue(float val, float min, float max) {
     if (min > max) {
         std::swap(min, max);
     }
-    ReportIf(min > max);
+    ReportDebugIf(min > max);
     if (val < min) {
         return min;
     }

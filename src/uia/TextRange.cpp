@@ -91,8 +91,8 @@ bool SumatraUIAutomationTextRange::IsEmptyRange() const {
 }
 
 int SumatraUIAutomationTextRange::GetPageGlyphCount(int pageNum) {
-    ReportIf(!document->IsDocumentLoaded());
-    ReportIf(pageNum <= 0);
+    ReportDebugIf(!document->IsDocumentLoaded());
+    ReportDebugIf(pageNum <= 0);
 
     int pageLen;
     document->GetDM()->textCache->GetTextForPage(pageNum, &pageLen);
@@ -100,7 +100,7 @@ int SumatraUIAutomationTextRange::GetPageGlyphCount(int pageNum) {
 }
 
 int SumatraUIAutomationTextRange::GetPageCount() {
-    ReportIf(!document->IsDocumentLoaded());
+    ReportDebugIf(!document->IsDocumentLoaded());
 
     return document->GetDM()->PageCount();
 }
@@ -218,7 +218,7 @@ ULONG STDMETHODCALLTYPE SumatraUIAutomationTextRange::AddRef() {
 
 ULONG STDMETHODCALLTYPE SumatraUIAutomationTextRange::Release() {
     LONG res = InterlockedDecrement(&refCount);
-    ReportIf(res < 0);
+    ReportDebugIf(res < 0);
     if (0 == res) {
         delete this;
     }
@@ -558,11 +558,11 @@ HRESULT STDMETHODCALLTYPE SumatraUIAutomationTextRange::MoveEndpointByUnit(TextP
         virtual bool NextEndpoint() const {
             // HACK: Declaring these as pure virtual causes "unreferenced local variable" warnings ==> define a dummy
             // body to get rid of warnings
-            ReportIf(true);
+            ReportDebugIf(true);
             return false;
         }
         virtual bool PrevEndpoint() const {
-            ReportIf(true);
+            ReportDebugIf(true);
             return false;
         }
 
@@ -842,7 +842,7 @@ HRESULT STDMETHODCALLTYPE SumatraUIAutomationTextRange::GetChildren(SAFEARRAY** 
             LONG index = it->GetPageNum() - startPage;
 
             HRESULT hr = SafeArrayPutElement(psa, &index, it);
-            ReportIf(FAILED(hr));
+            ReportDebugIf(FAILED(hr));
             it->AddRef();
         }
 

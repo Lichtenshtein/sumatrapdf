@@ -29,7 +29,7 @@ FILETIME MultiFormatArchive::FileInfo::GetWinFileTime() const {
 
 MultiFormatArchive::MultiFormatArchive(archive_opener_t opener, MultiFormatArchive::Format format)
     : format(format), opener_(opener) {
-    ReportIf(!opener);
+    ReportDebugIf(!opener);
     if (format == Format::Tar)
         loadOnOpen = true;
 }
@@ -121,10 +121,10 @@ ByteSlice MultiFormatArchive::GetFileDataById(size_t fileId) {
     if (fileId == (size_t)-1) {
         return {};
     }
-    ReportIf(fileId >= fileInfos_.size());
+    ReportDebugIf(fileId >= fileInfos_.size());
 
     auto* fileInfo = fileInfos_[fileId];
-    ReportIf(fileInfo->fileId != fileId);
+    ReportDebugIf(fileInfo->fileId != fileId);
 
     if (fileInfo->data != nullptr) {
         // the caller takes ownership
@@ -265,7 +265,7 @@ struct Data {
 
 static size_t DataLeft(const Data& d) {
     size_t consumed = (d.curr - d.d);
-    ReportIf(consumed > d.sz);
+    ReportDebugIf(consumed > d.sz);
     return d.sz - consumed;
 }
 
@@ -301,10 +301,10 @@ static bool FindFile(HANDLE hArc, RARHeaderDataEx* rarHeader, const WCHAR* fileN
 }
 
 ByteSlice MultiFormatArchive::GetFileDataByIdUnarrDll(size_t fileId) {
-    ReportIf(!rarFilePath_);
+    ReportDebugIf(!rarFilePath_);
 
     auto* fileInfo = fileInfos_[fileId];
-    ReportIf(fileInfo->fileId != fileId);
+    ReportDebugIf(fileInfo->fileId != fileId);
     if (fileInfo->data != nullptr) {
         return {(u8*)fileInfo->data, fileInfo->fileSizeUncompressed};
     }
@@ -334,7 +334,7 @@ ByteSlice MultiFormatArchive::GetFileDataByIdUnarrDll(size_t fileId) {
         goto Exit;
     }
     size = fileInfo->fileSizeUncompressed;
-    ReportIf(size != rarHeader.UnpSize);
+    ReportDebugIf(size != rarHeader.UnpSize);
     if (addOverflows<size_t>(size, ZERO_PADDING_COUNT)) {
         ok = false;
         goto Exit;
@@ -367,7 +367,7 @@ bool MultiFormatArchive::OpenUnrarFallback(const char* rarPath) {
     if (!rarPath) {
         return false;
     }
-    ReportIf(rarFilePath_);
+    ReportDebugIf(rarFilePath_);
     auto rarPathW = ToWStrTemp(rarPath);
 
     ByteSlice uncompressedBuf;

@@ -321,7 +321,7 @@ static void UpdateAboutLayoutInfo(HWND hwnd, HDC hdc, Rect* rect) {
         if (el == &gAboutLayoutInfo[0]) {
             leftDy = el->leftPos.dy;
         } else {
-            ReportIf(leftDy != el->leftPos.dy);
+            ReportDebugIf(leftDy != el->leftPos.dy);
         }
         if (leftLargestDx < el->leftPos.dx) {
             leftLargestDx = el->leftPos.dx;
@@ -341,7 +341,7 @@ static void UpdateAboutLayoutInfo(HWND hwnd, HDC hdc, Rect* rect) {
         if (el == &gAboutLayoutInfo[0]) {
             rightDy = el->rightPos.dy;
         } else {
-            ReportIf(rightDy != el->rightPos.dy);
+            ReportDebugIf(rightDy != el->rightPos.dy);
         }
         if (rightLargestDx < el->rightPos.dx) {
             rightLargestDx = el->rightPos.dx;
@@ -470,7 +470,7 @@ LRESULT CALLBACK WndProcAbout(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
     int y = GET_Y_LPARAM(lp);
     switch (msg) {
         case WM_CREATE:
-            ReportIf(gHwndAbout);
+            ReportDebugIf(gHwndAbout);
             if (gUseDarkModeLib) {
                 DarkMode::setDarkTitleBarEx(hwnd, true);
             }
@@ -527,7 +527,7 @@ LRESULT CALLBACK WndProcAbout(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
 
         case WM_DESTROY:
             DeleteInfotip();
-            ReportIf(!gHwndAbout);
+            ReportDebugIf(!gHwndAbout);
             gHwndAbout = nullptr;
             break;
 
@@ -551,7 +551,7 @@ void ShowAboutWindow(MainWindow* win) {
         HMODULE h = GetModuleHandleW(nullptr);
         wcex.hIcon = LoadIcon(h, MAKEINTRESOURCE(GetAppIconID()));
         gAtomAbout = RegisterClassEx(&wcex);
-        ReportIf(!gAtomAbout);
+        ReportDebugIf(!gAtomAbout);
     }
 
     TempWStr title = ToWStrTemp(_TRA("About SumatraPDF"));

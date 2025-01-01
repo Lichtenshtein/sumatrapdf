@@ -29,9 +29,9 @@
 
 #include "utils/Log.h"
 
-// TODO: when gReducedLogging is set to true, logf() no longer log
-// decide if will risk it and enable logf() calls or convert
-// logf() into a series of log() calls
+// TODO: when gReducedLogging is set to true, // logf() no longer log
+// decide if will risk it and enable // logf() calls or convert
+// // logf() into a series of log() calls
 
 #define kCrashHandlerServer "www.sumatrapdfreader.org"
 #define kCrashHandlerServerPort 443
@@ -194,18 +194,18 @@ void UploadCrashReport(const ByteSlice& d) {
 }
 
 static bool ExtractSymbols(const u8* archiveData, size_t dataSize, const char* dstDir, Allocator* allocator) {
-    logf("ExtractSymbols: dir '%s', size: %d\n", dstDir, (int)dataSize);
+    // logf("ExtractSymbols: dir '%s', size: %d\n", dstDir, (int)dataSize);
     lzma::SimpleArchive archive;
     bool ok = ParseSimpleArchive(archiveData, dataSize, &archive);
     if (!ok) {
-        logf("ExtractSymbols: ParseSimpleArchive failed\n");
+        // logf("ExtractSymbols: ParseSimpleArchive failed\n");
         return false;
     }
 
     for (int i = 0; i < archive.filesCount; i++) {
         lzma::FileInfo* fi = &(archive.files[i]);
         const char* name = fi->name;
-        logf("ExtractSymbols: file %d is '%s'\n", i, name);
+        // logf("ExtractSymbols: file %d is '%s'\n", i, name);
         u8* uncompressed = GetFileDataByIdx(&archive, i, allocator);
         if (!uncompressed) {
             return false;
@@ -220,7 +220,7 @@ static bool ExtractSymbols(const u8* archiveData, size_t dataSize, const char* d
         Allocator::Free(allocator, filePath);
         Allocator::Free(allocator, uncompressed);
         if (!ok) {
-            logf("ExtractSymbols: failed to write '%s'\n", filePath);
+            // logf("ExtractSymbols: failed to write '%s'\n", filePath);
             return false;
         }
     }
@@ -241,11 +241,11 @@ static bool DownloadAndUnzipSymbols(const char* symDir) {
     }
 
     if (!dir::CreateAll(symDir)) {
-        logf("CrashHandlerDownloadSymbols: couldn't create symbols dir '%s'\n", gSymbolsDir);
+        // logf("CrashHandlerDownloadSymbols: couldn't create symbols dir '%s'\n", gSymbolsDir);
         return false;
     }
 
-    logf("DownloadAndUnzipSymbols: symDir: '%s', url: '%s'\n", symDir, gSymbolsUrl);
+    // logf("DownloadAndUnzipSymbols: symDir: '%s', url: '%s'\n", symDir, gSymbolsUrl);
     if (!symDir || !dir::Exists(symDir)) {
         log("DownloadAndUnzipSymbols: exiting because symDir doesn't exist\n");
         return false;
@@ -276,29 +276,28 @@ bool CrashHandlerDownloadSymbols() {
 bool AreSymbolsDownloaded(const char* symDir) {
     TempStr path = path::JoinTemp(symDir, "SumatraPDF.pdb");
     if (file::Exists(path)) {
-        logf("AreSymbolsDownloaded(): exist in '%s', symDir: '%s'\n", path, symDir);
+        // logf("AreSymbolsDownloaded(): exist in '%s', symDir: '%s'\n", path, symDir);
         return true;
     }
     TempStr exePath = GetSelfExePathTemp();
     exePath = str::ReplaceTemp(exePath, ".exe", ".pdb");
     if (file::Exists(exePath)) {
-        logf("AreSymbolsDownloaded(): exist in '%s', symDir: '%s'\n", exePath, symDir);
+        // logf("AreSymbolsDownloaded(): exist in '%s', symDir: '%s'\n", exePath, symDir);
         return true;
     }
-    logf("AreSymbolsDownloaded(): not downloaded, symDir: '%s'\n", symDir);
+    // logf("AreSymbolsDownloaded(): not downloaded, symDir: '%s'\n", symDir);
     return false;
 }
 
 bool InitializeDbgHelp(bool force) {
     TempWStr ws = ToWStrTemp(gSymbolPath);
     if (!dbghelp::Initialize(ws, force)) {
-        logf("InitializeDbgHelp: dbghelp::Initialize('%s'), force: %d failed\n", gSymbolPath, (int)force);
+        // logf("InitializeDbgHelp: dbghelp::Initialize('%s'), force: %d failed\n", gSymbolPath, (int)force);
         return false;
     }
 
     if (!dbghelp::HasSymbols()) {
-        logf("InitializeDbgHelp(): dbghelp::HasSymbols(), gSymbolPath: '%s' force: %d failed\n", gSymbolPath,
-             (int)force);
+        // logf("InitializeDbgHelp(): dbghelp::HasSymbols(), gSymbolPath: '%s' force: %d failed\n", gSymbolPath, (int)force);
         return false;
     }
     log("InitializeDbgHelp(): did initialize ok\n");
@@ -306,7 +305,7 @@ bool InitializeDbgHelp(bool force) {
 }
 
 bool DownloadSymbolsIfNeeded() {
-    logf("DownloadSymbolsIfNeeded(), gSymbolsDir: '%s'\n", gSymbolsDir);
+    // logf("DownloadSymbolsIfNeeded(), gSymbolsDir: '%s'\n", gSymbolsDir);
     if (!AreSymbolsDownloaded(gSymbolsDir)) {
         bool ok = CrashHandlerDownloadSymbols();
         if (!ok) {
@@ -318,7 +317,7 @@ bool DownloadSymbolsIfNeeded() {
 
 // like crash report, but can be triggered without a crash
 void _uploadDebugReport(const char* condStr, bool isCrash, bool captureCallstack) {
-    // in release builds ReportIf()/ReportIfQuick() will break if running under
+    // in release builds ReportDebugIf()/ReportIfQuick() will break if running under
     // the debugger. In other builds it sends a debug report
 
     bool shouldUpload = gIsDebugBuild || gIsPreReleaseBuild || gIsAsanBuild;
@@ -761,7 +760,7 @@ static char* BuildSymbolsUrl() {
 }
 
 void InstallCrashHandler(const char* crashDumpPath, const char* crashFilePath, const char* symDir) {
-    ReportIf(gDumpEvent || gDumpThread);
+    ReportDebugIf(gDumpEvent || gDumpThread);
 
     if (!crashDumpPath) {
         log("InstallCrashHandler: skipping because !crashDumpPath\n");
@@ -773,8 +772,7 @@ void InstallCrashHandler(const char* crashDumpPath, const char* crashFilePath, c
         return;
     }
 
-    logf("InstallCrashHandler:\n  crashDumpPath: '%s'\n  crashFilePath: '%s'\n  symDir: '%s'\n", crashDumpPath,
-         crashFilePath, symDir);
+    // logf("InstallCrashHandler:\n  crashDumpPath: '%s'\n  crashFilePath: '%s'\n  symDir: '%s'\n", crashDumpPath, crashFilePath, symDir);
 
     gCrashDumpPath = str::Dup(crashDumpPath);
     gCrashFilePath = str::Dup(crashFilePath);

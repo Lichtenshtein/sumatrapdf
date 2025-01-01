@@ -140,7 +140,7 @@ static EngineBase* CreateEngineForKind(Kind kind, const char* path, PasswordUI* 
 }
 
 EngineBase* CreateEngineFromFile(const char* path, PasswordUI* pwdUI, bool enableChmEngine) {
-    ReportIf(!path);
+    ReportDebugIf(!path);
 
     // try to open with the engine guess from file name
     // if that fails, try to guess the file type based on content

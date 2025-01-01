@@ -44,7 +44,7 @@ IDiaDataSource *LoadDia()
             __uuidof(IDiaDataSource),(void**) &g_dia_source);
 
         if (SUCCEEDED(hr)) {
-            //logf("using registered dia %s\n", msdiaDlls[i].Filename);
+            //// logf("using registered dia %s\n", msdiaDlls[i].Filename);
             return g_dia_source;
         }
     }
@@ -82,13 +82,13 @@ IDiaDataSource *LoadDia()
             {
                 hr = classFactory->CreateInstance(0,__uuidof(IDiaDataSource),(void**) &g_dia_source);
                 classFactory->Release();
-                //logf("using loaded dia %s\n", dllName);
+                //// logf("using loaded dia %s\n", dllName);
                 return g_dia_source;
             } else {
-                logf("DllGetClassObject() in %s failed", dllName);
+                // logf("DllGetClassObject() in %s failed", dllName);
             }
         } else {
-            logf("dia dll found as %s but is missing DllGetClassObject function", dllName);
+            // logf("dia dll found as %s but is missing DllGetClassObject function", dllName);
         }
         FreeLibrary(hDll);
     }

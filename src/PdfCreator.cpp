@@ -145,7 +145,7 @@ pdf_obj* add_image_res(fz_context* ctx, pdf_document* doc, pdf_obj* resources, c
 
 // based on create_page in pdfcreate.c
 bool PdfCreator::AddPageFromFzImage(fz_image* image, float imgDpi) const {
-    ReportIf(!ctx || !doc);
+    ReportDebugIf(!ctx || !doc);
     if (!ctx || !doc) {
         return false;
     }
@@ -223,7 +223,7 @@ bool PdfCreator::AddPageFromGdiplusBitmap(Gdiplus::Bitmap* bmp, float imgDpi) {
 }
 
 bool PdfCreator::AddPageFromImageData(const ByteSlice& data, float imgDpi) const {
-    ReportIf(!ctx || !doc);
+    ReportDebugIf(!ctx || !doc);
     if (!ctx || !doc || data.empty()) {
         return false;
     }

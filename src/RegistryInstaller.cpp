@@ -40,7 +40,7 @@ static char* GetInstallDate() {
 
 // Note: doesn't handle (total) sizes above 4GB
 static DWORD GetDirSize(const char* dir, bool recur) {
-    logf("GetDirSize(%s)\n", dir);
+    // logf("GetDirSize(%s)\n", dir);
     i64 totalSize = 0;
     DirIter di{dir};
     di.recurse = recur;
@@ -52,8 +52,7 @@ static DWORD GetDirSize(const char* dir, bool recur) {
 }
 
 bool WriteUninstallerRegistryInfo(HKEY hkey, bool allUsers, const char* installDir) {
-    logf("WriteUninstallerRegistryInfo(hKey: %s, allUsers: %d, installDir: '%s')\n", RegKeyNameTemp(hkey),
-         (int)allUsers, installDir);
+    // logf("WriteUninstallerRegistryInfo(hKey: %s, allUsers: %d, installDir: '%s')\n", RegKeyNameTemp(hkey), (int)allUsers, installDir);
     bool ok = true;
 
     TempStr installedExePath = path::JoinTemp(installDir, kExeName);
@@ -346,7 +345,7 @@ void DoAssociateExeWithPdfExtension(HKEY hkey) {
     LoggedWriteRegStr(hkey, kRegClassesPdf LR"(\OpenWithProgids)", appName, L"");
     if (hkey == HKEY_CURRENT_USER) {
         LoggedWriteRegStr(hkey, kRegExplorerPdfExt, L"Progid", appName);
-        ReportIf(hkey == nullptr); // to appease prefast
+        ReportDebugIf(hkey == nullptr); // to appease prefast
         LoggedDeleteRegValue(hkey, kRegExplorerPdfExt, L"Application");
         LoggedDeleteRegKey(hkey, kRegExplorerPdfExt LR"(\UserChoice)", true);
     }
@@ -466,7 +465,7 @@ bool OldWriteFileAssoc(HKEY hkey) {
 
 // http://msdn.microsoft.com/en-us/library/cc144148(v=vs.85).aspx
 bool WriteExtendedFileExtensionInfo(HKEY hkey, const char* installedExePath) {
-    logf("WriteExtendedFileExtensionInfo('%s')\n", RegKeyNameTemp(hkey));
+    // logf("WriteExtendedFileExtensionInfo('%s')\n", RegKeyNameTemp(hkey));
     bool ok = true;
     const char* key;
 
@@ -491,7 +490,7 @@ bool WriteExtendedFileExtensionInfo(HKEY hkey, const char* installedExePath) {
 }
 
 bool RemoveUninstallerRegistryInfo(HKEY hkey) {
-    logf("RemoveUninstallerRegistryInfo(%s)\n", RegKeyNameTemp(hkey));
+    // logf("RemoveUninstallerRegistryInfo(%s)\n", RegKeyNameTemp(hkey));
     char* regPathUninst = GetRegPathUninstTemp(kAppName);
     bool ok1 = LoggedDeleteRegKey(hkey, regPathUninst);
     // legacy, this key was added by installers up to version 1.8
@@ -557,7 +556,7 @@ static bool DeleteEmptyRegKey(HKEY root, const char* keyName) {
 }
 
 void RemoveInstallRegistryKeys(HKEY hkey) {
-    logf("RemoveInstallRegistryKeys(%s)\n", RegKeyNameTemp(hkey));
+    // logf("RemoveInstallRegistryKeys(%s)\n", RegKeyNameTemp(hkey));
     UnregisterFromBeingDefaultViewer(hkey);
 
     // those are registry keys written before 3.4

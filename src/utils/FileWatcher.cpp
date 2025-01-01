@@ -163,7 +163,7 @@ static void NotifyAboutFile(WatchedDir* d, const char* fileName) {
 
     for (WatchedFile* wf = gWatchedFiles; wf; wf = wf->next) {
         if (wf->ignore) {
-            logf("NotifyAboutFile: ignoring '%s'\n", wf->filePath);
+            // logf("NotifyAboutFile: ignoring '%s'\n", wf->filePath);
             continue;
         }
         if (wf->watchedDir != d) {
@@ -174,7 +174,7 @@ static void NotifyAboutFile(WatchedDir* d, const char* fileName) {
         if (!str::EqI(fileName, path)) {
             continue;
         }
-        logf("NotifyAboutFile(): i=%d '%s' '%s'\n", i, wf->filePath, fileName);
+        // logf("NotifyAboutFile(): i=%d '%s' '%s'\n", i, wf->filePath, fileName);
         i++;
 
         // NOTE: It is not recommended to check whether the timestamp has changed
@@ -213,12 +213,12 @@ static void CALLBACK ReadDirectoryChangesNotification(DWORD errCode, DWORD bytes
     OverlappedEx* over = (OverlappedEx*)overlapped;
     WatchedDir* wd = (WatchedDir*)over->data;
 
-    // logf("ReadDirectoryChangesNotification() dir: %s, numBytes: %d\n", wd->dirPath, (int)bytesTransfered);
+    // // logf("ReadDirectoryChangesNotification() dir: %s, numBytes: %d\n", wd->dirPath, (int)bytesTransfered);
 
-    ReportIf(wd != wd->overlapped.data);
+    ReportDebugIf(wd != wd->overlapped.data);
 
     if (errCode == ERROR_OPERATION_ABORTED) {
-        // logf("ReadDirectoryChangesNotification: ERROR_OPERATION_ABORTED\n");
+        // // logf("ReadDirectoryChangesNotification: ERROR_OPERATION_ABORTED\n");
         DeleteWatchedDir(wd);
         InterlockedDecrement(&gRemovalsPending);
         return;
@@ -243,7 +243,7 @@ static void CALLBACK ReadDirectoryChangesNotification(DWORD errCode, DWORD bytes
         // by writing to a .tmp file first and then moving that file in place
         // (the latter only yields a RENAMED action with the expected file name)
         const char* actionName = GetFileActionName(notify->Action);
-        // logf("ReadDirectoryChangesNotification: %s '%s'\n", actionName, fileName);
+        // // logf("ReadDirectoryChangesNotification: %s '%s'\n", actionName, fileName);
         if (notify->Action == FILE_ACTION_ADDED || notify->Action == FILE_ACTION_MODIFIED ||
             notify->Action == FILE_ACTION_RENAMED_NEW_NAME) {
             AppendIfNotExists(&changedFiles, fileName);
@@ -274,7 +274,7 @@ static void CALLBACK StartMonitoringDirForChangesAPC(ULONG_PTR arg) {
     // this is called after reading change notification and we're only
     // interested in logging the first time a dir is registered for monitoring
     if (wd->startMonitoring) {
-        logf("StartMonitoringDirForChangesAPC() %s\n", wd->dirPath);
+        // logf("StartMonitoringDirForChangesAPC() %s\n", wd->dirPath);
     }
 
     DWORD dwNotifyFilter = FILE_NOTIFY_CHANGE_LAST_WRITE | FILE_NOTIFY_CHANGE_FILE_NAME;
@@ -310,7 +310,7 @@ static void RunManualChecks() {
             continue;
         }
         if (FileStateChanged(wf->filePath, &wf->fileState)) {
-            // logf("RunManualCheck() %s changed\n", wf->filePath);
+            // // logf("RunManualCheck() %s changed\n", wf->filePath);
             wf->onFileChangedCb.Call();
         }
     }
@@ -333,7 +333,7 @@ static void FileWatcherThread() {
 
         if (WAIT_IO_COMPLETION == obj) {
             // APC complete. Nothing to do
-            // logf("FileWatcherThread(): APC complete\n");
+            // // logf("FileWatcherThread(): APC complete\n");
             continue;
         }
 
@@ -342,10 +342,10 @@ static void FileWatcherThread() {
         if (n == 0) {
             // a thread was explicitly awaken
             ResetEvent(gThreadControlHandle);
-            // logf("FileWatcherThread(): gThreadControlHandle signalled\n");
+            // // logf("FileWatcherThread(): gThreadControlHandle signalled\n");
         } else {
-            logf("FileWatcherThread(): n=%d\n", n);
-            ReportIf(true);
+            // logf("FileWatcherThread(): n=%d\n", n);
+            ReportDebugIf(true);
         }
     }
     DestroyTempAllocator();
@@ -363,7 +363,7 @@ static WatchedDir* FindExistingWatchedDir(const char* dirPath) {
 
 static void CALLBACK StopMonitoringDirAPC(ULONG_PTR arg) {
     WatchedDir* wd = (WatchedDir*)arg;
-    // logf("StopMonitoringDirAPC() wd=0x%p\n", wd);
+    // // logf("StopMonitoringDirAPC() wd=0x%p\n", wd);
 
     // this will cause ReadDirectoryChangesNotification() to be called
     // with errCode = ERROR_OPERATION_ABORTED
@@ -450,20 +450,20 @@ Returns a cancellation token that can be used in FileWatcherUnsubscribe(). That
 way we can support multiple callers subscribing to the same file.
 */
 WatchedFile* FileWatcherSubscribe(const char* path, const Func0& onFileChangedCb) {
-    // logf("FileWatcherSubscribe() path: %s\n", path);
+    // // logf("FileWatcherSubscribe() path: %s\n", path);
 
     if (!file::Exists(path)) {
-        logf("FileWatcherSubscribe: path='%s' doesn't exist\n", path);
+        // logf("FileWatcherSubscribe: path='%s' doesn't exist\n", path);
         return nullptr;
     }
     if (false && IsProcess32()) {
         // https://github.com/sumatrapdfreader/sumatrapdf/issues/4111
-        logf("FileWatcherSubscribe: not starting a file watcher thread due to 32-bit miscompilation\n");
+        // logf("FileWatcherSubscribe: not starting a file watcher thread due to 32-bit miscompilation\n");
         return nullptr;
     }
 
     if (!gThreadHandle) {
-        logf("FileWatcherSubscribe: starting a thread\n");
+        // logf("FileWatcherSubscribe: starting a thread\n");
         InitializeCriticalSection(&gFileWatcherMutex);
         gThreadControlHandle = CreateEvent(nullptr, TRUE, FALSE, nullptr);
 
@@ -490,7 +490,7 @@ static void RemoveWatchedDirIfNotReferenced(WatchedDir* wd) {
     }
 
     bool ok = ListRemove(&gWatchedDirs, wd);
-    ReportIf(!ok);
+    ReportDebugIf(!ok);
     // memory will be eventually freed in ReadDirectoryChangesNotification()
     InterlockedIncrement(&gRemovalsPending);
     QueueUserAPC(StopMonitoringDirAPC, gThreadHandle, (ULONG_PTR)wd);
@@ -499,8 +499,8 @@ static void RemoveWatchedDirIfNotReferenced(WatchedDir* wd) {
 void FileWatcherWaitForShutdown() {
     // this is meant to be called at the end so we shouldn't
     // have any file watching subscriptions pending
-    ReportIf(gWatchedFiles != nullptr);
-    ReportIf(gWatchedDirs != nullptr);
+    ReportDebugIf(gWatchedFiles != nullptr);
+    ReportDebugIf(gWatchedDirs != nullptr);
     QueueUserAPC(ExitMonitoringThread, gThreadHandle, (ULONG_PTR)0);
 
     // wait for ReadDirectoryChangesNotification() process actions triggered
@@ -522,7 +522,7 @@ void FileWatcherWaitForShutdown() {
 static void RemoveWatchedFile(WatchedFile* wf) {
     WatchedDir* wd = wf->watchedDir;
     bool ok = ListRemove(&gWatchedFiles, wf);
-    ReportIf(!ok);
+    ReportDebugIf(!ok);
 
     bool needsAwakeThread = wf->isManualCheck;
     DeleteWatchedFile(wf);
@@ -537,7 +537,7 @@ void FileWatcherUnsubscribe(WatchedFile* wf) {
     if (!wf) {
         return;
     }
-    ReportIf(!gThreadHandle);
+    ReportDebugIf(!gThreadHandle);
 
     ScopedCritSec cs(&gFileWatcherMutex);
 

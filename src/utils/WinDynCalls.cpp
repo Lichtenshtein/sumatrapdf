@@ -37,15 +37,15 @@ static HMODULE SafeLoadLibrary(const char* dllNameA) {
 
 void InitDynCalls() {
     HMODULE h = SafeLoadLibrary("kernel32.dll");
-    ReportIf(!h);
+    ReportDebugIf(!h);
     KERNEL32_API_LIST(API_LOAD);
 
     h = SafeLoadLibrary("ntdll.dll");
-    ReportIf(!h);
+    ReportDebugIf(!h);
     NTDLL_API_LIST(API_LOAD);
 
     h = SafeLoadLibrary("user32.dll");
-    ReportIf(!h);
+    ReportDebugIf(!h);
     USER32_API_LIST(API_LOAD);
 
     h = SafeLoadLibrary("uxtheme.dll");

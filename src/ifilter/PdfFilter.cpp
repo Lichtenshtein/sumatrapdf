@@ -24,7 +24,7 @@ EBookUI* GetEBookUI() {
 }
 
 VOID PdfFilter::CleanUp() {
-    logf("PdfFilter::Cleanup()\n");
+    // logf("PdfFilter::Cleanup()\n");
     if (m_pdfEngine) {
         m_pdfEngine->Release();
         m_pdfEngine = nullptr;
@@ -33,7 +33,7 @@ VOID PdfFilter::CleanUp() {
 }
 
 HRESULT PdfFilter::OnInit() {
-    logf("PdfFilter::OnInit()\n");
+    // logf("PdfFilter::OnInit()\n");
     CleanUp();
 
     // TODO: EngineMupdf::CreateFromStream never returns with
@@ -87,7 +87,7 @@ static const char* PdfFilterStateToStr(PdfFilterState state) {
 
 HRESULT PdfFilter::GetNextChunkValue(ChunkValue& chunkValue) {
     const char* stateStr = PdfFilterStateToStr(m_state);
-    logf("PdfFilter::GetNextChunkValue(), state: %s (%d)\n", stateStr, (int)m_state);
+    // logf("PdfFilter::GetNextChunkValue(), state: %s (%d)\n", stateStr, (int)m_state);
     char* prop = nullptr;
     WCHAR* ws = nullptr;
     switch (m_state) {

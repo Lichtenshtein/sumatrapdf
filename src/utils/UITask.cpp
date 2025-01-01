@@ -19,11 +19,11 @@ static LRESULT CALLBACK WndProcTaskDispatch(HWND hwnd, UINT msg, WPARAM wp, LPAR
         Kind kind = (Kind)wp;
         auto func = (Func0*)lp;
         if (kind != nullptr) {
-            logf("uitask::WndProcTaskDispatch: will execute '%s', func 0x%p\n", kind, (void*)func);
+            // logf("uitask::WndProcTaskDispatch: will execute '%s', func 0x%p\n", kind, (void*)func);
         }
         func->Call();
         if (kind != nullptr) {
-            logf("uitask::WndProcTaskDispatch: did execute, will delete func 0x%p\n", (void*)func);
+            // logf("uitask::WndProcTaskDispatch: did execute, will delete func 0x%p\n", (void*)func);
         }
         delete func;
         return 0;
@@ -34,13 +34,13 @@ static LRESULT CALLBACK WndProcTaskDispatch(HWND hwnd, UINT msg, WPARAM wp, LPAR
 constexpr const WCHAR* UITASK_CLASS_NAME = L"UITask_Wnd_Class";
 
 void Initialize() {
-    ReportIf(gExecuteTaskMessage != 0);
+    ReportDebugIf(gExecuteTaskMessage != 0);
     gExecuteTaskMessage = RegisterWindowMessageA("UITask_Msg_StdFunction");
     WNDCLASSEX wcex;
     FillWndClassEx(wcex, UITASK_CLASS_NAME, WndProcTaskDispatch);
     RegisterClassEx(&wcex);
 
-    ReportIf(gTaskDispatchHwnd);
+    ReportDebugIf(gTaskDispatchHwnd);
     auto cls = UITASK_CLASS_NAME;
     auto title = L"UITask Dispatch Window";
     auto m = GetModuleHandleW(nullptr);
@@ -49,7 +49,7 @@ void Initialize() {
 }
 
 void DrainQueue() {
-    ReportIf(!gTaskDispatchHwnd);
+    ReportDebugIf(!gTaskDispatchHwnd);
     MSG msg;
     UINT wmExecTask = gExecuteTaskMessage;
     while (PeekMessage(&msg, gTaskDispatchHwnd, wmExecTask, wmExecTask, PM_REMOVE)) {

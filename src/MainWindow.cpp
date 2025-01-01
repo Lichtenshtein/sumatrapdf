@@ -49,7 +49,7 @@ struct LinkHandler : ILinkHandler {
     MainWindow* win = nullptr;
 
     explicit LinkHandler(MainWindow* w) {
-        ReportIf(!w);
+        ReportDebugIf(!w);
         win = w;
     }
     ~LinkHandler() override;
@@ -110,17 +110,17 @@ void CreateMovePatternLazy(MainWindow* win) {
         return;
     }
     win->bmpMovePattern = CreateBitmap(8, 8, 1, 1, dotPatternBmp);
-    ReportIf(!win->bmpMovePattern);
+    ReportDebugIf(!win->bmpMovePattern);
     win->brMovePattern = CreatePatternBrush(win->bmpMovePattern);
-    ReportIf(!win->brMovePattern);
+    ReportDebugIf(!win->brMovePattern);
 }
 
 MainWindow::~MainWindow() {
     FinishStressTest(this);
 
-    ReportIf(TabCount() > 0);
-    // ReportIf(ctrl); // TODO: seen in crash report
-    ReportIf(linkOnLastButtonDown);
+    ReportDebugIf(TabCount() > 0);
+    // ReportDebugIf(ctrl); // TODO: seen in crash report
+    ReportDebugIf(linkOnLastButtonDown);
 
     UnsubclassToc(this);
 
@@ -146,14 +146,14 @@ MainWindow::~MainWindow() {
     DeleteVecMembers(tabs);
     {
         MarkHWNDDestroyed(tabsCtrl->hwnd);
-        logf("~MainWindow: delete tabsCtrl: 0x%p, HWND: 0x%p\n", tabsCtrl, tabsCtrl->hwnd);
+        // logf("~MainWindow: delete tabsCtrl: 0x%p, HWND: 0x%p\n", tabsCtrl, tabsCtrl->hwnd);
         HWND hwndTemp = tabsCtrl->hwnd;
         delete tabsCtrl;
         tabsCtrl = nullptr;
         Wnd* w = WndListFindByHwnd(hwndTemp);
         if (w != nullptr) {
-            logf("~MainWindow: tabsCtrl->hwnd found in WndMap after delete tabsCtrl\n");
-            ReportIf(true);
+            // logf("~MainWindow: tabsCtrl->hwnd found in WndMap after delete tabsCtrl\n");
+            ReportDebugIf(true);
         }
     }
 
@@ -183,17 +183,17 @@ void ClearMouseState(MainWindow* win) {
 bool MainWindow::HasDocsLoaded() const {
     int nTabs = TabCount();
     if (nTabs == 0) {
-        // logf("HasDocsLoaded: false because nTabs == 0\n");
+        // // logf("HasDocsLoaded: false because nTabs == 0\n");
         return true;
     }
     for (int i = 0; i < nTabs; i++) {
         auto tab = GetTab(i);
         if (!tab->IsAboutTab()) {
-            // logf("HasDocsLoaded: true because GetTab(i) !IsAboutTab()\n");
+            // // logf("HasDocsLoaded: true because GetTab(i) !IsAboutTab()\n");
             return true;
         }
     }
-    // logf("HasDocsLoaded: false because all %d tabs are IsAboutTab()\n", nTabs);
+    // // logf("HasDocsLoaded: false because all %d tabs are IsAboutTab()\n", nTabs);
     return false;
 }
 
@@ -206,7 +206,7 @@ bool MainWindow::IsDocLoaded() const {
     bool isTabLoaded = (CurrentTab() && CurrentTab()->ctrl != nullptr);
     if (isLoaded != isTabLoaded) {
         logfa("MainWindow::IsDocLoaded(): isLoaded: %d, isTabLoaded: %d\n", (int)isLoaded, (int)isTabLoaded);
-        ReportIf(!gPluginMode);
+        ReportDebugIf(!gPluginMode);
     }
     return isLoaded;
 }
@@ -226,7 +226,7 @@ WindowTab* MainWindow::CurrentTab() const {
     }
 #if 0
     int nTabs = TabCount();
-    ReportIf(nTabs > 0);
+    ReportDebugIf(nTabs > 0);
     if (nTabs > 0) {
         curr = GetTab(0);
         return curr;
@@ -312,12 +312,12 @@ Size MainWindow::GetViewPortSize() const {
     if ((style & WS_HSCROLL)) {
         size.dy += GetSystemMetrics(SM_CYHSCROLL);
     }
-    ReportIf((style & (WS_VSCROLL | WS_HSCROLL)) && !AsFixed());
+    ReportDebugIf((style & (WS_VSCROLL | WS_HSCROLL)) && !AsFixed());
     return size;
 }
 
 void MainWindow::RedrawAll(bool update) const {
-    // logf("MainWindow::RedrawAll, update: %d  RenderCache:\n", (int)update);
+    // // logf("MainWindow::RedrawAll, update: %d  RenderCache:\n", (int)update);
     InvalidateRect(this->hwndCanvas, nullptr, false);
     if (update) {
         UpdateWindow(this->hwndCanvas);
@@ -325,7 +325,7 @@ void MainWindow::RedrawAll(bool update) const {
 }
 
 void MainWindow::RedrawAllIncludingNonClient() const {
-    // logf("MainWindow::RedrawAllIncludingNonClient RenderCache:\n");
+    // // logf("MainWindow::RedrawAllIncludingNonClient RenderCache:\n");
     InvalidateRect(this->hwndCanvas, nullptr, false);
     RedrawWindow(this->hwndCanvas, nullptr, nullptr, RDW_FRAME | RDW_INVALIDATE);
 }
@@ -379,7 +379,7 @@ void MainWindow::ToggleZoom() const {
 }
 
 void MainWindow::MoveDocBy(int dx, int dy) const {
-    ReportIf(!CurrentTab());
+    ReportDebugIf(!CurrentTab());
     CurrentTab()->MoveDocBy(dx, dy);
 }
 
@@ -411,7 +411,7 @@ bool MainWindow::CreateUIAProvider() {
 }
 
 void LinkHandler::GotoLink(IPageDestination* dest) {
-    ReportIf(!win || win->linkHandler != this);
+    ReportDebugIf(!win || win->linkHandler != this);
     if (!dest || !win || !win->IsDocLoaded()) {
         return;
     }
@@ -449,12 +449,12 @@ void LinkHandler::GotoLink(IPageDestination* dest) {
         return;
     }
 
-    logf("LinkHandler::GotoLink: unhandled kind %s\n", kind);
-    ReportIf(true);
+    // logf("LinkHandler::GotoLink: unhandled kind %s\n", kind);
+    ReportDebugIf(true);
 }
 
 void LinkHandler::ScrollTo(IPageDestination* dest) {
-    ReportIf(!win || !win->ctrl || win->linkHandler != this);
+    ReportDebugIf(!win || !win->ctrl || win->linkHandler != this);
     if (!dest || !win || !win->ctrl || !win->IsDocLoaded()) {
         return;
     }
@@ -624,7 +624,7 @@ IPageDestination* LinkHandler::FindTocItem(TocItem* item, const char* name, bool
 }
 
 void LinkHandler::GotoNamedDest(const char* name) {
-    ReportIf(!win || win->linkHandler != this);
+    ReportDebugIf(!win || win->linkHandler != this);
     DocController* ctrl = win->ctrl;
     if (!ctrl) {
         return;

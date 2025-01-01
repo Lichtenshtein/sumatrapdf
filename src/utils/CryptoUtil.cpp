@@ -14,30 +14,30 @@ static NO_INLINE void CalcDigestWin(const void* data, int dataSize, u8* digest, 
     HCRYPTPROV hProv = 0;
     HCRYPTHASH hHash = 0;
     BOOL ok = CryptAcquireContextW(&hProv, nullptr, provider, type, CRYPT_VERIFYCONTEXT);
-    ReportIf(!ok);
+    ReportDebugIf(!ok);
     ok = CryptCreateHash(hProv, alg, 0, 0, &hHash);
-    ReportIf(!ok);
+    ReportDebugIf(!ok);
 
 #ifdef _WIN64
     for (; dataSize > DWORD_MAX; data = (const BYTE*)data + DWORD_MAX, dataSize -= DWORD_MAX) {
         ok = CryptHashData(hHash, (const BYTE*)data, DWORD_MAX, 0);
-        ReportIf(!ok);
+        ReportDebugIf(!ok);
     }
 #endif
     ok = CryptHashData(hHash, (const BYTE*)data, (DWORD)dataSize, 0);
-    ReportIf(!ok);
+    ReportDebugIf(!ok);
 
     DWORD hashLen = 0;
     DWORD argSize = sizeof(DWORD);
     ok = CryptGetHashParam(hHash, HP_HASHSIZE, (BYTE*)&hashLen, &argSize, 0);
-    ReportIf(sizeof(DWORD) != argSize);
-    ReportIf(!ok);
+    ReportDebugIf(sizeof(DWORD) != argSize);
+    ReportDebugIf(!ok);
     if (digestSize != hashLen) {
-        ReportIf(digestSize != hashLen);
+        ReportDebugIf(digestSize != hashLen);
     }
     ok = CryptGetHashParam(hHash, HP_HASHVAL, digest, &hashLen, 0);
-    ReportIf(!ok);
-    ReportIf(digestSize != hashLen);
+    ReportDebugIf(!ok);
+    ReportDebugIf(digestSize != hashLen);
     CryptDestroyHash(hHash);
     CryptReleaseContext(hProv, 0);
 }

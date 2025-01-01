@@ -81,7 +81,7 @@ static void ParseTranslationsTxt(const StrSpan& d, const char* langCode) {
         }
     }
     int nLines = lines.Size();
-    logf("ParseTranslationsTxt: %d lines, nStrings: %d\n", nLines, nStrings);
+    // logf("ParseTranslationsTxt: %d lines, nStrings: %d\n", nLines, nStrings);
 
     delete gTranslationCache;
     gTranslationCache = new StrVec();
@@ -122,7 +122,7 @@ static void ParseTranslationsTxt(const StrSpan& d, const char* langCode) {
     int nTrans = c->Size();
     ReportDebugIf(nTrans != nStrings * 2);
     if (nUntranslated > 0 && !str::Eq(langCode, "en:")) {
-        logf("Untranslated strings: %d for lang '%s'\n", nUntranslated, langCode);
+        // logf("Untranslated strings: %d for lang '%s'\n", nUntranslated, langCode);
     }
 }
 
@@ -143,7 +143,7 @@ const char* GetTranslation(const char* s) {
         if (s2.Len() == sLen && str::Eq(s, s2.CStr())) {
             auto tr = c->At(idx + 1);
             if (!tr) {
-                logf("Didn't find translation for '%s'\n", s);
+                // logf("Didn't find translation for '%s'\n", s);
                 return s;
             }
             return tr;
@@ -168,7 +168,7 @@ void SetCurrentLangByCode(const char* langCode) {
 
     int idx = seqstrings::StrToIdx(gLangCodes, langCode);
     if (idx < 0) {
-        logf("SetCurrentLangByCode: unknown lang code: '%s'\n", langCode);
+        // logf("SetCurrentLangByCode: unknown lang code: '%s'\n", langCode);
         // set to English
         idx = 0;
     }

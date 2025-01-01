@@ -886,13 +886,12 @@ static void CreatePageBox(MainWindow* win, HFONT font, int iconDy) {
 void LogBitmapInfo(HBITMAP hbmp) {
     BITMAP bmpInfo;
     GetObject(hbmp, sizeof(BITMAP), &bmpInfo);
-    logf("dx: %d, dy: %d, stride: %d, bitsPerPixel: %d\n", (int)bmpInfo.bmWidth, (int)bmpInfo.bmHeight,
-         (int)bmpInfo.bmWidthBytes, (int)bmpInfo.bmBitsPixel);
+    // logf("dx: %d, dy: %d, stride: %d, bitsPerPixel: %d\n", (int)bmpInfo.bmWidth, (int)bmpInfo.bmHeight, (int)bmpInfo.bmWidthBytes, (int)bmpInfo.bmBitsPixel);
     u8* bits = (u8*)bmpInfo.bmBits;
     u8* d;
     for (int y = 0; y < 5; y++) {
         d = bits + (size_t)bmpInfo.bmWidthBytes * y;
-        logf("y: %d, d: 0x%p\n", y, d);
+        // logf("y: %d, d: 0x%p\n", y, d);
     }
 }
 

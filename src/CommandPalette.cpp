@@ -418,7 +418,7 @@ void CommandPaletteWnd::CollectStrings(MainWindow* mainWin) {
     for (int i = 0; i < nTabs; i++) {
         WindowTab* t = mainWin->GetTab(i);
         if (t->IsAboutTab()) {
-            ReportIf(i > 0);
+            ReportDebugIf(i > 0);
             nFirstDocTab = 1;
             continue;
         }
@@ -477,7 +477,7 @@ void CommandPaletteWnd::CollectStrings(MainWindow* mainWin) {
             tabs.Append(name, data);
             if (tab == currTab) {
                 currTabIdx = tabs.Size() - 1;
-                logf("currTabIdx: %d\n", currTabIdx);
+                // logf("currTabIdx: %d\n", currTabIdx);
             }
         }
     }
@@ -497,7 +497,7 @@ void CommandPaletteWnd::CollectStrings(MainWindow* mainWin) {
     int cmdId = (int)CmdFirst + 1;
     for (SeqStrings name = gCommandDescriptions; name; seqstrings::Next(name, &cmdId)) {
         if (AllowCommand(ctx, (i32)cmdId)) {
-            ReportIf(str::Leni(name) == 0);
+            ReportDebugIf(str::Leni(name) == 0);
             ItemDataCP data;
             data.cmdId = (i32)cmdId;
             tempCommands.Append(name, data);
@@ -588,7 +588,7 @@ LRESULT CommandPaletteWnd::WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lp
 
 static void SelectionChange(CommandPaletteWnd* wnd) {
     int idx = wnd->listBox->GetCurrentSelection();
-    // logf("Selection changed: %d\n", idx);
+    // // logf("Selection changed: %d\n", idx);
     if (!wnd->smartTabMode) {
         return;
     }
@@ -837,8 +837,8 @@ void CommandPaletteWnd::ExecuteCurrentSelection() {
         ScheduleDelete();
         return;
     }
-    logf("CommandPaletteWnd::ExecuteCurrentSelection: no match for selection '%s'\n", m->strings.At(idx));
-    ReportIf(true);
+    // logf("CommandPaletteWnd::ExecuteCurrentSelection: no match for selection '%s'\n", m->strings.At(idx));
+    ReportDebugIf(true);
     ScheduleDelete();
 }
 
@@ -869,7 +869,7 @@ static Static* CreateStatic(HWND parent, HFONT font, const char* s) {
     args.text = s;
     auto c = new Static();
     auto wnd = c->Create(args);
-    ReportIf(!wnd);
+    ReportDebugIf(!wnd);
     return c;
 }
 
@@ -909,7 +909,7 @@ bool CommandPaletteWnd::Create(MainWindow* win, const char* prefix, int smartTab
         c->SetColors(colTxt, colBg);
         c->maxDx = 150;
         HWND ok = c->Create(args);
-        ReportIf(!ok);
+        ReportDebugIf(!ok);
         c->onTextChanged = MkFunc0(CommandPaletteQueryChanged, this);
         editQuery = c;
         vbox->AddChild(c);
@@ -1005,7 +1005,7 @@ bool CommandPaletteWnd::Create(MainWindow* win, const char* prefix, int smartTab
 }
 
 void RunCommandPallette(MainWindow* win, const char* prefix, int smartTabAdvance) {
-    ReportIf(gCommandPaletteWnd);
+    ReportDebugIf(gCommandPaletteWnd);
 
     auto wnd = new CommandPaletteWnd();
     auto fn = MkFunc1Void<Wnd::DestroyEvent*>(OnDestroy);
@@ -1013,7 +1013,7 @@ void RunCommandPallette(MainWindow* win, const char* prefix, int smartTabAdvance
     wnd->font = GetAppBiggerFont();
     wnd->win = win;
     bool ok = wnd->Create(win, prefix, smartTabAdvance);
-    ReportIf(!ok);
+    ReportDebugIf(!ok);
     gCommandPaletteWnd = wnd;
     gHwndToActivateOnClose = win->hwndFrame;
 }

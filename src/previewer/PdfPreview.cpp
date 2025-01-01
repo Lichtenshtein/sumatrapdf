@@ -32,11 +32,11 @@ EBookUI* GetEBookUI() {
 IFACEMETHODIMP PreviewBase::GetThumbnail(uint cx, HBITMAP* phbmp, WTS_ALPHATYPE* pdwAlpha) {
     EngineBase* engine = GetEngine();
     if (!engine) {
-        logf("PreviewBase::GetThumbnail: failed to get the engine\n");
+        // logf("PreviewBase::GetThumbnail: failed to get the engine\n");
         return E_FAIL;
     }
 
-    logf("PreviewBase::GetThumbnail(cx=%d, engine: %s\n", (int)cx, engine->kind);
+    // logf("PreviewBase::GetThumbnail(cx=%d, engine: %s\n", (int)cx, engine->kind);
 
     RectF page = engine->Transform(engine->PageMediabox(1), 1, 1.0, 0);
     float zoom = std::min(cx / (float)page.dx, cx / (float)page.dy) - 0.001f;

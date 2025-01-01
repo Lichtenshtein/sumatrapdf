@@ -65,7 +65,7 @@ struct DrawInstr {
     explicit DrawInstr(DrawInstrType t, RectF bbox = {}) : type(t), bbox(bbox) {
     }
     ByteSlice GetImage() {
-        ReportIf(type != DrawInstrType::Image);
+        ReportDebugIf(type != DrawInstrType::Image);
         return {(u8*)str.s, str.len};
     }
 

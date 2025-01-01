@@ -126,14 +126,14 @@ const char* CmdLineArgsIter::EatParam() {
 void CmdLineArgsIter::RewindParam() {
     // undo EatParam()
     --curr;
-    ReportIf(curr < 1);
+    ReportDebugIf(curr < 1);
 }
 
 // additional param is one in addition to the default first param
 // they start at 1
 // returns nullptr if no additional param
 const char* CmdLineArgsIter::AdditionalParam(int n) const {
-    ReportIf(n < 1);
+    ReportDebugIf(n < 1);
     if (curr + n - 1 >= nArgs) {
         return nullptr;
     }

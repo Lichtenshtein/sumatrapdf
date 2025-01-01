@@ -237,11 +237,11 @@ void DeleteAnnotationAndUpdateUI(WindowTab* tab, Annotation* annot) {
 static void DeleteSelectedAnnotation(EditAnnotationsWindow* ew) {
     int idx = ew->listBox->GetCurrentSelection();
     if (idx < 0) {
-        ReportIf(ew->tab->selectedAnnotation != nullptr);
+        ReportDebugIf(ew->tab->selectedAnnotation != nullptr);
         return;
     }
     Annotation* annot = ew->annotations.at(idx);
-    ReportIf(ew->tab->selectedAnnotation != annot);
+    ReportDebugIf(ew->tab->selectedAnnotation != annot);
     WindowTab* tab = ew->tab;
     DeleteAnnotationAndUpdateUI(tab, annot);
 
@@ -362,7 +362,7 @@ EditAnnotationsWindow::~EditAnnotationsWindow() {
 static bool DidAnnotationsChange(EditAnnotationsWindow* ew) {
     EngineMupdf* engine = GetEngineMupdf(ew);
     if (!engine) { // maybe seen in crash report
-        ReportIf(true);
+        ReportDebugIf(true);
         return false;
     }
     return EngineMupdfHasUnsavedAnnotations(engine);
@@ -484,7 +484,7 @@ static PdfColor GetDropDownColor(const char* sv) {
     int idx = seqstrings::StrToIdx(gColors, sv);
     if (idx >= 0) {
         int nMaxColors = (int)dimof(gColorsValues);
-        ReportIf(idx >= nMaxColors);
+        ReportDebugIf(idx >= nMaxColors);
         if (idx < nMaxColors) {
             return gColorsValues[idx];
         }
@@ -844,7 +844,7 @@ static void UpdateUIForSelectedAnnotation(EditAnnotationsWindow* ew, Annotation*
     HidePerAnnotControls(ew);
     if (annot) {
         int itemNo = ew->annotations.Find(annot);
-        ReportIf(itemNo < 0);
+        ReportDebugIf(itemNo < 0);
 
         DoRect(ew, annot);
         DoAuthor(ew, annot);
@@ -899,9 +899,8 @@ static void UpdateUIForSelectedAnnotation(EditAnnotationsWindow* ew, Annotation*
     int nPages = dm->PageCount();
     if (annotPageNo > nPages) {
         // see https://github.com/sumatrapdfreader/sumatrapdf/issues/1701
-        logf("UpdateUIForSelectedAnnotation: invalid annotPageNo (%d), should be <= than nPages (%d)\n", annotPageNo,
-             nPages);
-        ReportIf(annotPageNo > nPages);
+        // logf("UpdateUIForSelectedAnnotation: invalid annotPageNo (%d), should be <= than nPages (%d)\n", annotPageNo, nPages);
+        ReportDebugIf(annotPageNo > nPages);
         return;
     }
 
@@ -918,13 +917,13 @@ static void UpdateUIForSelectedAnnotation(EditAnnotationsWindow* ew, Annotation*
 }
 
 static void ButtonSaveAttachment(EditAnnotationsWindow* ew) {
-    ReportIf(!ew->tab->selectedAnnotation);
+    ReportDebugIf(!ew->tab->selectedAnnotation);
     // TODO: implement me
     MessageBoxNYI(ew->hwnd);
 }
 
 static void ButtonEmbedAttachment(EditAnnotationsWindow* ew) {
-    ReportIf(!ew->tab->selectedAnnotation);
+    ReportDebugIf(!ew->tab->selectedAnnotation);
     // TODO: implement me
     MessageBoxNYI(ew->hwnd);
 }
@@ -984,7 +983,7 @@ static void AddAnnotationToList(EditAnnotationsWindow* ew, Annotation* annot) {
 }
 
 static void ButtonDeleteHandler(EditAnnotationsWindow* ew) {
-    ReportIf(!ew->tab->selectedAnnotation);
+    ReportDebugIf(!ew->tab->selectedAnnotation);
     DeleteSelectedAnnotation(ew);
 }
 
@@ -1022,7 +1021,7 @@ static void ContentsChanged(EditAnnotationsWindow* ew) {
 
     MainWindow* win = ew->tab->win;
     if (gMainWindowRerenderTimer != 0) {
-        // logf("ContentsChanged: killing existing timer for re-render of MainWindow\n");
+        // // logf("ContentsChanged: killing existing timer for re-render of MainWindow\n");
         KillTimer(win->hwndCanvas, gMainWindowRerenderTimer);
         gMainWindowRerenderTimer = 0;
     }
@@ -1030,10 +1029,10 @@ static void ContentsChanged(EditAnnotationsWindow* ew) {
     gMainWindowForRender = win;
     gMainWindowRerenderTimer = SetTimer(win->hwndCanvas, 1, timeoutInMs, [](HWND, UINT, UINT_PTR, DWORD) {
         if (IsMainWindowValid(gMainWindowForRender)) {
-            // logf("ContentsChanged: re-rendering MainWindow\n");
+            // // logf("ContentsChanged: re-rendering MainWindow\n");
             MainWindowRerender(gMainWindowForRender);
         } else {
-            // logf("ContentsChanged: NOT re-rendering MainWindow because is not valid anymore\n");
+            // // logf("ContentsChanged: NOT re-rendering MainWindow because is not valid anymore\n");
         }
         gMainWindowRerenderTimer = 0;
     });
@@ -1066,7 +1065,7 @@ static Static* CreateStatic(HWND parent, const char* s = nullptr) {
     args.text = s;
     args.font = GetAppFont();
     HWND hwnd = w->Create(args);
-    ReportIf(!hwnd);
+    ReportDebugIf(!hwnd);
     return w;
 }
 
@@ -1151,7 +1150,7 @@ static void CreateMainLayout(EditAnnotationsWindow* ew) {
         args.font = fnt;
         auto w = new Edit();
         HWND hwnd = w->Create(args);
-        ReportIf(!hwnd);
+        ReportDebugIf(!hwnd);
         w->maxDx = 150;
         w->onTextChanged = MkFunc0(ContentsChanged, ew);
         ew->editContents = w;
@@ -1404,7 +1403,7 @@ static void CreateMainLayout(EditAnnotationsWindow* ew) {
         auto w = new Button();
         w->SetInsetsPt(8, 0, 0, 0);
         HWND hwnd = w->Create(args);
-        ReportIf(!hwnd);
+        ReportDebugIf(!hwnd);
 
         w->onClick = MkFunc0(ButtonSaveAttachment, ew);
         ew->buttonSaveAttachment = w;
@@ -1420,7 +1419,7 @@ static void CreateMainLayout(EditAnnotationsWindow* ew) {
         auto w = new Button();
         w->SetInsetsPt(8, 0, 0, 0);
         HWND hwnd = w->Create(args);
-        ReportIf(!hwnd);
+        ReportDebugIf(!hwnd);
 
         w->onClick = MkFunc0(ButtonEmbedAttachment, ew);
         ew->buttonEmbedAttachment = w;
@@ -1436,7 +1435,7 @@ static void CreateMainLayout(EditAnnotationsWindow* ew) {
         auto w = new Button();
         w->SetInsetsPt(11, 0, 0, 0);
         HWND hwnd = w->Create(args);
-        ReportIf(!hwnd);
+        ReportDebugIf(!hwnd);
 
         // TODO: doesn't work
         // w->SetTextColor(MkColor(0xff, 0, 0));
@@ -1461,7 +1460,7 @@ static void CreateMainLayout(EditAnnotationsWindow* ew) {
 
         auto w = new Button();
         HWND hwnd = w->Create(args);
-        ReportIf(!hwnd);
+        ReportDebugIf(!hwnd);
 
         w->SetIsEnabled(false); // only enabled if there are changes
         w->onClick = MkFunc0(ButtonSaveToCurrentPDFHandler, ew);
@@ -1479,7 +1478,7 @@ static void CreateMainLayout(EditAnnotationsWindow* ew) {
         auto w = new Button();
         w->SetInsetsPt(8, 0, 0, 0);
         HWND hwnd = w->Create(args);
-        ReportIf(!hwnd);
+        ReportDebugIf(!hwnd);
 
         w->SetIsEnabled(false); // only enabled if there are changes
         w->onClick = MkFunc0(ButtonSaveToNewFileHandler, ew);

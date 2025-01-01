@@ -85,6 +85,6 @@ bool IsSearchFilterInstalled() {
     const char* key = ".pdf\\PersistentHandler";
     char* iid = LoggedReadRegStrTemp(HKEY_CLASSES_ROOT, key, nullptr);
     bool isInstalled = str::EqI(iid, kPdfFilterHandler);
-    logf("IsSearchFilterInstalled() isInstalled=%d\n", (int)isInstalled);
+    // logf("IsSearchFilterInstalled() isInstalled=%d\n", (int)isInstalled);
     return isInstalled;
 }

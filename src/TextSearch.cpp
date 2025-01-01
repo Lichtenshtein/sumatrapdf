@@ -358,7 +358,7 @@ TextSel* TextSearch::FindFirst(int page, const WCHAR* text) {
 }
 
 TextSel* TextSearch::FindNext() {
-    ReportIf(!findText);
+    ReportDebugIf(!findText);
     if (!findText) {
         return nullptr;
     }

@@ -133,7 +133,7 @@ struct DjVuContext {
         ctx = ddjvu_context_create("DjVuEngine");
         // reset the locale to "C" as most other code expects
         setlocale(LC_ALL, "C");
-        ReportIf(!ctx);
+        ReportDebugIf(!ctx);
     }
 
     int AddRef() {
@@ -146,7 +146,7 @@ struct DjVuContext {
 
     int Release() {
         EnterCriticalSection(&lock);
-        ReportIf(refCount <= 0);
+        ReportDebugIf(refCount <= 0);
         --refCount;
         LeaveCriticalSection(&lock);
         return refCount;
@@ -212,7 +212,7 @@ static DjVuContext* GetDjVuContext() {
 }
 
 static void ReleaseDjVuContext() {
-    ReportIf(!gDjVuContext);
+    ReportDebugIf(!gDjVuContext);
     int refCount = gDjVuContext->Release();
     if (refCount != 0) {
         return;
@@ -221,7 +221,7 @@ static void ReleaseDjVuContext() {
 
 void CleanupEngineDjVu() {
     if (gDjVuContext) {
-        ReportIf(gDjVuContext->refCount != 0);
+        ReportDebugIf(gDjVuContext->refCount != 0);
         delete gDjVuContext;
         gDjVuContext = nullptr;
     }
@@ -336,7 +336,7 @@ EngineBase* EngineDjVu::Clone() {
 }
 
 RectF EngineDjVu::PageMediabox(int pageNo) {
-    ReportIf(pageNo < 1 || pageNo > pageCount);
+    ReportDebugIf(pageNo < 1 || pageNo > pageCount);
     DjVuPageInfo* pi = pages[pageNo - 1];
     return pi->mediabox;
 }
@@ -419,7 +419,7 @@ bool EngineDjVu::LoadMediaboxes() {
             }
             DjVuInfoChunk info;
             bool ok = r.UnpackBE(&info, sizeof(info), "2w6b", 4);
-            ReportIf(!ok);
+            ReportDebugIf(!ok);
             int dpi = MAKEWORD(info.dpiLo, info.dpiHi); // dpi is little-endian
             // DjVuLibre ignores DPI values outside 25 to 6000 in DjVuInfo::decode
             if (dpi < 25 || 6000 < dpi) {
@@ -596,7 +596,7 @@ RenderedBitmap* EngineDjVu::RenderPage(RenderPageArgs& args) {
             rot = DDJVU_ROTATE_90;
             break;
         default:
-            ReportIf("invalid rotation");
+            ReportDebugIf("invalid rotation");
             break;
     }
     ddjvu_page_set_rotation(page, rot);
@@ -719,7 +719,7 @@ RectF EngineDjVu::PageContentBox(int pageNo, RenderTarget) {
 }
 
 PointF EngineDjVu::TransformPoint(PointF pt, int pageNo, float zoom, int rotation, bool inverse) {
-    ReportIf(zoom <= 0);
+    ReportDebugIf(zoom <= 0);
     if (zoom <= 0) {
         return pt;
     }
@@ -873,7 +873,7 @@ PageText EngineDjVu::ExtractPageText(int pageNo) {
 
     PageText res;
 
-    ReportIf(str::Len(extracted.Get()) != coords.size());
+    ReportDebugIf(str::Len(extracted.Get()) != coords.size());
     ddjvu_status_t status;
     ddjvu_pageinfo_t info;
     while ((status = ddjvu_document_get_pageinfo(doc, pageNo - 1, &info)) < DDJVU_JOB_OK) {
@@ -899,7 +899,7 @@ PageText EngineDjVu::ExtractPageText(int pageNo) {
             coords.at(i).y = page.dy - coords.at(i).y - coords.at(i).dy;
         }
     }
-    ReportIf(coords.size() != extracted.size());
+    ReportDebugIf(coords.size() != extracted.size());
     res.len = (int)extracted.size();
     res.text = extracted.StealData();
     res.coords = coords.StealData();
@@ -907,7 +907,7 @@ PageText EngineDjVu::ExtractPageText(int pageNo) {
 }
 
 Vec<IPageElement*> EngineDjVu::GetElements(int pageNo) {
-    ReportIf(pageNo < 1 || pageNo > PageCount());
+    ReportDebugIf(pageNo < 1 || pageNo > PageCount());
     auto pi = pages[pageNo - 1];
     if (pi->gotAllElements) {
         return pi->allElements;
@@ -1008,8 +1008,8 @@ Vec<IPageElement*> EngineDjVu::GetElements(int pageNo) {
         }
         auto el = NewDjVuLink(pageNo, rect, link, commentUtf8);
         if (!el || el->GetKind() == kindDestinationNone) {
-            logf("invalid link '%s', pages in document: %d\n", link ? link : "", PageCount());
-            ReportIf(true);
+            // logf("invalid link '%s', pages in document: %d\n", link ? link : "", PageCount());
+            ReportDebugIf(true);
             continue;
         }
         els.Append(el);
@@ -1062,9 +1062,8 @@ bool EngineDjVu::HandleLink(IPageDestination* dest, ILinkHandler* linkHandler) {
 
     int pageNo = ParseDjVuLink(link);
     if ((pageNo < 1) || (pageNo > pageCount)) {
-        logf("EngineDjVu::HandleLink: invalid page in a link '%s', pageNo: %d, number of pages: %d\n", link, pageNo,
-             pageCount);
-        ReportIf(true);
+        // logf("EngineDjVu::HandleLink: invalid page in a link '%s', pageNo: %d, number of pages: %d\n", link, pageNo, pageCount);
+        ReportDebugIf(true);
         return false;
     }
 
@@ -1073,7 +1072,7 @@ bool EngineDjVu::HandleLink(IPageDestination* dest, ILinkHandler* linkHandler) {
 
 #if 0
     if (!res->kind) {
-        logf("unsupported djvu link: '%s'\n", link);
+        // logf("unsupported djvu link: '%s'\n", link);
     }
 
     res->kind = kindDestinationNone;

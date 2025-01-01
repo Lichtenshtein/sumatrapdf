@@ -88,7 +88,7 @@ HWND ThumbnailPanel::Create(HWND parent, MainWindow* mainWin) {
                            nullptr, GetModuleHandle(nullptr), this);
 
     if (!hwnd) {
-        logf("ThumbnailPanel::Create failed, error=%d\n", GetLastError());
+        // logf("ThumbnailPanel::Create failed, error=%d\n", GetLastError());
         return nullptr;
     }
 
@@ -107,7 +107,7 @@ void ThumbnailPanel::SetDisplayModel(DisplayModel* newDm) {
     }
 
     int pageCount = dm->PageCount();
-    logf("ThumbnailPanel::SetDisplayModel pageCount=%d\n", pageCount);
+    // logf("ThumbnailPanel::SetDisplayModel pageCount=%d\n", pageCount);
 
     for (int i = 1; i <= pageCount; i++) {
         ThumbnailItem* item = new ThumbnailItem();
@@ -314,7 +314,7 @@ void ThumbnailPanel::OnLButtonDown(int x, int y) {
 
     // Still navigate to the clicked page
     if (win && dm) {
-        logf("ThumbnailPanel: Navigating to page %d\n", pageNo);
+        // logf("ThumbnailPanel: Navigating to page %d\n", pageNo);
         dm->GoToPage(pageNo, true);
         SetCurrentPage(pageNo);
     }
@@ -489,7 +489,7 @@ void ThumbnailPanel::ShowContextMenu(int screenX, int screenY) {
         return;  // No selection, no menu
     }
 
-    logf("ThumbnailPanel::ShowContextMenu: %d pages selected\n", selCount);
+    // logf("ThumbnailPanel::ShowContextMenu: %d pages selected\n", selCount);
 
     // Build context menu
     HMENU popup = CreatePopupMenu();
@@ -867,7 +867,7 @@ static void SubclassThumbnailBox(MainWindow* win) {
         win->thumbnailBoxSubclassId = NextSubclassId();
         BOOL ok = SetWindowSubclass(win->hwndThumbnailBox, WndProcThumbnailBox,
                                     win->thumbnailBoxSubclassId, (DWORD_PTR)win);
-        ReportIf(!ok);
+        ReportDebugIf(!ok);
     }
 }
 
@@ -908,7 +908,7 @@ void CreateThumbnailPanel(MainWindow* win) {
 
     SubclassThumbnailBox(win);
 
-    logf("CreateThumbnailPanel: Created thumbnail panel for window\n");
+    // logf("CreateThumbnailPanel: Created thumbnail panel for window\n");
 }
 
 void LoadThumbnailPanel(MainWindow* win) {
@@ -937,7 +937,7 @@ void ToggleThumbnails(MainWindow* win) {
     }
 
     win->thumbnailsVisible = !win->thumbnailsVisible;
-    logf("ToggleThumbnails: thumbnailsVisible=%d\n", win->thumbnailsVisible);
+    // logf("ToggleThumbnails: thumbnailsVisible=%d\n", win->thumbnailsVisible);
 
     if (win->thumbnailsVisible) {
         // Mutual exclusion: hide ToC when showing thumbnails

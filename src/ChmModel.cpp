@@ -35,7 +35,7 @@ static IPageDestination* NewChmNamedDest(const char* url, int pageNo) {
         dest = pdest;
     }
     dest->pageNo = pageNo;
-    ReportIf(!dest->kind);
+    ReportDebugIf(!dest->kind);
     dest->rect = RectF(DEST_USE_DEFAULT, DEST_USE_DEFAULT, DEST_USE_DEFAULT, DEST_USE_DEFAULT);
     return dest;
 }
@@ -118,7 +118,7 @@ int ChmModel::CurrentPageNo() const {
 }
 
 void ChmModel::GoToPage(int pageNo, bool) {
-    ReportIf(!ValidPageNo(pageNo));
+    ReportDebugIf(!ValidPageNo(pageNo));
     if (!ValidPageNo(pageNo)) {
         return;
     }
@@ -126,7 +126,7 @@ void ChmModel::GoToPage(int pageNo, bool) {
 }
 
 bool ChmModel::SetParentHwnd(HWND hwnd) {
-    ReportIf(htmlWindow || htmlWindowCb);
+    ReportDebugIf(htmlWindow || htmlWindowCb);
     htmlWindowCb = new HtmlWindowHandler(this);
     htmlWindow = HtmlWindow::Create(hwnd, htmlWindowCb);
     if (!htmlWindow) {
@@ -221,13 +221,13 @@ bool ChmModel::DisplayPage(const char* pageUrl) {
 }
 
 void ChmModel::ScrollTo(int, RectF, float) {
-    ReportIf(true);
+    ReportDebugIf(true);
 }
 
 bool ChmModel::HandleLink(IPageDestination* link, ILinkHandler*) {
     Kind k = link->GetKind();
     if (k != kindDestinationScrollTo) {
-        logf("ChmModel::HandleLink: unsupported kind '%s'\n", k);
+        // logf("ChmModel::HandleLink: unsupported kind '%s'\n", k);
         ReportIfQuick(link->GetKind() != kindDestinationScrollTo);
     }
     char* url = PageDestGetName(link);
@@ -340,9 +340,9 @@ class ChmTocBuilder : public EbookTocVisitor {
         bool inserted = urlsSet.Insert(plainUrl, pageNo, &pageNo);
         if (inserted) {
             pages->Append(plainUrl);
-            ReportIf(pageNo != pages->Size());
+            ReportDebugIf(pageNo != pages->Size());
         } else {
-            ReportIf(pageNo == pages->Size() + 1);
+            ReportDebugIf(pageNo == pages->Size() + 1);
         }
         return pageNo;
     }
@@ -357,7 +357,7 @@ class ChmTocBuilder : public EbookTocVisitor {
         for (int i = 0; i < n; i++) {
             const char* url = pages->At(i);
             bool inserted = urlsSet.Insert(url, i + 1, nullptr);
-            ReportIf(!inserted);
+            ReportDebugIf(!inserted);
         }
     }
 
@@ -386,7 +386,7 @@ bool ChmModel::Load(const char* fileName) {
     tocTrace = new Vec<ChmTocTraceItem>();
     ChmTocBuilder tmpTocBuilder(doc, &pages, tocTrace, &poolAlloc);
     doc->ParseToc(&tmpTocBuilder);
-    ReportIf(pages.Size() == 0);
+    ReportDebugIf(pages.Size() == 0);
     return pages.Size() > 0;
 }
 
@@ -550,7 +550,7 @@ TocTree* ChmModel::GetToc() {
         TocItem* item = NewChmTocItem(nullptr, ti.title, ti.pageNo, ti.url);
         item->id = ++idCounter;
         // append the item at the correct level
-        ReportIf(ti.level < 1);
+        ReportDebugIf(ti.level < 1);
         if ((size_t)ti.level <= levels.size()) {
             levels.RemoveAt(ti.level, levels.size() - ti.level);
             levels.Last()->AddSiblingAtEnd(item);
@@ -651,7 +651,7 @@ struct ChmThumbnailTask : HtmlWindowCallback {
 };
 
 static void SafeDeleteChmThumbnailTask(ChmThumbnailTask* d) {
-    logf("SafeDeleteChmThumbnailTask: about to delete ChmThumbnailTask: 0x%p\n", (void*)d);
+    // logf("SafeDeleteChmThumbnailTask: about to delete ChmThumbnailTask: 0x%p\n", (void*)d);
     delete d;
 }
 
@@ -705,7 +705,7 @@ void ChmThumbnailTask::OnDocumentComplete(const char* url) {
     if (!str::Eq(url, homeUrl)) {
         return;
     }
-    logf("ChmThumbnailTask::OnDocumentComplete: '%s'\n", url);
+    // logf("ChmThumbnailTask::OnDocumentComplete: '%s'\n", url);
     if (didSave) {
         // don't crash creating .chm thumbnail
         // https://github.com/sumatrapdfreader/sumatrapdf/issues/4519

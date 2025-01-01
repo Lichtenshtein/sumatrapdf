@@ -476,7 +476,7 @@ str::Str* gCallstackLogs = nullptr;
 
 // start remembering callstack logs done with LogCallstack()
 void RememberCallstackLogs() {
-    ReportIf(gCallstackLogs);
+    ReportDebugIf(gCallstackLogs);
     gCallstackLogs = new str::Str();
 }
 

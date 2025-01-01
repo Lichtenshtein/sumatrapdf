@@ -109,12 +109,12 @@ static const char* gAnnotReadableNames =
 /*
 const char* AnnotationName(AnnotationType tp) {
     int n = (int)tp;
-    ReportIf(n < -1 || n > (int)AnnotationType::ThreeD);
+    ReportDebugIf(n < -1 || n > (int)AnnotationType::ThreeD);
     if (n < 0) {
         return "Unknown";
     }
     const char* s = seqstrings::IdxToStr(gAnnotNames, n);
-    ReportIf(!s);
+    ReportDebugIf(!s);
     return s;
 }
 */
@@ -122,7 +122,7 @@ const char* AnnotationName(AnnotationType tp) {
 static bool gDebugAnnotDestructor = false;
 Annotation::~Annotation() {
     if (gDebugAnnotDestructor) {
-        logf("deleting an annotation\n");
+        // logf("deleting an annotation\n");
     }
 }
 
@@ -132,7 +132,7 @@ TempStr AnnotationReadableNameTemp(AnnotationType tp) {
         return (char*)"Unknown";
     }
     char* s = (char*)seqstrings::IdxToStr(gAnnotReadableNames, n);
-    ReportIf(!s);
+    ReportDebugIf(!s);
     return s;
 }
 
@@ -144,12 +144,12 @@ bool IsAnnotationEq(Annotation* a1, Annotation* a2) {
 }
 
 AnnotationType Type(Annotation* annot) {
-    ReportIf((int)annot->type < 0);
+    ReportDebugIf((int)annot->type < 0);
     return annot->type;
 }
 
 int PageNo(Annotation* annot) {
-    ReportIf(annot->pageNo < 1);
+    ReportDebugIf(annot->pageNo < 1);
     return annot->pageNo;
 }
 
@@ -164,7 +164,7 @@ RectF GetBounds(Annotation* annot) {
     }
     fz_catch(ctx) {
         fz_report_error(ctx);
-        logf("GetBounds(): pdf_bound_annot() failed\n");
+        // logf("GetBounds(): pdf_bound_annot() failed\n");
     }
     annot->bounds = ToRectF(rc);
     return annot->bounds;
@@ -189,10 +189,10 @@ void SetRect(Annotation* annot, RectF r) {
             fz_report_error(ctx);
             // can happen for non-moveable annotations
             failed = true;
-            logf("SetRect(): pdf_set_annot_rect() or pdf_update_annot() failed\n");
+            // logf("SetRect(): pdf_set_annot_rect() or pdf_update_annot() failed\n");
         }
     }
-    ReportIf(failed);
+    ReportDebugIf(failed);
     if (failed) {
         return;
     }
@@ -231,12 +231,12 @@ int Quadding(Annotation* annot) {
     }
     fz_catch(ctx) {
         fz_report_error(ctx);
-        logf("Quadding(): pdf_annot_quadding() failed\n");
+        // logf("Quadding(): pdf_annot_quadding() failed\n");
     }
     return res;
 }
 
-static bool IsValidQuadding(int i) {
+[[maybe_unused]] static bool IsValidQuadding(int i) {
     return i >= 0 && i <= 2;
 }
 
@@ -246,7 +246,7 @@ bool SetQuadding(Annotation* annot, int newQuadding) {
     {
         auto ctx = e->Ctx();
         ScopedCritSec cs(e->ctxAccess);
-        ReportIf(!IsValidQuadding(newQuadding));
+        ReportDebugIf(!IsValidQuadding(newQuadding));
         bool didChange = Quadding(annot) != newQuadding;
         if (!didChange) {
             return false;
@@ -257,7 +257,7 @@ bool SetQuadding(Annotation* annot, int newQuadding) {
         }
         fz_catch(ctx) {
             fz_report_error(ctx);
-            logf("SetQuadding(): pdf_set_annot_quadding or pdf_update_annot() failed\n");
+            // logf("SetQuadding(): pdf_set_annot_quadding or pdf_update_annot() failed\n");
         }
     }
     MarkNotificationAsModified(e, annot);
@@ -288,7 +288,7 @@ void SetQuadPointsAsRect(Annotation* annot, const Vec<RectF>& rects) {
         }
         fz_catch(ctx) {
             fz_report_error(ctx);
-            logf("SetQuadPointsAsRect(): mupdf calls failed\n");
+            // logf("SetQuadPointsAsRect(): mupdf calls failed\n");
         }
     }
     MarkNotificationAsModified(e, annot);
@@ -331,7 +331,7 @@ TempStr Contents(Annotation* annot) {
     fz_catch(ctx) {
         fz_report_error(ctx);
         s = nullptr;
-        logf("Contents(): pdf_annot_contents()\n");
+        // logf("Contents(): pdf_annot_contents()\n");
     }
     return (TempStr)s;
 }
@@ -379,7 +379,7 @@ void DeleteAnnotation(Annotation* annot) {
             failed = true;
         }
         if (failed) {
-            logf("failed to delete annotation on page %d\n", annot->pageNo);
+            // logf("failed to delete annotation on page %d\n", annot->pageNo);
             return;
         }
     }
@@ -516,7 +516,7 @@ static PdfColor PdfColorFromFloat(fz_context* ctx, int n, float color[4]) {
         }
         return MkPdfColorFromFloat(rgb[0], rgb[1], rgb[2]);
     }
-    ReportIf(true);
+    ReportDebugIf(true);
     return 0;
 }
 
@@ -793,7 +793,7 @@ void GetLineEndingStyles(Annotation* annot, int* start, int* end) {
     }
     fz_catch(ctx) {
         fz_report_error(ctx);
-        logf("GetLineEndingStyles: pdf_annot_line_ending_styles() failed\n");
+        // logf("GetLineEndingStyles: pdf_annot_line_ending_styles() failed\n");
     }
     *start = (int)leStart;
     *end = (int)leEnd;
@@ -814,7 +814,7 @@ void SetLineEndingStyles(Annotation* annot, int start, int end) {
                 }
                 fz_catch(ctx) {
                         fz_report_error(ctx);
-                        logf("SetLineEndingStyles: failure in mupdf calls\n");
+                        // logf("SetLineEndingStyles: failure in mupdf calls\n");
                 }
         }
     MarkNotificationAsModified(e, annot);
@@ -831,7 +831,7 @@ int BorderWidth(Annotation* annot) {
     }
     fz_catch(ctx) {
         fz_report_error(ctx);
-        logf("BorderWidth: pdf_annot_border() failed\n");
+        // logf("BorderWidth: pdf_annot_border() failed\n");
     }
 
     return (int)res;
@@ -848,7 +848,7 @@ void SetBorderWidth(Annotation* annot, int newWidth) {
         }
         fz_catch(ctx) {
             fz_report_error(ctx);
-            logf("SetBorderWidth: SetBorderWidth() or pdf_update_annot() failed\n");
+            // logf("SetBorderWidth: SetBorderWidth() or pdf_update_annot() failed\n");
         }
     }
     MarkNotificationAsModified(e, annot);
@@ -864,7 +864,7 @@ int Opacity(Annotation* annot) {
     }
     fz_catch(ctx) {
         fz_report_error(ctx);
-        logf("Opacity: pdf_annot_opacity() failed\n");
+        // logf("Opacity: pdf_annot_opacity() failed\n");
     }
     int res = (int)(fopacity * 255.f);
     return res;
@@ -875,7 +875,7 @@ void SetOpacity(Annotation* annot, int newOpacity) {
     {
         auto ctx = e->Ctx();
         ScopedCritSec cs(e->ctxAccess);
-        ReportIf(newOpacity < 0 || newOpacity > 255);
+        ReportDebugIf(newOpacity < 0 || newOpacity > 255);
         newOpacity = std::clamp(newOpacity, 0, 255);
         float fopacity = (float)newOpacity / 255.f;
 
@@ -885,7 +885,7 @@ void SetOpacity(Annotation* annot, int newOpacity) {
         }
         fz_catch(ctx) {
             fz_report_error(ctx);
-            logf("SetOpacity: pdf_set_annot_opacity() or pdf_update_annot() failed\n");
+            // logf("SetOpacity: pdf_set_annot_opacity() or pdf_update_annot() failed\n");
         }
     }
     MarkNotificationAsModified(e, annot);

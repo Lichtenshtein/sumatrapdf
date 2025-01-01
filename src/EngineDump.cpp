@@ -417,7 +417,7 @@ void DumpData(EngineBase* engine, bool fullDump) {
 #define ErrOut1(msg) fprintf(stderr, "%s", msg "\n")
 
 static bool CheckRenderPath(const char* path) {
-    ReportIf(!path);
+    ReportDebugIf(!path);
     bool hasArg = false;
     const char* p = path - 1;
     while ((p = str::FindChar(p + 1, '%')) != nullptr) {

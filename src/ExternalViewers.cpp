@@ -291,7 +291,7 @@ static bool DetectExternalViewer(ExternalViewerInfo* ev) {
             if (!args) {
                 args = "";
             }
-            logf("DetectExternalViewer: cmd %d, '%s' %s\n", ev->cmdId, ev->exeFullPath, args);
+            // logf("DetectExternalViewer: cmd %d, '%s' %s\n", ev->cmdId, ev->exeFullPath, args);
             return true;
         }
     }
@@ -299,7 +299,7 @@ static bool DetectExternalViewer(ExternalViewerInfo* ev) {
 }
 
 void DetectExternalViewers() {
-    ReportIf(gExternalViewersCount > 0); // only call once
+    ReportDebugIf(gExternalViewersCount > 0); // only call once
 
     if (!CanAccessDisk()) {
         return;

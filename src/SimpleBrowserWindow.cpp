@@ -50,7 +50,7 @@ HWND SimpleBrowserWindow::Create(const SimpleBrowserCreateArgs& args) {
         // TODO: if set, navigate to url doesn't work
         // args.visible = false;
         hwnd = CreateCustom(cargs);
-        ReportIf(!hwnd);
+        ReportDebugIf(!hwnd);
     }
     {
         Rect rc = ClientRect(hwnd);

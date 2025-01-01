@@ -149,7 +149,7 @@ bool GraphicsCacheEntry::Create() {
 }
 
 void GraphicsCacheEntry::Free() const {
-    ReportIf(0 != refCount);
+    ReportDebugIf(0 != refCount);
     delete gfx;
     delete bmp;
 }
@@ -194,9 +194,9 @@ HFONT CachedFont::GetHFont() {
         Graphics* gfx = AllocGraphicsForMeasureText();
         Status status = font->GetLogFontW(gfx, &lf);
         FreeGraphicsForMeasureText(gfx);
-        ReportIf(status != Ok);
+        ReportDebugIf(status != Ok);
         hFont = CreateFontIndirectW(&lf);
-        ReportIf(!hFont);
+        ReportDebugIf(!hFont);
     }
     LeaveMuiCriticalSection();
     return hFont;
@@ -261,7 +261,7 @@ Graphics* AllocGraphicsForMeasureText() {
         }
     }
     // We shouldn't get here - indicates ref counting problem
-    ReportIf(true);
+    ReportDebugIf(true);
     return ce.gfx;
 }
 
@@ -271,13 +271,13 @@ void FreeGraphicsForMeasureText(Graphics* gfx) {
     DWORD threadId = GetCurrentThreadId();
     for (GraphicsCacheEntry& e : *gGraphicsCache) {
         if (e.gfx == gfx) {
-            ReportIf(e.threadId != threadId);
+            ReportDebugIf(e.threadId != threadId);
             e.refCount--;
-            ReportIf(e.refCount < 0);
+            ReportDebugIf(e.refCount < 0);
             return;
         }
     }
-    ReportIf(true);
+    ReportDebugIf(true);
 }
 
 } // namespace mui

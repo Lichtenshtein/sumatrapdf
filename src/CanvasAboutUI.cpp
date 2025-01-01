@@ -91,7 +91,7 @@ static void OnMouseLeftButtonUpAbout(MainWindow* win, int x, int y, WPARAM) {
     } else {
         // assume it's a thumbnail of a document
         auto path = url;
-        ReportIf(!path);
+        ReportDebugIf(!path);
         LoadArgs args(path, win);
         // ctrl forces always opening
         args.activateExisting = !IsCtrlPressed();

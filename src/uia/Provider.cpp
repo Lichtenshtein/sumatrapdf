@@ -27,7 +27,7 @@ SumatraUIAutomationProvider::~SumatraUIAutomationProvider() {
 }
 
 void SumatraUIAutomationProvider::OnDocumentLoad(DisplayModel* dm) {
-    ReportIf(document);
+    ReportDebugIf(document);
 
     document = new SumatraUIAutomationDocumentProvider(canvasHwnd, this);
     document->LoadDocument(dm);
@@ -63,7 +63,7 @@ ULONG STDMETHODCALLTYPE SumatraUIAutomationProvider::AddRef() {
 
 ULONG STDMETHODCALLTYPE SumatraUIAutomationProvider::Release() {
     LONG res = InterlockedDecrement(&refCount);
-    ReportIf(res < 0);
+    ReportDebugIf(res < 0);
     if (0 == res) {
         delete this;
     }

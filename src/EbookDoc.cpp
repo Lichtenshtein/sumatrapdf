@@ -113,7 +113,7 @@ static TempStr DecodeTextToUtf8Temp(const char* s, bool isXML = false) {
 }
 
 char* NormalizeURL(const char* url, const char* base) {
-    ReportIf(!url || !base);
+    ReportDebugIf(!url || !base);
     if (*url == '/' || str::FindChar(url, ':')) {
         return str::Dup(url);
     }
@@ -449,7 +449,7 @@ bool EpubDoc::Load() {
         }
         // insert explicit page-breaks between sections including
         // an anchor with the file name at the top (for internal links)
-        ReportIf(str::FindChar(fullPath, '"'));
+        ReportDebugIf(str::FindChar(fullPath, '"'));
         str::TransCharsInPlace(fullPath, "\"", "'");
         htmlData.AppendFmt("<pagebreak page_path=\"%s\" page_marker />", fullPath);
         htmlData.Append(decoded);
@@ -525,7 +525,7 @@ ByteSlice* EpubDoc::GetImageData(const char* fileName, const char* pagePath) {
     ScopedCritSec scope(&zipAccess);
 
     if (!pagePath) {
-        ReportIf(true);
+        ReportDebugIf(true);
         // if we're reparsing, we might not have pagePath, which is needed to
         // build the exact url so try to find a partial match
         // TODO: the correct approach would be to extend reparseIdx into a
@@ -579,7 +579,7 @@ ByteSlice* EpubDoc::GetImageData(const char* fileName, const char* pagePath) {
 
 ByteSlice EpubDoc::GetFileData(const char* relPath, const char* pagePath) {
     if (!pagePath) {
-        ReportIf(true);
+        ReportDebugIf(true);
         return {};
     }
 
@@ -838,7 +838,7 @@ static ByteSlice loadFromStream(Fb2Doc* doc) {
 }
 
 bool Fb2Doc::Load() {
-    ReportIf(!stream && !fileName);
+    ReportDebugIf(!stream && !fileName);
 
     ByteSlice data;
     if (fileName) {
@@ -1384,7 +1384,7 @@ TxtDoc::TxtDoc(const char* fileName) {
 #define TCR_HEADER "!!8-Bit!!"
 
 static TempStr DecompressTcrTextTemp(const char* data, size_t dataLen) {
-    ReportIf(!str::StartsWith(data, TCR_HEADER));
+    ReportDebugIf(!str::StartsWith(data, TCR_HEADER));
     const char* curr = data + str::Len(TCR_HEADER);
     const char* end = data + dataLen;
 
@@ -1473,7 +1473,7 @@ static const char* TextFindEmailEnd(str::Str& htmlData, const char* curr) {
         }
         beforeAt.SetCopy(&htmlData.at(idx));
     } else {
-        ReportIf(!str::StartsWith(curr, "mailto:"));
+        ReportDebugIf(!str::StartsWith(curr, "mailto:"));
         end = curr = curr + 7; // skip mailto:
         if (!IsEmailUsernameChar(*end)) {
             return nullptr;

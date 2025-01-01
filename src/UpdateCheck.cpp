@@ -156,7 +156,7 @@ static bool ShouldCheckForUpdate(UpdateCheck updateCheckType) {
         return false;
     }
     if (gUpdateCheckInProgress) {
-        logf("CheckForUpdate: skipping because gUpdateCheckInProgress\n");
+        // logf("CheckForUpdate: skipping because gUpdateCheckInProgress\n");
         return false;
     }
 
@@ -171,7 +171,7 @@ static bool ShouldCheckForUpdate(UpdateCheck updateCheckType) {
 #endif
 
     if (!HasPermission(Perm::InternetAccess)) {
-        logf("CheckForUpdate: skipping because no internet access\n");
+        // logf("CheckForUpdate: skipping because no internet access\n");
         return false;
     }
 
@@ -182,7 +182,7 @@ static bool ShouldCheckForUpdate(UpdateCheck updateCheckType) {
     // don't check if the timestamp or version to skip can't be updated
     // (mainly in plugin mode, stress testing and restricted settings)
     if (!HasPermission(Perm::SavePreferences)) {
-        logf("CheckForUpdate: skipping auto check because no prefs access\n");
+        // logf("CheckForUpdate: skipping auto check because no prefs access\n");
         return false;
     }
 
@@ -209,7 +209,7 @@ static bool ShouldCheckForUpdate(UpdateCheck updateCheckType) {
     int secsBetweenChecks = gIsPreReleaseBuild ? kSecondsInWeek : kSecondsInDay;
     bool checkUpdate = secsSinceLastUpdate > secsBetweenChecks;
 #if 0
-    logf("CheckForUpdate: secsBetweenChecks: %d, secsSinceLastUpdate: %d, checkUpdate: %d\n", secsBetweenChecks,
+    // logf("CheckForUpdate: secsBetweenChecks: %d, secsSinceLastUpdate: %d, checkUpdate: %d\n", secsBetweenChecks,
          secsSinceLastUpdate, (int)checkUpdate);
 #endif
     return checkUpdate;
@@ -259,7 +259,7 @@ static void NotifyUserOfUpdate(UpdateInfo* updateInfo) {
     BOOL verificationFlagChecked = false;
 
     auto hr = TaskDialogIndirect(&dialogConfig, &buttonPressedId, nullptr, &verificationFlagChecked);
-    ReportIf(hr == E_INVALIDARG);
+    ReportDebugIf(hr == E_INVALIDARG);
     bool doInstall = (hr == S_OK) && (buttonPressedId == kBtnIdInstall);
 
     auto installerPath = updateInfo->installerPath;
@@ -295,7 +295,7 @@ static void NotifyUserOfUpdate(UpdateInfo* updateInfo) {
         // our process to exit
         cmd.AppendFmt(R"( -sleep-ms 500 -exit-when-done -update-self-to "%s")", GetSelfExePathTemp());
     }
-    logf("NotifyUserOfUpdate: installer cmd: '%s'\n", cmd.Get());
+    // logf("NotifyUserOfUpdate: installer cmd: '%s'\n", cmd.Get());
     CreateProcessHelper(installerPath, cmd.Get());
     PostQuitMessage(0);
 }
@@ -327,19 +327,19 @@ static void DownloadUpdateFinish(DownloadUpdateAsyncData* data) {
 
 static void UpdateDownloadProgressNotif(UpdateProgressData* data) {
     TempStr size = FormatFileSizeTransTemp(data->nDownloaded);
-    logf("UpdateDownloadProgressNotif: %s\n", size);
+    // logf("UpdateDownloadProgressNotif: %s\n", size);
     auto wnd = GetNotificationForGroup(data->hwndForNotif, kNotifUpdateCheckInProgress);
     if (wnd) {
         TempStr msg = str::FormatTemp("Downloading update: %s\n", size);
         NotificationUpdateMessage(wnd, msg, 0, true);
     } else {
-        logf("UpdateDownloadProgressNotif: no wnd\n");
+        // logf("UpdateDownloadProgressNotif: no wnd\n");
     }
     delete data;
 }
 
 static void UpdateProgressCb(UpdateProgressData* data, HttpProgress* progress) {
-    logf("UpdateProgressCb: n: %d\n", (int)progress->nDownloaded);
+    // logf("UpdateProgressCb: n: %d\n", (int)progress->nDownloaded);
     auto fnData = new UpdateProgressData;
     fnData->hwndForNotif = data->hwndForNotif;
     fnData->nDownloaded = progress->nDownloaded;
@@ -359,7 +359,7 @@ static void DownloadUpdateAsync(DownloadUpdateAsyncData* data) {
     pd.hwndForNotif = hwndForNotif;
     auto cb = MkFunc1<UpdateProgressData, HttpProgress*>(UpdateProgressCb, &pd);
     bool ok = HttpGetToFile(updateInfo->dlURL, installerPath, cb);
-    logf("ShowAutoUpdateDialog: HttpGetToFile(): ok=%d, downloaded to '%s'\n", (int)ok, installerPath);
+    // logf("ShowAutoUpdateDialog: HttpGetToFile(): ok=%d, downloaded to '%s'\n", (int)ok, installerPath);
     if (ok) {
         updateInfo->installerPath = str::Dup(installerPath);
     } else {
@@ -385,8 +385,7 @@ static bool ShouldDownloadUpdate(UpdateInfo* updateInfo, UpdateCheck updateCheck
     if (hasUpdate && updateCheckType == UpdateCheck::Automatic) {
         // if user wanted to skip this version, we skip it in automated check
         if (str::EqI(gGlobalPrefs->versionToSkip, latestVer)) {
-            logf("ShowAutoUpdateDialog: skipping auto-update of ver '%s' because of gGlobalPrefs->versionToSkip\n",
-                 latestVer);
+            // logf("ShowAutoUpdateDialog: skipping auto-update of ver '%s' because of gGlobalPrefs->versionToSkip\n", latestVer);
             return false;
         }
     }
@@ -402,28 +401,28 @@ static DWORD MaybeStartUpdateDownload(HWND hwndParent, HttpRsp* rsp, UpdateCheck
     const char* url = rsp->url.Get();
 
     if (rsp->error != 0) {
-        logf("ShowAutoUpdateDialog: http get of '%s' failed with %d\n", url, (int)rsp->error);
+        // logf("ShowAutoUpdateDialog: http get of '%s' failed with %d\n", url, (int)rsp->error);
         return rsp->error;
     }
     if (rsp->httpStatusCode != 200) {
-        logf("ShowAutoUpdateDialog: http get of '%s' failed with code %d\n", url, (int)rsp->httpStatusCode);
+        // logf("ShowAutoUpdateDialog: http get of '%s' failed with code %d\n", url, (int)rsp->httpStatusCode);
         return ERROR_INTERNET_INVALID_URL;
     }
 
     bool isValidURL = str::StartsWith(url, kUpdateInfoURL) || str::StartsWith(url, kUpdateInfoURL2);
     if (!isValidURL) {
-        logf("ShowAutoUpdateDialog: '%s' is not a valid url\n", url);
+        // logf("ShowAutoUpdateDialog: '%s' is not a valid url\n", url);
         return ERROR_INTERNET_INVALID_URL;
     }
     str::Str* data = &rsp->data;
     if (0 == data->size()) {
-        logf("ShowAutoUpdateDialog: empty response from url '%s'\n", url);
+        // logf("ShowAutoUpdateDialog: empty response from url '%s'\n", url);
         return ERROR_INTERNET_CONNECTION_ABORTED;
     }
 
     UpdateInfo* updateInfo = ParseUpdateInfo(data->Get());
     if (!updateInfo) {
-        logf("ShowAutoUpdateDialog: ParseUpdateInfo() failed. URL: '%s'\nAuto update data:\n%s\n", url, data->Get());
+        // logf("ShowAutoUpdateDialog: ParseUpdateInfo() failed. URL: '%s'\nAuto update data:\n%s\n", url, data->Get());
         return ERROR_INTERNET_INCORRECT_FORMAT;
     }
     updateInfo->hwndParent = hwndParent;
@@ -436,7 +435,7 @@ static DWORD MaybeStartUpdateDownload(HWND hwndParent, HttpRsp* rsp, UpdateCheck
     HWND hwndForNotif = win->hwndCanvas;
     if (!ShouldDownloadUpdate(updateInfo, updateCheckType)) {
         const char* myVer = UPDATE_CHECK_VERA;
-        logf("ShowAutoUpdateDialog: myVer >= latestVer ('%s' >= '%s')\n", myVer, updateInfo->latestVer);
+        // logf("ShowAutoUpdateDialog: myVer >= latestVer ('%s' >= '%s')\n", myVer, updateInfo->latestVer);
         /* if automated => don't notify that there is no new version */
         if (updateCheckType == UpdateCheck::UserInitiated) {
             RemoveNotificationsForGroup(hwndForNotif, kNotifUpdateCheckInProgress);
@@ -448,14 +447,14 @@ static DWORD MaybeStartUpdateDownload(HWND hwndParent, HttpRsp* rsp, UpdateCheck
 
     if (!updateInfo->dlURL) {
         // currently for release builds we don't set this and redirecto to a website instead
-        logf("ShowAutoUpdateDialog: didn't find download url. Auto update data:\n%s\n", data->Get());
+        // logf("ShowAutoUpdateDialog: didn't find download url. Auto update data:\n%s\n", data->Get());
         RemoveNotificationsForGroup(win->hwndCanvas, kNotifUpdateCheckInProgress);
         NotifyUserOfUpdate(updateInfo);
         return 0;
     }
 
     // download the installer to make update feel instant to the user
-    logf("ShowAutoUpdateDialog: starting to download '%s'\n", updateInfo->dlURL);
+    // logf("ShowAutoUpdateDialog: starting to download '%s'\n", updateInfo->dlURL);
     gUpdateCheckInProgress = true;
 
     auto fnData = new DownloadUpdateAsyncData;
@@ -586,14 +585,14 @@ void StartAsyncUpdateCheck(MainWindow* win, UpdateCheck updateCheckType) {
 // we should copy ourselves over the existing file, launch ourselves and
 // tell our new copy to delete ourselves
 void UpdateSelfTo(const char* path) {
-    ReportIf(!path);
+    ReportDebugIf(!path);
     if (!file::Exists(path)) {
-        logf("UpdateSelfTo: failed because destination doesn't exist\n");
+        // logf("UpdateSelfTo: failed because destination doesn't exist\n");
         return;
     }
 
     auto sleepMs = gCli->sleepMs;
-    logf("UpdateSelfTo: '%s', sleep for %d ms\n", path, sleepMs);
+    // logf("UpdateSelfTo: '%s', sleep for %d ms\n", path, sleepMs);
     // sleeping for a bit to make sure that the program that launched us
     // had time to exit so that we can overwrite it
     ::Sleep(gCli->sleepMs);
@@ -603,10 +602,10 @@ void UpdateSelfTo(const char* path) {
     // TODO: maybe retry if copy fails under the theory that the file
     // might be temporarily locked
     if (!ok) {
-        logf("UpdateSelfTo: failed to copy self to file\n");
+        // logf("UpdateSelfTo: failed to copy self to file\n");
         return;
     }
-    logf("UpdateSelfTo: copied self to file\n");
+    // logf("UpdateSelfTo: copied self to file\n");
 
     TempStr args = str::FormatTemp(R"(-sleep-ms 500 -delete-file "%s")", srcPath);
     CreateProcessHelper(path, args);

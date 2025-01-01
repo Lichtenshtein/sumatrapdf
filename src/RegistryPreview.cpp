@@ -104,7 +104,7 @@ bool UninstallPreviewDll() {
     TempStr key;
     for (auto& prev : gPreviewers) {
         if (prev.skip) {
-            logf("UninstallPreviewDll: skipping '%s'\n", prev.ext);
+            // logf("UninstallPreviewDll: skipping '%s'\n", prev.ext);
             continue;
         }
         const char* clsid = prev.clsid;
@@ -138,7 +138,7 @@ bool UninstallPreviewDll() {
             key = str::FormatTemp("Software\\Classes\\%s\\shellex\\" kPreviewHandlerClsid, ext2);
             DeleteOrFail(key, &hr);
         }
-        logf("UninstallPreviewDll: removed '%s'\n", prev.ext);
+        // logf("UninstallPreviewDll: removed '%s'\n", prev.ext);
     }
     return hr == S_OK ? true : false;
 }
@@ -162,6 +162,6 @@ bool IsPreviewInstalled() {
     const char* key = ".pdf\\shellex\\{8895b1c6-b41f-4c1c-a562-0d564250836f}";
     char* iid = LoggedReadRegStrTemp(HKEY_CLASSES_ROOT, key, nullptr);
     bool isInstalled = str::EqI(iid, kPdfPreviewClsid);
-    logf("IsPreviewInstalled() isInstalled=%d\n", (int)isInstalled);
+    // logf("IsPreviewInstalled() isInstalled=%d\n", (int)isInstalled);
     return isInstalled;
 }

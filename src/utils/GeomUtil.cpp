@@ -493,7 +493,7 @@ int NormalizeRotation(int rotation) {
         rotation -= 360;
     }
     if ((rotation % 90) != 0) {
-        ReportIf(true);
+        ReportDebugIf(true);
         return 0;
     }
     return rotation;

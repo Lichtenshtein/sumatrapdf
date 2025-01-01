@@ -272,7 +272,7 @@ float limitValue(float val, float min, float max);
 // return true if adding n to val overflows. Only valid for n > 0
 template <typename T>
 inline bool addOverflows(T val, T n) {
-    ReportIf(!(n > 0));
+    ReportDebugIf(!(n > 0));
     T res = val + n;
     return val > res;
 }

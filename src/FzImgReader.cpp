@@ -47,7 +47,7 @@ fz_context* fz_new_context_windows(size_t maxStore) {
 
 void fz_drop_context_windows(fz_context* ctx) {
     auto c = (MupdfContext*)ctx->locks.user;
-    ReportIf(ctx != c->ctx);
+    ReportDebugIf(ctx != c->ctx);
     fz_drop_context(ctx);
     for (int i = 0; i < FZ_LOCK_MAX; i++) {
         DeleteCriticalSection(&c->mutexes[i]);

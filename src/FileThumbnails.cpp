@@ -51,7 +51,7 @@ TempStr GetThumbnailCacheDirTemp() {
     {
         return str::DupTemp(gGlobalPrefs->cacheDir);
     }
-    logf("cacheDir not set, using default\n");
+    // logf("cacheDir not set, using default\n");
     TempStr thumbsDir = GetPathInAppDataDirTemp("sumatrapdfcache");
     return thumbsDir;
 }
@@ -65,7 +65,7 @@ void DeleteThumbnailForFile(const char* filePath) {
     TempStr thumbPath = GetThumbnailPathTemp(filePath);
     bool ok = file::Delete(thumbPath);
     auto status = ok ? "ok" : "failed";
-    logf("DeleteThumbnailForFile: file::Remove('%s') %s\n", thumbPath, status);
+    // logf("DeleteThumbnailForFile: file::Remove('%s') %s\n", thumbPath, status);
 }
 
 RenderedBitmap* LoadThumbnail(FileState* fs) {
@@ -110,7 +110,7 @@ bool HasThumbnail(FileState* fs) {
 
 // takes ownership of bmp
 void SetThumbnail(FileState* fs, RenderedBitmap* bmp) {
-    ReportIf(bmp && bmp->GetSize().IsEmpty());
+    ReportDebugIf(bmp && bmp->GetSize().IsEmpty());
     if (!fs || !bmp || bmp->GetSize().IsEmpty()) {
         delete bmp;
         return;
@@ -130,7 +130,7 @@ void SaveThumbnail(FileState* fs) {
         return;
     }
     if (!dir::CreateForFile(thumbnailPath)) {
-        logf("SaveThumbnail: dir::CreateForFile('%s') failed, file path: '%s'\n", thumbnailPath, fs->filePath);
+        // logf("SaveThumbnail: dir::CreateForFile('%s') failed, file path: '%s'\n", thumbnailPath, fs->filePath);
         ReportIfQuick(true);
     }
     ReportIfQuick(!str::EndsWithI(thumbnailPath, ".png"));

@@ -81,12 +81,12 @@ void EditSelectAll(HWND hwnd) {
 }
 
 int EditIdealDy(HWND hwnd, bool hasBorder, int lines) {
-    ReportIf(lines < 1);
-    ReportIf(lines > 256);
+    ReportDebugIf(lines < 1);
+    ReportDebugIf(lines > 256);
 
     HFONT hfont = HwndGetFont(hwnd);
     Size s1 = HwndMeasureText(hwnd, "Minimal", hfont);
-    // logf("Edit::GetIdealSize: s1.dx=%d, s2.dy=%d\n", (int)s1.cx, (int)s1.cy);
+    // // logf("Edit::GetIdealSize: s1.dx=%d, s2.dy=%d\n", (int)s1.cx, (int)s1.cy);
     char* txt = HwndGetTextTemp(hwnd);
     Size s2 = HwndMeasureText(hwnd, txt, hfont);
     int dy = std::min(s1.dy, s2.dy);
@@ -97,7 +97,7 @@ int EditIdealDy(HWND hwnd, bool hasBorder, int lines) {
     if (hasBorder) {
         dy += DpiScale(hwnd, 8);
     }
-    // logf("Edit::GetIdealSize(): dx=%d, dy=%d\n", int(res.cx), int(res.cy));
+    // // logf("Edit::GetIdealSize(): dx=%d, dy=%d\n", int(res.cx), int(res.cy));
     return dy;
 }
 
@@ -184,7 +184,7 @@ Rect MapRectToWindow(Rect rect, HWND hwndFrom, HWND hwndTo) {
 }
 
 int MapWindowPoints(HWND hwndFrom, HWND hwndTo, Point* points, int nPoints) {
-    ReportIf(nPoints > 64);
+    ReportDebugIf(nPoints > 64);
     POINT pnts[64];
     for (int i = 0; i < nPoints; i++) {
         pnts[i].x = points[i].x;
@@ -301,7 +301,7 @@ TempStr GetEnvVariableTemp(const char* name) {
         cchBufSize = res + 4; // +4 jic
         buf = AllocArrayTemp<WCHAR>(cchBufSize);
         res = GetEnvironmentVariableW(nameW, buf, cchBufSize);
-        ReportIf(res == 0 || res > cchBufSize);
+        ReportDebugIf(res == 0 || res > cchBufSize);
     }
     return ToUtf8Temp(buf);
 }
@@ -377,7 +377,7 @@ void LogLastError(DWORD err) {
         msg = (TempStr) "";
     }
     str::TrimWSInPlace(msg, str::TrimOpt::Both);
-    logf("LogLastError: 0x%x (%d) '%s'\n", (int)err, (int)err, msg);
+    // logf("LogLastError: 0x%x (%d) '%s'\n", (int)err, (int)err, msg);
 }
 
 void DbgOutLastError(DWORD err) {
@@ -440,7 +440,7 @@ TryAgainWOW64:
 
 char* LoggedReadRegStrTemp(HKEY hkey, const char* keyName, const char* valName) {
     auto res = ReadRegStrTemp(hkey, keyName, valName);
-    logf("ReadRegStrTemp(%s, %s, %s) => '%s'\n", RegKeyNameWTemp(hkey), keyName, valName, res);
+    // logf("ReadRegStrTemp(%s, %s, %s) => '%s'\n", RegKeyNameWTemp(hkey), keyName, valName, res);
     return res;
 }
 
@@ -478,11 +478,11 @@ bool LoggedWriteRegStr(HKEY hkey, const char* keyName, const char* valName, cons
     DWORD cbData = (DWORD)(str::Len(valueW) + 1) * sizeof(WCHAR);
     LSTATUS res = SHSetValueW(hkey, keyNameW, valNameW, REG_SZ, (const void*)valueW, cbData);
     if (res != ERROR_SUCCESS) {
-        logf("WriteRegStr(%s, %s, %s, %s) failed with '%d'\n", RegKeyNameWTemp(hkey), keyName, valName, value, res);
+        // logf("WriteRegStr(%s, %s, %s, %s) failed with '%d'\n", RegKeyNameWTemp(hkey), keyName, valName, value, res);
         LogLastError();
         return false;
     }
-    logf("WriteRegStr(%s, %s, %s, %s) failed with '%d' ok!\n", RegKeyNameWTemp(hkey), keyName, valName, value);
+    // logf("WriteRegStr(%s, %s, %s, %s) failed with '%d' ok!\n", RegKeyNameWTemp(hkey), keyName, valName, value);
     return true;
 }
 
@@ -506,12 +506,11 @@ bool LoggedWriteRegDWORD(HKEY hkey, const char* keyName, const char* valName, DW
     WCHAR* valNameW = ToWStrTemp(valName);
     LSTATUS res = SHSetValueW(hkey, keyNameW, valNameW, REG_DWORD, (const void*)&value, sizeof(DWORD));
     if (res != ERROR_SUCCESS) {
-        logf("WriteRegDWORD(%s, %s, %s, %d) failed with '%d'\n", RegKeyNameWTemp(hkey), keyName, valName, (int)value,
-             res);
+        // logf("WriteRegDWORD(%s, %s, %s, %d) failed with '%d'\n", RegKeyNameWTemp(hkey), keyName, valName, (int)value, res);
         LogLastError();
         return false;
     }
-    logf("WriteRegDWORD(%s, %s, %s, %d) => ok'\n", RegKeyNameWTemp(hkey), keyName, valName, (int)value);
+    // logf("WriteRegDWORD(%s, %s, %s, %d) => ok'\n", RegKeyNameWTemp(hkey), keyName, valName, (int)value);
     return true;
 }
 
@@ -519,7 +518,7 @@ bool LoggedWriteRegNone(HKEY hkey, const char* key, const char* valName) {
     WCHAR* keyW = ToWStrTemp(key);
     WCHAR* valNameW = ToWStrTemp(valName);
     LSTATUS res = SHSetValueW(hkey, keyW, valNameW, REG_NONE, nullptr, 0);
-    logf("LoggedWriteRegNone(%s, %s, %s) => '%d'\n", RegKeyNameWTemp(hkey), key, valName, res);
+    // logf("LoggedWriteRegNone(%s, %s, %s) => '%d'\n", RegKeyNameWTemp(hkey), key, valName, res);
     return (ERROR_SUCCESS == res);
 }
 
@@ -588,7 +587,7 @@ bool LoggedDeleteRegKey(HKEY hkey, const char* keyName, bool resetACLFirst) {
     }
     WCHAR* keyNameW = ToWStrTemp(keyName);
     LSTATUS res = SHDeleteKeyW(hkey, keyNameW);
-    logf("LoggedDeleteRegKey(%s, %s, %d) => %d\n", RegKeyNameWTemp(hkey), keyName, resetACLFirst, res);
+    // logf("LoggedDeleteRegKey(%s, %s, %d) => %d\n", RegKeyNameWTemp(hkey), keyName, resetACLFirst, res);
     bool ok = (ERROR_SUCCESS == res) || (ERROR_FILE_NOT_FOUND == res);
     if (!ok) {
         LogLastError(res);
@@ -610,7 +609,7 @@ bool LoggedDeleteRegValue(HKEY hkey, const char* keyName, const char* valName) {
 
     auto res = SHDeleteValueW(hkey, keyNameW, valNameW);
     bool ok = (ERROR_SUCCESS == res) || (ERROR_FILE_NOT_FOUND == res);
-    logf("LoggedDeleteRegValue(%s, %s, %s) => %d\n", RegKeyNameWTemp(hkey), keyName, valName, res);
+    // logf("LoggedDeleteRegValue(%s, %s, %s) => %d\n", RegKeyNameWTemp(hkey), keyName, valName, res);
     if (!ok) {
         LogLastError(res);
     }
@@ -652,7 +651,7 @@ TempStr GetTempDirTemp() {
         return {};
     }
     // TODO: should handle this
-    ReportIf(cch >= dimof(dir));
+    ReportDebugIf(cch >= dimof(dir));
     return ToUtf8Temp(dir, cch);
 }
 
@@ -789,7 +788,7 @@ TempStr GetSelfExePathTemp() {
     nSize = res + 2;
     WCHAR* buf2 = Allocator::AllocArray<WCHAR>(nullptr, (size_t)nSize);
     res = GetModuleFileNameW(h, buf, nSize);
-    ReportIf(res < nSize);
+    ReportDebugIf(res < nSize);
     return ToUtf8Temp(buf2);
 }
 
@@ -978,7 +977,7 @@ bool LaunchFileShell(const char* path, const char* params, const char* verb, boo
     BOOL ok = ShellExecuteExW(&sei);
     if (!ok) {
         DWORD err = GetLastError();
-        logf("LaunchFile: ShellExecuteExW path: '%s' params: '%s' verb: '%s'\n", path, params, verb);
+        // logf("LaunchFile: ShellExecuteExW path: '%s' params: '%s' verb: '%s'\n", path, params, verb);
         LogLastError(err);
         return false;
     }
@@ -1308,7 +1307,7 @@ HWND HwndGetParent(HWND hwnd) {
 TempStr HwndGetClassName(HWND hwnd) {
     WCHAR buf[512] = {};
     int n = GetClassNameW(hwnd, buf, dimof(buf));
-    ReportIf(n == 0);
+    ReportDebugIf(n == 0);
     return ToUtf8Temp(buf);
 }
 
@@ -1513,7 +1512,7 @@ static CreatedFontInfo* FindCreatedFont(const char* name, int size, u16 flags, u
         if (curr->size == (u16)size && curr->flags == flags && curr->weightOffset == weightOffset &&
             str::Eq(curr->name, name)) {
             name = name ? name : "";
-            /* logf("FindCreatedFont: found font '%s', size: %d, flags: %x, weightOffset: %d\n", name, (int)size,
+            /* // logf("FindCreatedFont: found font '%s', size: %d, flags: %x, weightOffset: %d\n", name, (int)size,
                  (int)flags, (int)weightOffset); */
             return curr;
         }
@@ -1547,7 +1546,7 @@ static HFONT RememberCreatedFont(HFONT font, const char* name, int size, u16 fla
     ListInsertFront(&gFonts, cf);
     int n = ListLen(gFonts);
     name = name ? name : "";
-    /* logf("RememberCreatedFont: added font '%s', size: %d, flags: %x, weightOffset: %d\n", name, size, (int)flags,
+    /* // logf("RememberCreatedFont: added font '%s', size: %d, flags: %x, weightOffset: %d\n", name, size, (int)flags,
          (int)weightOffset);  */
     return font;
 }
@@ -1704,7 +1703,7 @@ HDC DoubleBuffer::GetDC() const {
 }
 
 void DoubleBuffer::Flush(HDC hdc) const {
-    ReportIf(hdc == hdcBuffer);
+    ReportDebugIf(hdc == hdcBuffer);
     if (hdcBuffer) {
         BitBlt(hdc, rect.x, rect.y, rect.dx, rect.dy, hdcBuffer, 0, 0, SRCCOPY);
     }
@@ -1746,18 +1745,18 @@ void DeferWinPosHelper::MoveWindow(HWND hWnd, Rect r) {
 }
 
 void MenuSetChecked(HMENU m, int id, bool isChecked) {
-    ReportIf(id < 0);
+    ReportDebugIf(id < 0);
     CheckMenuItem(m, (UINT)id, MF_BYCOMMAND | (isChecked ? MF_CHECKED : MF_UNCHECKED));
 }
 
 bool MenuSetEnabled(HMENU m, int id, bool isEnabled) {
-    ReportIf(id < 0);
+    ReportDebugIf(id < 0);
     BOOL ret = EnableMenuItem(m, (UINT)id, MF_BYCOMMAND | (isEnabled ? MF_ENABLED : MF_GRAYED));
     return ret != -1;
 }
 
 void MenuRemove(HMENU m, int id) {
-    ReportIf(id < 0);
+    ReportDebugIf(id < 0);
     RemoveMenu(m, (UINT)id, MF_BYCOMMAND);
 }
 
@@ -1768,7 +1767,7 @@ void MenuEmpty(HMENU m) {
 }
 
 void MenuSetText(HMENU m, int id, const WCHAR* s) {
-    ReportIf(id < 0);
+    ReportDebugIf(id < 0);
     MENUITEMINFOW mii{};
     mii.cbSize = sizeof(mii);
     mii.fMask = MIIM_STRING;
@@ -1778,9 +1777,9 @@ void MenuSetText(HMENU m, int id, const WCHAR* s) {
     BOOL ok = SetMenuItemInfoW(m, id, FALSE, &mii);
     if (!ok) {
         const char* tmp = s ? ToUtf8Temp(s) : "(null)";
-        logf("MenuSetText(): id=%d, s='%s'\n", id, tmp);
+        // logf("MenuSetText(): id=%d, s='%s'\n", id, tmp);
         LogLastError();
-        ReportIf(true);
+        ReportDebugIf(true);
     }
 }
 
@@ -2076,8 +2075,8 @@ static bool IsPalettedBitmap(DIBSECTION& info, int nBytes) {
 }
 
 COLORREF GetPixel(BitmapPixels* bitmap, int x, int y) {
-    ReportIf(x < 0 || x >= bitmap->size.dx);
-    ReportIf(y < 0 || y >= bitmap->size.dy);
+    ReportDebugIf(x < 0 || x >= bitmap->size.dx);
+    ReportDebugIf(y < 0 || y >= bitmap->size.dy);
     u8* pixels = bitmap->pixels;
     u8* pixel = pixels + y * bitmap->nBytesPerRow + x * bitmap->nBytesPerPixel;
     // color order in DIB is blue-green-red-alpha
@@ -2087,7 +2086,7 @@ COLORREF GetPixel(BitmapPixels* bitmap, int x, int y) {
     } else if (4 == bitmap->nBytesPerPixel) {
         c = RGB(pixel[3], pixel[2], pixel[1]);
     } else {
-        ReportIf(true);
+        ReportDebugIf(true);
     }
     return c;
 }
@@ -2097,7 +2096,7 @@ BitmapPixels* GetBitmapPixels(HBITMAP hbmp) {
 
     DIBSECTION info{};
     int nBytes = GetObject(hbmp, sizeof(info), &info);
-    ReportIf(nBytes < sizeof(info.dsBm));
+    ReportDebugIf(nBytes < sizeof(info.dsBm));
     Size size(info.dsBm.bmWidth, info.dsBm.bmHeight);
 
     res->size = size;
@@ -2140,7 +2139,7 @@ BitmapPixels* GetBitmapPixels(HBITMAP hbmp) {
     HDC hdc = CreateCompatibleDC(nullptr);
     int bmpBytes = size.dx * size.dy * 4;
     ScopedMem<u8> bmpData((u8*)malloc(bmpBytes));
-    ReportIf(!bmpData);
+    ReportDebugIf(!bmpData);
 
     if (!GetDIBits(hdc, hbmp, 0, size.dy, bmpData, &bmi, DIB_RGB_COLORS)) {
         DeleteDC(hdc);
@@ -2166,7 +2165,7 @@ void UpdateBitmapColors(HBITMAP hbmp, COLORREF textColor, COLORREF bgColor) {
 
     DIBSECTION info{};
     int ret = GetObject(hbmp, sizeof(info), &info);
-    ReportIf(ret < sizeof(info.dsBm));
+    ReportDebugIf(ret < sizeof(info.dsBm));
     Size size(info.dsBm.bmWidth, info.dsBm.bmHeight);
 
     // for mapped 32-bit DI bitmaps: directly access the pixel data
@@ -2197,7 +2196,7 @@ void UpdateBitmapColors(HBITMAP hbmp, COLORREF textColor, COLORREF bgColor) {
 
     // for paletted DI bitmaps: only update the color palette
     if (sizeof(info) == ret && info.dsBmih.biBitCount && info.dsBmih.biBitCount <= 8) {
-        ReportIf(info.dsBmih.biBitCount != 8);
+        ReportDebugIf(info.dsBmih.biBitCount != 8);
         RGBQUAD palette[256];
         HDC hDC = CreateCompatibleDC(nullptr);
         DeleteObject(SelectObject(hDC, hbmp));
@@ -2225,7 +2224,7 @@ void UpdateBitmapColors(HBITMAP hbmp, COLORREF textColor, COLORREF bgColor) {
     HDC hDC = CreateCompatibleDC(nullptr);
     int bmpBytes = size.dx * size.dy * 4;
     ScopedMem<u8> bmpData((u8*)malloc(bmpBytes));
-    ReportIf(!bmpData);
+    ReportDebugIf(!bmpData);
 
     if (GetDIBits(hDC, hbmp, 0, size.dy, bmpData, &bmi, DIB_RGB_COLORS)) {
         for (int i = 0; i < bmpBytes; i++) {
@@ -2370,10 +2369,10 @@ bool SafeCloseHandle(HANDLE* h) {
 // Also, if explorer.exe is running elevated, it'll probably run elevated as well.
 void RunNonElevated(const char* exePath) {
     if (!file::Exists(exePath)) {
-        logf("RunNonElevated: file '%s' doesn't exist\n", exePath);
+        // logf("RunNonElevated: file '%s' doesn't exist\n", exePath);
         return;
     }
-    logf("RunNonElevated: '%s'\n", exePath);
+    // logf("RunNonElevated: '%s'\n", exePath);
     TempStr cmd = nullptr;
     char* explorerPath = nullptr;
     WCHAR buf[MAX_PATH] = {};
@@ -2447,18 +2446,18 @@ void VariantInitBstr(VARIANT& urlVar, const WCHAR* s) {
 
 StrSpan LoadDataResource(int resId) {
     HRSRC resSrc = FindResourceW(nullptr, MAKEINTRESOURCE(resId), RT_RCDATA);
-    ReportIf(!resSrc);
+    ReportDebugIf(!resSrc);
     if (!resSrc) {
         return {};
     }
     HGLOBAL res = LoadResource(nullptr, resSrc);
-    ReportIf(!res);
+    ReportDebugIf(!res);
     if (!res) {
         return {};
     }
     DWORD size = SizeofResource(nullptr, resSrc);
     const char* resData = (const char*)LockResource(res);
-    ReportIf(!resData);
+    ReportDebugIf(!resData);
     if (!resData) {
         return {};
     }
@@ -2480,7 +2479,7 @@ bool DDEExecute(const WCHAR* server, const WCHAR* topic, const WCHAR* command) {
     DWORD cbLen = 0;
     HDDEDATA answer;
 
-    ReportIf(str::Len(command) >= INT_MAX - 1);
+    ReportDebugIf(str::Len(command) >= INT_MAX - 1);
     if (str::Len(command) >= INT_MAX - 1) {
         return false;
     }
@@ -2582,7 +2581,7 @@ static const char* GetCursorName(LPWSTR cursorId) {
 static void LogCursor(LPWSTR cursorId) {
     static int n = 0;
     const char* name = GetCursorName(cursorId);
-    logf("SetCursor %s 0x%x %d\n", name, (int)(intptr_t)cursorId, n);
+    // logf("SetCursor %s 0x%x %d\n", name, (int)(intptr_t)cursorId, n);
     n++;
 }
 #else
@@ -2593,13 +2592,13 @@ static void LogCursor(LPWSTR) {
 
 HCURSOR GetCachedCursor(LPWSTR cursorId) {
     int i = GetCursorIndex(cursorId);
-    ReportIf(i < 0);
+    ReportDebugIf(i < 0);
     if (i < 0) {
         return nullptr;
     }
     if (nullptr == cachedCursors[i]) {
         cachedCursors[i] = LoadCursor(nullptr, cursorId);
-        ReportIf(cachedCursors[i] == nullptr);
+        ReportDebugIf(cachedCursors[i] == nullptr);
     }
     return cachedCursors[i];
 }
@@ -2797,11 +2796,11 @@ void HwndResizeClientSize(HWND hwnd, int dx, int dy) {
     DWORD exStyle = GetWindowExStyle(hwnd);
     RECT r = {x, y, x + dx, y + dy};
     BOOL ok = AdjustWindowRectEx(&r, style, false, exStyle);
-    ReportIf(!ok);
+    ReportDebugIf(!ok);
     int dx2 = RectDx(r);
     int dy2 = RectDy(r);
     ok = SetWindowPos(hwnd, nullptr, 0, 0, dx2, dy2, SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOREPOSITION);
-    ReportIf(!ok);
+    ReportDebugIf(!ok);
 }
 
 // position hwnd on the right of hwndRelative
@@ -2858,13 +2857,13 @@ void TbGetPadding(HWND hwnd, int* padX, int* padY) {
 void TbSetPadding(HWND hwnd, int padX, int padY) {
     LPARAM lp = MAKELPARAM(padX, padY);
     auto res = SendMessageW(hwnd, TB_SETPADDING, 0, lp);
-    ReportIf(0 == res);
+    ReportDebugIf(0 == res);
 }
 
 // https://docs.microsoft.com/en-us/windows/win32/controls/tb-getrect
 void TbGetRect(HWND hwnd, int buttonId, RECT* rc) {
     auto res = SendMessageW(hwnd, TB_GETRECT, buttonId, (LPARAM)rc);
-    ReportIf(res == 0);
+    ReportDebugIf(res == 0);
 }
 
 void TbGetMetrics(HWND hwnd, TBMETRICS* metrics) {

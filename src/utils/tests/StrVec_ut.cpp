@@ -19,8 +19,8 @@ static void ValidateSize(StrVec* v) {
 
 static void ValidateAtSpan(StrVec* v, int idx, const char* s) {
     StrSpan sp = v->AtSpan(idx);
-    ReportIf(!str::Eq(s, sp.d));
-    ReportIf(str::Leni(s) != sp.size);
+    ReportDebugIf(!str::Eq(s, sp.d));
+    ReportDebugIf(str::Leni(s) != sp.size);
 }
 
 static void strEq(const char* s1, const char* s2) {
@@ -558,7 +558,7 @@ static StrVec* stringsForNum;
 static constexpr int kMaxStringN = 1000;
 
 static const char* StrForN(int n) {
-    ReportIf(n > kMaxStringN);
+    ReportDebugIf(n > kMaxStringN);
     if (!stringsForNum) {
         stringsForNum = new StrVec();
         for (int i = 0; i < kMaxStringN + 1; i++) {

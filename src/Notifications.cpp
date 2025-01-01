@@ -148,7 +148,7 @@ HWND NotificationWnd::Create(const NotificationCreateArgs& args) {
     highlight = args.warning;
     shrinkLimit = args.shrinkLimit;
     if (shrinkLimit < 0.2f) {
-        ReportIf(shrinkLimit < 0.2f);
+        ReportDebugIf(shrinkLimit < 0.2f);
         shrinkLimit = 1.f;
     }
     if (args.onRemoved.IsValid()) {
@@ -185,8 +185,8 @@ HWND NotificationWnd::Create(const NotificationCreateArgs& args) {
 
 // returns 0% - 100%
 int CalcPerc(int current, int total) {
-    ReportIf(total <= 0 || current < 0);
-    ReportIf(total < current);
+    ReportDebugIf(total <= 0 || current < 0);
+    ReportDebugIf(total < current);
     if (total <= 0) {
         total = 1;
     }
@@ -355,7 +355,7 @@ bool UpdateNotificationProgress(NotificationWnd* wnd, const char* msg, int perc)
     if (!IsNotificationValid(wnd)) {
         return false;
     }
-    ReportIf(perc < 0 || perc > 100);
+    ReportDebugIf(perc < 0 || perc > 100);
     wnd->progressPerc = perc;
     wnd->UpdateMessage(msg);
     return true;
@@ -370,7 +370,7 @@ static void NotifDelete(NotificationWnd* wnd) {
 }
 
 void NotificationWnd::OnTimer(UINT_PTR timerId) {
-    ReportIf(kNotifTimerTimeoutId != timerId);
+    ReportDebugIf(kNotifTimerTimeoutId != timerId);
     // TODO a better way to delete myself
     if (wndRemovedCb.IsValid()) {
         auto fn = MkFunc0<NotificationWnd>(NotifRemove, this);
@@ -429,7 +429,7 @@ DoDefault:
 }
 
 static int NotifsRemoveForGroup(Vec<NotificationWnd*>& wnds, Kind groupId) {
-    ReportIf(groupId == nullptr);
+    ReportDebugIf(groupId == nullptr);
     Vec<NotificationWnd*> toRemove;
     for (auto* wnd : wnds) {
         if (wnd->groupId == groupId) {
@@ -459,7 +459,7 @@ static void NotifsAdd(NotificationWnd* wnd, Kind groupId) {
 }
 
 NotificationWnd* NotifsGetForGroup(Vec<NotificationWnd*>& wnds, Kind groupId) {
-    ReportIf(!groupId);
+    ReportDebugIf(!groupId);
     for (auto* wnd : wnds) {
         if (wnd->groupId == groupId) {
             return wnd;
@@ -469,7 +469,7 @@ NotificationWnd* NotifsGetForGroup(Vec<NotificationWnd*>& wnds, Kind groupId) {
 }
 
 NotificationWnd* ShowNotification(const NotificationCreateArgs& args) {
-    ReportIf(!args.hwndParent);
+    ReportDebugIf(!args.hwndParent);
 
     NotificationWnd* wnd = new NotificationWnd();
     wnd->Create(args);

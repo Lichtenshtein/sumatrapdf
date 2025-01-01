@@ -23,10 +23,10 @@ WCHAR* Utf8ToWStr(const char* s, size_t cb, Allocator* a) {
         return nullptr;
     }
     int cchConverted = MultiByteToWideChar(CP_UTF8, 0, s, (int)cb, res, (int)cchNeeded);
-    ReportIf(cchConverted != cchNeeded);
+    ReportDebugIf(cchConverted != cchNeeded);
     // TODO: not sure if invalid test or it's more subtle
     // triggers in Dune.epub
-    // ReportIf((size_t)cchConverted != str::Len(res));
+    // ReportDebugIf((size_t)cchConverted != str::Len(res));
     return res;
 }
 
@@ -51,8 +51,8 @@ char* WStrToCodePage(uint codePage, const WCHAR* s, size_t cch, Allocator* a) {
         return nullptr;
     }
     int cbConverted = WideCharToMultiByte(codePage, 0, s, (int)cch, res, cbNeeded, nullptr, nullptr);
-    ReportIf(cbConverted != cbNeeded);
-    ReportIf((size_t)cbConverted != str::Len(res));
+    ReportDebugIf(cbConverted != cbNeeded);
+    ReportDebugIf((size_t)cbConverted != str::Len(res));
     return res;
 }
 
@@ -62,7 +62,7 @@ char* WStrToUtf8(const WCHAR* s, size_t cch, Allocator* a) {
 
 // caller needs to free() the result
 WCHAR* StrCPToWStr(const char* src, uint codePage, int cbSrc) {
-    ReportIf(!src);
+    ReportDebugIf(!src);
     if (!src) {
         return nullptr;
     }
@@ -80,7 +80,7 @@ WCHAR* StrCPToWStr(const char* src, uint codePage, int cbSrc) {
 }
 
 TempWStr StrCPToWStrTemp(const char* src, uint codePage, int cbSrc) {
-    ReportIf(!src);
+    ReportDebugIf(!src);
     if (!src) {
         return nullptr;
     }
@@ -98,7 +98,7 @@ TempWStr StrCPToWStrTemp(const char* src, uint codePage, int cbSrc) {
 }
 
 TempStr ToMultiByteTemp(const char* src, uint codePageSrc, uint codePageDest) {
-    ReportIf(!src);
+    ReportDebugIf(!src);
     if (!src) {
         return nullptr;
     }

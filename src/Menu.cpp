@@ -1543,11 +1543,11 @@ static TempStr ShortenStringUtf8Temp(char* s, int maxRunes) {
     int n;
     for (int i = 0; i < nRunes; i++) {
         n = utf8RuneLen((const u8*)s);
-        ReportIf(n <= 0);
+        ReportDebugIf(n <= 0);
         if (i < removeStartingAt || i >= removeStartingAt + toRemove) {
             switch (n) {
                 default:
-                    ReportIf(true);
+                    ReportDebugIf(true);
                     break;
                 case 4:
                     *tmp++ = *s++;
@@ -1574,7 +1574,7 @@ static TempStr ShortenStringUtf8Temp(char* s, int maxRunes) {
 }
 
 static void AddFileMenuItem(HMENU menuFile, const char* filePath, int index) {
-    ReportIf(!filePath || !menuFile);
+    ReportDebugIf(!filePath || !menuFile);
     if (!filePath || !menuFile) {
         return;
     }
@@ -1683,16 +1683,14 @@ static void AppendSelectionHandlersToMenu(HMENU m, bool isEnabled) {
 }
 
 static void AppendExternalViewersToMenu(HMENU menuFile, const char* filePath) {
-    logf("AppendExternalViewersToMenu: filePath='%s' CanAccessDisk=%d\n",
-         filePath ? filePath : "(null)", CanAccessDisk());
+    // logf("AppendExternalViewersToMenu: filePath='%s' CanAccessDisk=%d\n", filePath ? filePath : "(null)", CanAccessDisk());
     if (!CanAccessDisk() || (filePath && !file::Exists(filePath))) {
-        logf("AppendExternalViewersToMenu: early return - CanAccessDisk=%d, fileExists=%d\n",
-             CanAccessDisk(), filePath ? file::Exists(filePath) : -1);
+        // logf("AppendExternalViewersToMenu: early return - CanAccessDisk=%d, fileExists=%d\n", CanAccessDisk(), filePath ? file::Exists(filePath) : -1);
         return;
     }
     Vec<CustomCommand*> cmds;
     GetCommandsWithOrigId(cmds, CmdViewWithExternalViewer);
-    logf("AppendExternalViewersToMenu: found %d commands with CmdViewWithExternalViewer\n", (int)cmds.size());
+    // logf("AppendExternalViewersToMenu: found %d commands with CmdViewWithExternalViewer\n", (int)cmds.size());
     for (CustomCommand* cmd : cmds) {
         const char* commandLine = GetCommandStringArg(cmd, kCmdArgCommandLine, nullptr);
         const char* filter = GetCommandStringArg(cmd, kCmdArgFilter, nullptr);
@@ -1844,7 +1842,7 @@ std::pair<bool, bool> GetCommandIdState(BuildMenuCtx* ctx, int cmdId) {
 }
 
 HMENU BuildMenuFromDef(MenuDef* menuDef, HMENU menu, BuildMenuCtx* ctx) {
-    ReportIf(!menu);
+    ReportDebugIf(!menu);
 
     bool isDebugMenu = menuDef == menuDefDebug;
     int i = 0;
@@ -1995,12 +1993,12 @@ float ZoomMenuItemToZoom(int cmdId) {
             return it.zoom;
         }
     }
-    ReportIf(true);
+    ReportDebugIf(true);
     return 100.0;
 }
 
 static void ZoomMenuItemCheck(HMENU m, int cmdId, bool canZoom) {
-    ReportIf((CmdZoomFirst > cmdId) || (cmdId > CmdZoomLast));
+    ReportDebugIf((CmdZoomFirst > cmdId) || (cmdId > CmdZoomLast));
 
     for (auto&& it : gZoomMenuIds) {
         MenuSetEnabled(m, it.cmdId, canZoom);
@@ -2101,7 +2099,7 @@ void MenuUpdateDisplayMode(MainWindow* win) {
     } else if (IsBookView(displayMode)) {
         id = CmdBookView;
     } else {
-        ReportIf(win->ctrl || DisplayMode::Automatic != displayMode);
+        ReportDebugIf(win->ctrl || DisplayMode::Automatic != displayMode);
     }
 
     CheckMenuRadioItem(win->menu, CmdViewLayoutFirst, CmdViewLayoutLast, id, MF_BYCOMMAND);
@@ -2253,7 +2251,7 @@ static TempStr CleanupURLForClipbardCopyTemp(const char* s) {
 
 void OnWindowContextMenu(MainWindow* win, int x, int y) {
     DisplayModel* dm = win->AsFixed();
-    ReportIf(!dm);
+    ReportDebugIf(!dm);
     if (!dm) {
         return;
     }
@@ -2385,7 +2383,7 @@ void OnWindowContextMenu(MainWindow* win, int x, int y) {
             // note: those are duplicated in SumatraPDF.cpp to enable keyboard shortcuts for them
 #if 0
         case CmdSelectAnnotation:
-            ReportIf(!ctx->annotationUnderCursor);
+            ReportDebugIf(!ctx->annotationUnderCursor);
             [[fallthrough]];
 #endif
 
@@ -2519,7 +2517,7 @@ void FreeMenuOwnerDrawInfoData(HMENU hmenu) {
     for (int i = 0; i < n; i++) {
         mii.fMask = MIIM_DATA | MIIM_FTYPE | MIIM_SUBMENU;
         BOOL ok = GetMenuItemInfoW(hmenu, (uint)i, TRUE /* by position */, &mii);
-        ReportIf(!ok);
+        ReportDebugIf(!ok);
         auto modi = (MenuOwnerDrawInfo*)mii.dwItemData;
         if (modi != nullptr) {
             FreeMenuOwnerDrawInfo(modi);
@@ -2577,7 +2575,7 @@ void MarkMenuOwnerDraw(HMENU hmenu) {
         mii.dwTypeData = &(buf[0]);
         mii.cch = dimof(buf);
         BOOL ok = GetMenuItemInfoW(hmenu, (uint)i, TRUE /* by position */, &mii);
-        ReportIf(!ok);
+        ReportDebugIf(!ok);
         mii.fMask = MIIM_FTYPE | MIIM_DATA;
         mii.fType |= MFT_OWNERDRAW;
         if (mii.dwItemData != 0) {
@@ -2744,7 +2742,7 @@ void MenuCustomDrawItem(HWND hwnd, DRAWITEMSTRUCT* dis) {
     };
 
     if (isSeparator) {
-        ReportIf(modi->text);
+        ReportDebugIf(modi->text);
         int sx = rc.left + cxCheckMark;
         int y = rc.top + (rcDy / 2);
         int ex = rc.right - padX;
@@ -2818,7 +2816,7 @@ HMENU BuildMenu(MainWindow* win) {
 }
 
 void UpdateAppMenu(MainWindow* win, HMENU m) {
-    ReportIf(!win);
+    ReportDebugIf(!win);
     if (!win) {
         return;
     }
@@ -2839,7 +2837,7 @@ void UpdateAppMenu(MainWindow* win, HMENU m) {
 // show/hide top-level menu bar. This doesn't persist across launches
 // so that accidental removal of the menu isn't catastrophic
 void ToggleMenuBar(MainWindow* win, bool showTemporarily) {
-    ReportIf(!win->menu);
+    ReportDebugIf(!win->menu);
 
     if (win->presentation || win->isFullScreen) {
         return;

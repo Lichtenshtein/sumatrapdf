@@ -110,7 +110,7 @@ static char* gAppDataDir = nullptr;
 void SetAppDataDir(const char* dir) {
     dir = path::NormalizeTemp(dir);
     bool ok = dir::CreateAll(dir);
-    ReportIf(!ok);
+    ReportDebugIf(!ok);
     str::ReplaceWithCopy(&gAppDataDir, dir);
 }
 
@@ -125,13 +125,13 @@ TempStr GetAppDataDirTemp() {
     } else {
         dir = GetSpecialFolderTemp(CSIDL_LOCAL_APPDATA, true);
         if (!dir) {
-            ReportIf(true);
+            ReportDebugIf(true);
             dir = GetTempDirTemp(); // shouldn't happen, last chance thing
         }
         dir = path::JoinTemp(dir, kAppName);
     }
     //dir = GetTempDirTemp();
-    logf("GetAppDataDirTemp(): '%s'\n", dir);
+    // logf("GetAppDataDirTemp(): '%s'\n", dir);
     SetAppDataDir(dir);
     return gAppDataDir;
 }
@@ -384,7 +384,7 @@ char* BuildOpenFileCmd(const char* pattern, const char* path, int line, int col)
     const char* perc;
     str::Str cmdline(256);
 
-    logf("BuildOpenFileCmd: path: '%s', pattern: '%s'\n", path, pattern);
+    // logf("BuildOpenFileCmd: path: '%s', pattern: '%s'\n", path, pattern);
     const char* s = pattern;
     while ((perc = str::FindChar(s, '%')) != nullptr) {
         cmdline.Append(s, perc - s);

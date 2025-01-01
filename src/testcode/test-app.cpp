@@ -73,7 +73,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, __unused HINSTANCE hPrevInstance, __un
     w->initialPos = {100, 100};
     w->initialSize = {480, 640};
     bool ok = w->Create();
-    ReportIf(!ok);
+    ReportDebugIf(!ok);
 
     auto l = CreateMainLayout(w->hwnd);
     w->onSize = [&](SizeEvent* args) {

@@ -18,7 +18,7 @@ memory inside HtmlParser::s, so they don't need to be freed.
 
 bool HtmlElement::NameIs(const char* nameIn) const {
     if (!name) {
-        ReportIf(Tag_NotFound == tag);
+        ReportDebugIf(Tag_NotFound == tag);
         HtmlTag tg = FindHtmlTag(nameIn, str::Len(nameIn));
         return tg == tag;
     }
@@ -29,7 +29,7 @@ bool HtmlElement::NameIs(const char* nameIn) const {
 // (i.e. succeeds for "opf:content" with name="content" and any value of ns)
 // TODO: add proper namespace support
 bool HtmlElement::NameIsNS(const char* nameIn, const char*) const {
-    // ReportIf(!ns);
+    // ReportDebugIf(!ns);
     const char* nameStart = nullptr;
     if (name) {
         nameStart = str::FindChar(name, ':');
@@ -280,7 +280,7 @@ HtmlElement* HtmlParser::ParseInPlace(const ByteSlice& d, uint codepage) {
         }
         if (!tok->IsTag()) {
             // ignore text content
-            ReportIf(!tok->IsText());
+            ReportDebugIf(!tok->IsText());
             continue;
         }
         if (!tok->IsEndTag()) {

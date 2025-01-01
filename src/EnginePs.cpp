@@ -170,7 +170,7 @@ static EngineBase* ps2pdf(const char* path) {
     {
         TempStr fileName = path::GetBaseNameTemp(__FILE__);
         TempStr tmpFileName = path::GetBaseNameTemp(tmpFile);
-        logf("- %s:%d: using '%s' for creating '%%TEMP%%\\%s'\n", fileName, __LINE__, gswin32c, tmpFileName);
+        // logf("- %s:%d: using '%s' for creating '%%TEMP%%\\%s'\n", fileName, __LINE__, gswin32c, tmpFileName);
     }
 
     // TODO: the PS-to-PDF conversion can hang the UI for several seconds
@@ -355,7 +355,7 @@ class EnginePs : public EngineBase {
 
     bool Load(const char* fileName) {
         pageCount = 0;
-        ReportIf(FilePath() || pdfEngine);
+        ReportDebugIf(FilePath() || pdfEngine);
         if (!fileName) {
             return false;
         }

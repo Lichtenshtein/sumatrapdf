@@ -67,7 +67,7 @@ static int GetWeekCount() {
     date20110101.wDay = 1;
     FILETIME origTime, currTime;
     BOOL ok = SystemTimeToFileTime(&date20110101, &origTime);
-    ReportIf(!ok);
+    ReportDebugIf(!ok);
     GetSystemTimeAsFileTime(&currTime);
     return (currTime.dwHighDateTime - origTime.dwHighDateTime) / 1408;
     // 1408 == (10 * 1000 * 1000 * 60 * 60 * 24 * 7) / (1 << 32)
@@ -110,7 +110,7 @@ static void SetCommandNameAndShortcut(CustomCommand* cmd, const char* name, cons
         return;
     }
     if (!IsValidShortcutString(key)) {
-        logf("SetCommandNameAndShortcut: '%s' is not a valid shortcut for '%s'\n", key, cmd->definition);
+        // logf("SetCommandNameAndShortcut: '%s' is not a valid shortcut for '%s'\n", key, cmd->definition);
         return;
     }
     cmd->key = str::Dup(key);
@@ -184,7 +184,7 @@ static void CreateCustomShortcuts() {
 
 /* Caller needs to CleanUpSettings() */
 bool LoadSettings() {
-    ReportIf(gGlobalPrefs);
+    ReportDebugIf(gGlobalPrefs);
 
     auto timeStart = TimeGet();
 
@@ -194,7 +194,7 @@ bool LoadSettings() {
         ByteSlice prefsData = file::ReadFile(settingsPath);
 
         gGlobalPrefs = NewGlobalPrefs(prefsData);
-        ReportIf(!gGlobalPrefs);
+        ReportDebugIf(!gGlobalPrefs);
         gprefs = gGlobalPrefs;
         prefsData.Free();
     }
@@ -206,7 +206,7 @@ bool LoadSettings() {
     gprefs->lastPrefUpdate = file::GetModificationTime(settingsPath);
     gprefs->defaultDisplayModeEnum = DisplayModeFromString(gprefs->defaultDisplayMode, DisplayMode::Automatic);
     gprefs->defaultZoomFloat = ZoomFromString(gprefs->defaultZoom, kZoomActualSize);
-    ReportIf(!IsValidZoom(gprefs->defaultZoomFloat));
+    ReportDebugIf(!IsValidZoom(gprefs->defaultZoomFloat));
 
     int weekDiff = GetWeekCount() - gprefs->openCountWeek;
     gprefs->openCountWeek = GetWeekCount();
@@ -292,7 +292,7 @@ bool LoadSettings() {
         SaveSettings();
     }
 
-    logf("LoadSettings('%s') took %.2f ms\n", settingsPath, TimeSinceInMs(timeStart));
+    // logf("LoadSettings('%s') took %.2f ms\n", settingsPath, TimeSinceInMs(timeStart));
     return true;
 }
 
@@ -346,7 +346,7 @@ static void RememberSessionState() {
                         }
                     }
                 }
-                ReportIf(!didFind);
+                ReportDebugIf(!didFind);
                 continue;
             }
             FileState* fs = NewDisplayState(fp);
@@ -389,7 +389,7 @@ bool SaveSettings() {
     if (!HasPermission(Perm::SavePreferences)) {
         return false;
     }
-    logf("SaveSettings\n");
+    // logf("SaveSettings\n");
     // update display states for all tabs
     for (MainWindow* win : gWindows) {
         for (WindowTab* tab : win->Tabs()) {
@@ -405,7 +405,7 @@ bool SaveSettings() {
     ZoomToString(&gGlobalPrefs->defaultZoom, gGlobalPrefs->defaultZoomFloat, nullptr);
 
     TempStr path = GetSettingsPathTemp();
-    ReportIf(!path);
+    ReportDebugIf(!path);
     if (!path) {
         return false;
     }
@@ -416,7 +416,7 @@ bool SaveSettings() {
         str::Free(prevPrefs.data());
         str::Free(prefs.data());
     };
-    ReportIf(prefs.empty());
+    ReportDebugIf(prefs.empty());
     if (prefs.empty()) {
         return false;
     }
@@ -454,7 +454,7 @@ static void ReloadSettings() {
             ok = true;
             prefsData.Free();
         } else {
-            logf("ReloadSettings: failed to load '%s', i=%d\n", settingsPath, i);
+            // logf("ReloadSettings: failed to load '%s', i=%d\n", settingsPath, i);
         }
     }
     if (!ok) {
@@ -473,7 +473,7 @@ static void ReloadSettings() {
     CleanUpSettings();
 
     ok = LoadSettings();
-    ReportIf(!ok || !gGlobalPrefs);
+    ReportDebugIf(!ok || !gGlobalPrefs);
 
     // TODO: about window doesn't have to be at position 0
     if (gWindows.size() > 0 && gWindows.at(0)->IsCurrentTabAbout()) {
@@ -514,7 +514,7 @@ void RegisterSettingsForFileChanges() {
         return;
     }
 
-    ReportIf(gWatchedSettingsFile); // only call me once
+    ReportDebugIf(gWatchedSettingsFile); // only call me once
     TempStr path = GetSettingsPathTemp();
     auto fn = MkFunc0Void(SchedulePrefsReload);
     gWatchedSettingsFile = FileWatcherSubscribe(path, fn);

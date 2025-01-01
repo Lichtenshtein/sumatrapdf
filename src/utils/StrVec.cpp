@@ -74,7 +74,7 @@ struct StrVecPage {
 constexpr int kStrVecPageHdrSize = (int)sizeof(StrVecPage);
 
 static int cbOffsetsSize(int nStrings, int dataSize) {
-    ReportIf(dataSize % 4 != 0);
+    ReportDebugIf(dataSize % 4 != 0);
     int nOffsets = (2 * (int)sizeof(u32)) + dataSize;
     return nStrings * nOffsets;
 }
@@ -85,7 +85,7 @@ int StrVecPage::BytesLeft() {
     int cbTotal = (int)(currEnd - start);
     int cbOffsets = cbOffsetsSize(nStrings, dataSize);
     auto res = cbTotal - cbOffsets;
-    ReportIf(res < 0);
+    ReportDebugIf(res < 0);
     return res;
 }
 
@@ -110,7 +110,7 @@ static int cbIndexSize(int dataSize) {
 }
 
 static u32* OffsetsForString(const StrVecPage* p, int idx) {
-    ReportIf(idx < 0 || idx > p->nStrings);
+    ReportDebugIf(idx < 0 || idx > p->nStrings);
     char* off = (char*)p;
     off += kStrVecPageHdrSize;
     off += idx * cbIndexSize(p->dataSize);
@@ -119,7 +119,7 @@ static u32* OffsetsForString(const StrVecPage* p, int idx) {
 
 // must have enough space
 static char* AppendJustString(StrVecPage* p, const char* s, int sLen, int idx) {
-    ReportIf(!s);
+    ReportDebugIf(!s);
     u32* offsets = OffsetsForString(p, idx);
     char* dst = p->currEnd - sLen - 1; // 1 for zero termination
     u32 off = (u32)(dst - (char*)p);
@@ -166,7 +166,7 @@ char* StrVecPage::SetAt(int idx, const char* s, int sLen) {
 }
 
 char* StrVecPage::InsertAt(int idx, const char* s, int sLen) {
-    ReportIf(idx < 0 || idx > nStrings);
+    ReportDebugIf(idx < 0 || idx > nStrings);
 
     int cbIndex = cbIndexSize(dataSize);
     int cbNeeded = cbIndex;
@@ -207,17 +207,17 @@ char* StrVecPage::Append(const char* s, int sLen) {
 }
 
 char* StrVecPage::AtHelper(int idx, int* sLen) const {
-    ReportIf(idx >= nStrings);
+    ReportDebugIf(idx >= nStrings);
     u8* start = (u8*)this;
     u32* offsets = OffsetsForString(this, idx);
     u32 off = offsets[0];
     *sLen = (int)offsets[1];
     if (off == kNullOffset) {
-        ReportIf(*sLen != 0);
+        ReportDebugIf(*sLen != 0);
         return nullptr;
     }
     char* s = (char*)(start + off);
-    // ReportIf(*sLen != str::Leni(s));
+    // ReportDebugIf(*sLen != str::Leni(s));
     return s;
 }
 
@@ -240,7 +240,7 @@ void* StrVecPage::AtDataRaw(int idx) const {
 
 // we don't de-allocate removed strings so we can safely return the string
 char* StrVecPage::RemoveAt(int idx) {
-    ReportIf(nStrings <= 0 || idx >= nStrings);
+    ReportDebugIf(nStrings <= 0 || idx >= nStrings);
     int sLen = 0;
     char* s = AtHelper(idx, &sLen);
     nStrings--;
@@ -257,7 +257,7 @@ char* StrVecPage::RemoveAt(int idx) {
 
 // we don't de-allocate removed strings so we can safely return the string
 char* StrVecPage::RemoveAtFast(int idx) {
-    ReportIf(nStrings <= 0 || idx >= nStrings);
+    ReportDebugIf(nStrings <= 0 || idx >= nStrings);
     int sLen = 0;
     char* s = AtHelper(idx, &sLen);
     nStrings--;
@@ -284,7 +284,7 @@ static void FreePages(StrVecPage* toFree) {
 
 static StrVecPage* CompactStrVecPages(StrVecPage* first, int extraSize) {
     if (!first) {
-        ReportIf(extraSize > 0);
+        ReportDebugIf(extraSize > 0);
         return nullptr;
     }
     int dataSize = first->dataSize;
@@ -334,7 +334,7 @@ static void CompactPages(StrVec* v, int extraSize) {
     auto first = CompactStrVecPages(v->first, extraSize);
     FreePages(v->first);
     v->first = first;
-    ReportIf(first && (v->size != first->nStrings));
+    ReportDebugIf(first && (v->size != first->nStrings));
 }
 
 static inline void InvalidateSortIndexes(StrVec* v) {
@@ -422,10 +422,10 @@ static StrVecPage* AllocatePage(StrVec* v, StrVecPage* last, int nBytesNeeded) {
     }
     auto page = AllocStrVecPage(pageSize, v->dataSize);
     if (last) {
-        ReportIf(!v->first);
+        ReportDebugIf(!v->first);
         last->next = page;
     } else {
-        ReportIf(v->first);
+        ReportDebugIf(v->first);
         v->first = page;
     }
     return page;
@@ -498,7 +498,7 @@ char* StrVec::SetAt(int idx, const char* s, int sLen) {
     int extraSpace = RoundUp(sLen + 1, 2048);
     CompactPages(this, extraSpace);
     char* res = first->SetAt(idx, s, sLen);
-    ReportIf(res == kNoSpace);
+    ReportDebugIf(res == kNoSpace);
     InvalidateSortIndexes(this);
     return res;
 }
@@ -529,7 +529,7 @@ char* StrVec::InsertAt(int idx, const char* s, int sLen) {
     int extraSpace = RoundUp(sLen + 1, 2048);
     CompactPages(this, extraSpace);
     char* res = first->InsertAt(idx, s, sLen);
-    ReportIf(res == kNoSpace);
+    ReportDebugIf(res == kNoSpace);
     size++;
     InvalidateSortIndexes(this);
     return res;
@@ -582,7 +582,7 @@ StrSpan StrVec::AtSpan(int idx) const {
 }
 
 void* StrVec::AtDataRaw(int idx) const {
-    ReportIf(dataSize == 0); // shouldn't call
+    ReportDebugIf(dataSize == 0); // shouldn't call
     if (sortIndexes) {
         idx = sortIndexes[idx];
     }
@@ -591,7 +591,7 @@ void* StrVec::AtDataRaw(int idx) const {
 }
 
 char* StrVec::operator[](int idx) const {
-    ReportIf(idx < 0);
+    ReportDebugIf(idx < 0);
     return At(idx);
 }
 
@@ -707,8 +707,8 @@ static void SortNoData(StrVec* v, StrLessFunc lessFn) {
     if (v->Size() < 2) {
         return;
     }
-    ReportIf(!v->first);
-    ReportIf(v->first->next);
+    ReportDebugIf(!v->first);
+    ReportDebugIf(v->first->next);
     int n = v->Size();
 
     const char* pageStart = (const char*)v->first;

@@ -15,11 +15,11 @@ constexpr const WCHAR* kUserAgent = L"SumatraPdfHTTP";
 
 bool IsHttpRspOk(const HttpRsp* rsp) {
     if (rsp->error != ERROR_SUCCESS) {
-        logf("HttpRspOk: rsp->error %d, should be %d (ERROR_SUCCESS)\n", (int)rsp->error, (int)ERROR_SUCCESS);
+        // logf("HttpRspOk: rsp->error %d, should be %d (ERROR_SUCCESS)\n", (int)rsp->error, (int)ERROR_SUCCESS);
         return false;
     }
     if (rsp->httpStatusCode >= 300) {
-        logf("HttpRspOk: rsp->httpStatusCode: %d\n", (int)rsp->httpStatusCode);
+        // logf("HttpRspOk: rsp->httpStatusCode: %d\n", (int)rsp->httpStatusCode);
         return false;
     }
     return true;
@@ -28,7 +28,7 @@ bool IsHttpRspOk(const HttpRsp* rsp) {
 // returns false if failed to download or status code is not 200
 // for other scenarios, check HttpRsp
 bool HttpGet(const char* urlA, HttpRsp* rspOut) {
-    logf("HttpGet: url: '%s'\n", urlA);
+    // logf("HttpGet: url: '%s'\n", urlA);
     HINTERNET hReq = nullptr;
     DWORD infoLevel;
     DWORD headerBuffSize = sizeof(DWORD);
@@ -42,21 +42,21 @@ bool HttpGet(const char* urlA, HttpRsp* rspOut) {
     rspOut->error = ERROR_SUCCESS;
     HINTERNET hInet = InternetOpenW(kUserAgent, INTERNET_OPEN_TYPE_PRECONFIG, nullptr, nullptr, 0);
     if (!hInet) {
-        logf("HttpGet: InternetOpen failed\n");
+        // logf("HttpGet: InternetOpen failed\n");
         LogLastError();
         goto Error;
     }
 
     hReq = InternetOpenUrlW(hInet, url, nullptr, 0, flags, 0);
     if (!hReq) {
-        logf("HttpGet: InternetOpenUrl failed\n");
+        // logf("HttpGet: InternetOpenUrl failed\n");
         LogLastError();
         goto Error;
     }
 
     infoLevel = HTTP_QUERY_STATUS_CODE | HTTP_QUERY_FLAG_NUMBER;
     if (!HttpQueryInfoW(hReq, infoLevel, &rspOut->httpStatusCode, &headerBuffSize, nullptr)) {
-        logf("HttpGet: HttpQueryInfoW failed\n");
+        // logf("HttpGet: HttpQueryInfoW failed\n");
         LogLastError();
         goto Error;
     }
@@ -65,7 +65,7 @@ bool HttpGet(const char* urlA, HttpRsp* rspOut) {
         char buf[1024];
         DWORD dwRead = 0;
         if (!InternetReadFile(hReq, buf, sizeof(buf), &dwRead)) {
-            logf("HttpGet: InternetReadFile failed\n");
+            // logf("HttpGet: InternetReadFile failed\n");
             LogLastError();
             goto Error;
         }
@@ -76,7 +76,7 @@ bool HttpGet(const char* urlA, HttpRsp* rspOut) {
         bool ok = rspOut->data.Append(buf, dwRead);
         InterlockedDecrement(&gAllowAllocFailure);
         if (!ok) {
-            logf("HttpGet: data.Append failed\n");
+            // logf("HttpGet: data.Append failed\n");
             goto Error;
         }
     }
@@ -102,7 +102,7 @@ constexpr const int kBufSize = 256 * 1024;
 
 // Download content of a url to a file
 bool HttpGetToFile(const char* urlA, const char* destFilePath, const Func1<HttpProgress*>& cbProgress) {
-    logf("HttpGetToFile: url: '%s', file: '%s'\n", urlA, destFilePath);
+    // logf("HttpGetToFile: url: '%s', file: '%s'\n", urlA, destFilePath);
     bool ok = false;
     HINTERNET hReq = nullptr, hInet = nullptr;
     DWORD dwRead = 0;
@@ -117,7 +117,7 @@ bool HttpGetToFile(const char* urlA, const char* destFilePath, const Func1<HttpP
     HANDLE hf =
         CreateFileW(pathW, GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
     if (INVALID_HANDLE_VALUE == hf) {
-        logf("HttpGetToFile: CreateFileW('%s') failed\n", destFilePath);
+        // logf("HttpGetToFile: CreateFileW('%s') failed\n", destFilePath);
         LogLastError();
         goto Exit;
     }

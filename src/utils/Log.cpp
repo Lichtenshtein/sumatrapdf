@@ -251,7 +251,7 @@ void logfa(const char* fmt, ...) {
 }
 
 void StartLogToFile(const char* path, bool removeIfExists) {
-    ReportIf(gLogFilePath);
+    ReportDebugIf(gLogFilePath);
     gLogFilePath = str::Dup(path);
     if (removeIfExists) {
         remove(path);

@@ -83,7 +83,7 @@ struct PrintData {
         this->rotation = rotation;
         this->engine = engine->Clone();
         if (!this->engine) {
-            logf("PrintData: engine->Clone() failed for '%s'\n", engine->FilePath());
+            // logf("PrintData: engine->Clone() failed for '%s'\n", engine->FilePath());
             this->failedEngineClone = true;
             engine->AddRef();
             this->engine = engine;
@@ -257,7 +257,7 @@ static Size NormalizePaperSize(Size s) {
 }
 
 static void MessageBoxWarningCond(bool show, const char* msg, const char* title) {
-    logf("%s: %s\n", title, msg);
+    // logf("%s: %s\n", title, msg);
     if (!show) {
         return;
     }
@@ -275,18 +275,18 @@ static RectF BoundSelectionOnPage(const Vec<SelectionOnPage>& sel, int pageNo) {
 }
 
 static bool PrintToDevice(const PrintData& pd) {
-    ReportIf(!pd.engine);
+    ReportDebugIf(!pd.engine);
     if (!pd.engine) {
-        logf("PrintToDevice: !pd.engine\n");
+        // logf("PrintToDevice: !pd.engine\n");
         return false;
     }
-    ReportIf(!pd.printer);
+    ReportDebugIf(!pd.printer);
     if (!pd.printer) {
-        logf("PrintToDevice: !pd.printer\n");
+        // logf("PrintToDevice: !pd.printer\n");
         return false;
     }
 
-    logf("PrintToDevice: printer: '%s', file: '%s'\n", pd.printer->name, pd.engine->FilePath());
+    // logf("PrintToDevice: printer: '%s', file: '%s'\n", pd.printer->name, pd.engine->FilePath());
     auto progressCb = pd.progressCb;
     auto abortCookie = pd.abortCookie;
     int res;
@@ -332,9 +332,9 @@ static bool PrintToDevice(const PrintData& pd) {
             }
         }
     }
-    ReportIf(total <= 0);
+    ReportDebugIf(total <= 0);
     if (0 == total) {
-        logf("PrintToDevice: total == 0\n");
+        // logf("PrintToDevice: total == 0\n");
         return false;
     }
 
@@ -359,14 +359,14 @@ static bool PrintToDevice(const PrintData& pd) {
 
     AutoDeleteDC hdc{CreateDCW(nullptr, printerName, nullptr, devMode)};
     if (!hdc) {
-        logf("PrintToDevice: CreateDCW('%s') failed\n", pd.printer->name);
+        // logf("PrintToDevice: CreateDCW('%s') failed\n", pd.printer->name);
         return false;
     }
 
     // for PDF Printer, this shows a file dialog to pick file name for destination PDF
     res = StartDoc(hdc, &di);
     if (res <= 0) {
-        logf("PrintToDevice: StartDoc() failed with %d\n", res);
+        // logf("PrintToDevice: StartDoc() failed with %d\n", res);
         return false;
     }
 
@@ -451,7 +451,7 @@ static bool PrintToDevice(const PrintData& pd) {
             res = EndPage(hdc);
             bool wasCanceled = WasCanceled(progressCb);
             if (res <= 0 || wasCanceled) {
-                logf("PrintToDevice: EndPage() failed with %d or wasCanceled: %d\n", res, (int)wasCanceled);
+                // logf("PrintToDevice: EndPage() failed with %d or wasCanceled: %d\n", res, (int)wasCanceled);
                 AbortDoc(hdc);
                 return false;
             }
@@ -460,7 +460,7 @@ static bool PrintToDevice(const PrintData& pd) {
 
         res = EndDoc(hdc);
         if (res <= 0) {
-            logf("PrintToDevice: EndDoc() failed with %d\n", res);
+            // logf("PrintToDevice: EndDoc() failed with %d\n", res);
             return false;
         }
         return true;
@@ -478,7 +478,7 @@ static bool PrintToDevice(const PrintData& pd) {
 
             res = StartPage(hdc);
             if (res <= 0) {
-                logf("PrintToDevice: StartPage() failed with %d\n", res);
+                // logf("PrintToDevice: StartPage() failed with %d\n", res);
                 continue;
             }
 
@@ -563,7 +563,7 @@ static bool PrintToDevice(const PrintData& pd) {
             res = EndPage(hdc);
             bool wasCanceled = WasCanceled(progressCb);
             if (res <= 0 || wasCanceled) {
-                logf("PrintToDevice: EndPage() failed with %d or wasCanceled: %d\n", res, (int)wasCanceled);
+                // logf("PrintToDevice: EndPage() failed with %d or wasCanceled: %d\n", res, (int)wasCanceled);
                 AbortDoc(hdc);
                 return false;
             }
@@ -573,10 +573,10 @@ static bool PrintToDevice(const PrintData& pd) {
 
     res = EndDoc(hdc);
     if (res <= 0) {
-        logf("PrintToDevice: EndDoc() failed with %d\n", res);
+        // logf("PrintToDevice: EndDoc() failed with %d\n", res);
         return false;
     }
-    logf("PrintToDevice: finished ok\n");
+    // logf("PrintToDevice: finished ok\n");
     return true;
 }
 
@@ -706,7 +706,7 @@ static void PrintThread(PrintThreadData* ptd) {
 }
 
 static void PrintToDeviceOnThread(MainWindow* win, PrintData* data) {
-    ReportIf(win->printThread);
+    ReportDebugIf(win->printThread);
     PrintThreadData* threadData = new PrintThreadData(win, data);
     win->printThread = nullptr;
     auto fn = MkFunc0(PrintThread, threadData);
@@ -791,12 +791,12 @@ void PrintCurrentFile(MainWindow* win, bool waitForCompletion) {
         return;
     }
     DisplayModel* dm = win->AsFixed();
-    ReportIf(!dm);
+    ReportDebugIf(!dm);
     if (!dm) {
         return;
     }
     auto engine = dm->GetEngine();
-    ReportIf(!engine);
+    ReportDebugIf(!engine);
     if (!engine) {
         return;
     }
@@ -855,7 +855,7 @@ void PrintCurrentFile(MainWindow* win, bool waitForCompletion) {
 
     HRESULT res = PrintDlgExW(&pdex);
     if (res != S_OK) {
-        logf("PrintCurrentFile: PrintDlgEx failed\n");
+        // logf("PrintCurrentFile: PrintDlgEx failed\n");
         MessageBoxWarning(win->hwndFrame, _TRA("Couldn't initialize printer"), _TRA("Printing problem."));
     }
     auto action = pdex.dwResultAction;
@@ -924,7 +924,7 @@ void PrintCurrentFile(MainWindow* win, bool waitForCompletion) {
         PRINTPAGERANGE pr = {1, (DWORD)nPages};
         ranges.Append(pr);
     } else {
-        ReportIf(pdex.nPageRanges <= 0);
+        ReportDebugIf(pdex.nPageRanges <= 0);
         for (DWORD i = 0; i < pdex.nPageRanges; i++) {
             ranges.Append(pdex.lpPageRanges[i]);
         }
@@ -1091,7 +1091,7 @@ static short GetPaperByName(Printer* printer, const char* wantedName) {
     //  -print-to KM-202MD -print-settings "paper=76mm x 130mm" foo.pdf
     // Note that: 76mm x 130mm is not valid
     // Note: not sure what this was meant to check
-    // ReportIf(!(devMode->dmFields & DM_PAPERSIZE));
+    // ReportDebugIf(!(devMode->dmFields & DM_PAPERSIZE));
     if (!(devMode->dmFields & DM_PAPERSIZE)) {
         return devMode->dmPaperSize;
     }
@@ -1122,7 +1122,7 @@ static short GetPaperKind(const char* kindName) {
 
 static short GetPaperSourceByName(Printer* printer, const char* binName) {
     auto devMode = printer->devMode;
-    ReportIf(!(devMode->dmFields & DM_DEFAULTSOURCE));
+    ReportDebugIf(!(devMode->dmFields & DM_DEFAULTSOURCE));
     if (!(devMode->dmFields & DM_DEFAULTSOURCE)) {
         return devMode->dmDefaultSource;
     }
@@ -1260,18 +1260,18 @@ bool PrintFile2(EngineBase* engine, char* printerName, char* docName, bool displ
 
     if (!engine) {
         MessageBoxWarningCond(displayErrors, _TRA("Cannot print this file"), _TRA("Printing problem."));
-        logf("PrintFile2: engine is null\n");
+        // logf("PrintFile2: engine is null\n");
         return false;
     }
 
-    logf("PrintFile2: file: '%s', printer: '%s'\n", engine->FilePath(), printerName);
+    // logf("PrintFile2: file: '%s', printer: '%s'\n", engine->FilePath(), printerName);
 
     if (printerName) {
         printer = NewPrinter(printerName);
     } else {
         char* defName = GetDefaultPrinterNameTemp();
         if (!defName) {
-            logf("PrintFile: GetDefaultPrinterName() failed\n");
+            // logf("PrintFile: GetDefaultPrinterName() failed\n");
             return false;
         }
         printer = NewPrinter(defName);
@@ -1308,12 +1308,12 @@ bool PrintFile2(EngineBase* engine, char* printerName, char* docName, bool displ
             MessageBoxWarningCond(displayErrors, _TRA("Couldn't initialize printer"), _TRA("Printing problem."));
         }
     }
-    logf("PrintFile2: finished ok\n");
+    // logf("PrintFile2: finished ok\n");
     return ok;
 }
 
 bool PrintFile(const char* fileName, char* printerName, char* docName, bool displayErrors, const char* settings) {
-    logf("PrintFile: file: '%s', printer: '%s'\n", fileName, printerName);
+    // logf("PrintFile: file: '%s', printer: '%s'\n", fileName, printerName);
     fileName = path::NormalizeTemp(fileName);
     EngineBase* engine = CreateEngineFromFile(fileName, nullptr, true);
     if (!engine) {

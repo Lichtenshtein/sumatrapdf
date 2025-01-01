@@ -116,13 +116,13 @@ bool FavTreeModel::IsChecked(TreeItem) {
 }
 
 void FavTreeModel::SetHandle(TreeItem ti, HTREEITEM hItem) {
-    ReportIf(ti < 0);
+    ReportDebugIf(ti < 0);
     FavTreeItem* treeItem = (FavTreeItem*)ti;
     treeItem->hItem = hItem;
 }
 
 HTREEITEM FavTreeModel::GetHandle(TreeItem ti) {
-    ReportIf(ti < 0);
+    ReportDebugIf(ti < 0);
     FavTreeItem* treeItem = (FavTreeItem*)ti;
     return treeItem->hItem;
 }
@@ -228,7 +228,7 @@ static void AddOrReplaceFav(const char* filePath, int pageNo, const char* name, 
     Favorite* fn = FindByPage(fav, pageNo, pageLabel);
     if (fn) {
         str::ReplaceWithCopy(&fn->name, name);
-        ReportIf(fn->pageLabel && !str::Eq(fn->pageLabel, pageLabel));
+        ReportDebugIf(fn->pageLabel && !str::Eq(fn->pageLabel, pageLabel));
     } else {
         fn = NewFavorite(pageNo, name, pageLabel);
         fav->favorites->Append(fn);
@@ -313,7 +313,7 @@ static TempStr FavCompactReadableNameTemp(FileState* fav, Favorite* fn, bool isC
 }
 
 static void AppendFavMenuItems(HMENU m, FileState* f, int& idx, bool combined, bool isCurrent) {
-    ReportIf(!f);
+    ReportDebugIf(!f);
     if (!f) {
         return;
     }
@@ -407,7 +407,7 @@ static void AppendFavMenus(HMENU m, const char* currFilePath) {
     for (int i = 0; i < menusCount; i++) {
         const char* filePath = filePathsSorted.At(i);
         FileState* f = GetFavByFilePath(filePath);
-        ReportIf(!f);
+        ReportDebugIf(!f);
         if (!f) {
             continue;
         }
@@ -493,7 +493,7 @@ static void GoToFavoritePage(GoToFavoritePageData* d) {
 // Going to a bookmark in another file, loads the file and scrolls to a page
 // (similar to how invoking one of the recently opened files works)
 static void GoToFavorite(MainWindow* win, FileState* fs, Favorite* fav) {
-    ReportIf(!fs || !fav);
+    ReportDebugIf(!fs || !fav);
     if (!fs || !fav) {
         return;
     }
@@ -616,7 +616,7 @@ static FavTreeModel* BuildFavTreeModel(MainWindow* win) {
     GetSortedFilePaths(filePathsSorted);
     for (char* path : filePathsSorted) {
         FileState* fs = GetFavByFilePath(path);
-        ReportIf(!fs);
+        ReportDebugIf(!fs);
         if (!fs) {
             continue;
         }
@@ -778,14 +778,14 @@ void RememberFavTreeExpansionStateForAllWindows() {
 static void FavTreeItemClicked(TreeView::ClickEvent* ev) {
     if (ev->treeItem == ev->treeView->GetSelection()) {
         MainWindow* win = FindMainWindowByHwnd(ev->treeView->hwnd);
-        ReportIf(!win);
+        ReportDebugIf(!win);
         GoToFavForTreeItem(win, ev->treeItem);
     }
 }
 
 static void FavTreeSelectionChanged(TreeView::SelectionChangedEvent* ev) {
     MainWindow* win = FindMainWindowByHwnd(ev->treeView->hwnd);
-    ReportIf(!win);
+    ReportDebugIf(!win);
 
     // When the focus is set to the toc window the first item in the treeview is automatically
     // selected and a TVN_SELCHANGEDW notification message is sent with the special code pnmtv->action ==
@@ -918,7 +918,7 @@ void CreateFavorites(MainWindow* win) {
     // treeView->onMouseWheel = TocTreeMouseWheelHandler;
 
     treeView->Create(args);
-    ReportIf(!treeView->hwnd);
+    ReportDebugIf(!treeView->hwnd);
 
     win->favTreeView = treeView;
 

@@ -9,9 +9,9 @@ static void RegressTestEpubLoading(const char *fileName)
     char *filePath = path::Join(TestFilesDir(), fileName);
     VerifyFileExists(filePath);
     Kind kind = GuessFileType(fileName, true);
-    ReportIf(!EpubDoc::IsSupportedFileType(kind));
+    ReportDebugIf(!EpubDoc::IsSupportedFileType(kind));
     EpubDoc *doc = EpubDoc::CreateFromFile(filePath);
-    ReportIf(!doc);
+    ReportDebugIf(!doc);
     delete doc;
 }
 
@@ -33,9 +33,9 @@ static void Regress00()
     char *filePath = path::Join(TestFilesDir(), "epub\\widget-figure-gallery-20120405.epub");
     VerifyFileExists(filePath);
     Kind kind = GuessFileType(filePath, true);
-    ReportIf(!EpubDoc::IsSupportedFileType(kind));
+    ReportDebugIf(!EpubDoc::IsSupportedFileType(kind));
     EpubDoc *doc = EpubDoc::CreateFromFile(filePath);
-    ReportIf(!doc);
+    ReportDebugIf(!doc);
 
     PoolAllocator textAllocator;
     HtmlFormatterArgs *args = CreateFormatterDefaultArgs(820, 920, &textAllocator);
@@ -53,7 +53,7 @@ static void Regress00()
     }
     delete formatter;
     delete args;
-    ReportIf(page != 3);
+    ReportDebugIf(page != 3);
 
     args = CreateFormatterDefaultArgs(820, 920, &textAllocator);
     args->htmlStr = doc->GetHtmlData();

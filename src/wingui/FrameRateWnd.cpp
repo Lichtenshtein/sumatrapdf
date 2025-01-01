@@ -131,7 +131,7 @@ static void RegisterFrameRateWndClass() {
     WNDCLASSEX wcex{};
     FillWndClassEx(wcex, FRAME_RATE_CLASS_NAME, WndProcFrameRate);
     atom = RegisterClassEx(&wcex);
-    ReportIf(!atom);
+    ReportDebugIf(!atom);
 }
 
 bool FrameRateWnd::Create(HWND hwndAssociatedWith) {
@@ -155,7 +155,7 @@ bool FrameRateWnd::Create(HWND hwndAssociatedWith) {
     // WS_EX_TRANSPARENT so that the mouse events fall through to the window below
     HWND hwnd2 = CreateWindowEx(WS_EX_LAYERED | WS_EX_TRANSPARENT, FRAME_RATE_CLASS_NAME, nullptr, dwStyle, 0, 0, 0, 0,
                                 this->hwndAssociatedWith, nullptr, GetModuleHandle(nullptr), this);
-    ReportIf(hwnd2 != this->hwnd);
+    ReportDebugIf(hwnd2 != this->hwnd);
     if (!hwnd) {
         return false;
     }

@@ -93,7 +93,7 @@ void NotifyFailed(const char* msg) {
     if (!gFirstError) {
         gFirstError = str::Dup(msg);
     }
-    logf("NotifyFailed: %s\n", msg);
+    // logf("NotifyFailed: %s\n", msg);
 }
 
 void SetMsg(const char* msg, Color color) {
@@ -146,9 +146,7 @@ void GetPreviousInstallInfo(PreviousInstallationInfo* info) {
     } else {
         info->typ = PreviousInstallationType::User;
     }
-    logf("GetPreviousInstallInfo: dir '%s', search filter: %d, preview: %d, typ: %d, needsElevation: %d\n",
-         info->installationDir, (int)info->searchFilterInstalled, (int)info->previewInstalled, (int)info->typ,
-         (int)info->allUsers);
+    // logf("GetPreviousInstallInfo: dir '%s', search filter: %d, preview: %d, typ: %d, needsElevation: %d\n", info->installationDir, (int)info->searchFilterInstalled, (int)info->previewInstalled, (int)info->typ, (int)info->allUsers);
 }
 
 static char* GetExistingInstallationFilePathTemp(const char* name) {
@@ -161,7 +159,7 @@ static char* GetExistingInstallationFilePathTemp(const char* name) {
 
 char* GetInstallationFilePathTemp(const char* name) {
     TempStr res = path::JoinTemp(gCli->installDir, name);
-    logf("GetInstallationFilePath(%s) = > %s\n", name, res);
+    // logf("GetInstallationFilePath(%s) = > %s\n", name, res);
     return res;
 }
 
@@ -238,7 +236,7 @@ constexpr const char* kSearchFilterDllName = "PdfFilter.dll";
 
 void RegisterSearchFilter(bool allUsers) {
     char* dllPath = GetInstallationFilePathTemp(kSearchFilterDllName);
-    logf("RegisterSearchFilter() dllPath=%s\n", dllPath);
+    // logf("RegisterSearchFilter() dllPath=%s\n", dllPath);
     bool ok = InstallSearchFilter(dllPath, allUsers);
     if (ok) {
         log("  did registe\n");
@@ -250,7 +248,7 @@ void RegisterSearchFilter(bool allUsers) {
 
 void UnRegisterSearchFilter() {
     char* dllPath = GetExistingInstallationFilePathTemp(kSearchFilterDllName);
-    logf("UnRegisterSearchFilter() dllPath=%s\n", dllPath);
+    // logf("UnRegisterSearchFilter() dllPath=%s\n", dllPath);
     bool ok = UninstallSearchFilter();
     if (ok) {
         log("  did unregister\n");
@@ -264,7 +262,7 @@ constexpr const char* kPreviewDllName = "PdfPreview.dll";
 
 void RegisterPreviewer(bool allUsers) {
     char* dllPath = GetInstallationFilePathTemp(kPreviewDllName);
-    logf("RegisterPreviewer() dllPath=%s\n", dllPath);
+    // logf("RegisterPreviewer() dllPath=%s\n", dllPath);
     bool ok = InstallPreviewDll(dllPath, allUsers);
     if (ok) {
         log("  did register\n");
@@ -276,7 +274,7 @@ void RegisterPreviewer(bool allUsers) {
 
 void UnRegisterPreviewer() {
     char* dllPath = GetExistingInstallationFilePathTemp(kPreviewDllName);
-    logf("UnRegisterPreviewer() dllPath=%s\n", dllPath);
+    // logf("UnRegisterPreviewer() dllPath=%s\n", dllPath);
     bool ok = UninstallPreviewDll();
     if (ok) {
         log("  did unregister\n");
@@ -307,7 +305,7 @@ static bool IsProcWithModule(DWORD processId, const char* modulePath) {
 }
 
 static bool KillProcWithId(DWORD processId, bool waitUntilTerminated) {
-    logf("KillProcWithId(processId=%d)\n", (int)processId);
+    // logf("KillProcWithId(processId=%d)\n", (int)processId);
     BOOL inheritHandle = FALSE;
     // Note: do I need PROCESS_QUERY_INFORMATION and PROCESS_VM_READ?
     DWORD dwAccess = PROCESS_QUERY_INFORMATION | PROCESS_VM_READ | PROCESS_TERMINATE;
@@ -335,7 +333,7 @@ static bool KillProcWithIdAndModule(DWORD processId, const char* modulePath, boo
     if (!IsProcWithModule(processId, modulePath)) {
         return false;
     }
-    logf("KillProcWithIdAndModule() processId=%d, modulePath=%s\n", processId, modulePath);
+    // logf("KillProcWithIdAndModule() processId=%d, modulePath=%s\n", processId, modulePath);
 
     BOOL inheritHandle = FALSE;
     // Note: do I need PROCESS_QUERY_INFORMATION and PROCESS_VM_READ?
@@ -361,7 +359,7 @@ static bool KillProcWithIdAndModule(DWORD processId, const char* modulePath, boo
 // modulePath
 // returns -1 on error, 0 if no matching processes
 int KillProcessesWithModule(const char* modulePath, bool waitUntilTerminated) {
-    logf("KillProcessesWithModule: '%s'\n", modulePath);
+    // logf("KillProcessesWithModule: '%s'\n", modulePath);
     AutoCloseHandle hProcSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
     if (INVALID_HANDLE_VALUE == hProcSnapshot) {
         return -1;
@@ -376,7 +374,7 @@ int KillProcessesWithModule(const char* modulePath, bool waitUntilTerminated) {
     int killCount = 0;
     do {
         if (KillProcWithIdAndModule(pe32.th32ProcessID, modulePath, waitUntilTerminated)) {
-            logf("  killed process with id %d\n", (int)pe32.th32ProcessID);
+            // logf("  killed process with id %d\n", (int)pe32.th32ProcessID);
             killCount++;
         }
     } while (Process32Next(hProcSnapshot, &pe32));
@@ -417,9 +415,9 @@ static bool KillProcessesUsingInstallation() {
         DWORD procID = proc.th32ProcessID;
         if (IsProcessUsingFiles(procID, libmupdf, browserPlugin)) {
             char* s = ToUtf8Temp(proc.szExeFile);
-            logf("  attempting to kill process %d '%s'\n", (int)procID, s);
+            // logf("  attempting to kill process %d '%s'\n", (int)procID, s);
             bool didKill = KillProcWithId(procID, true);
-            logf("  KillProcWithId(%d) returned %d\n", procID, (int)didKill);
+            // logf("  KillProcWithId(%d) returned %d\n", procID, (int)didKill);
             if (!didKill) {
                 killedAllProcesses = false;
             }
@@ -508,9 +506,9 @@ void InvalidateFrame() {
 }
 
 bool CheckInstallUninstallPossible(HWND hwnd, bool silent) {
-    logf("CheckInstallUninstallPossible(silent=%d)\n", silent);
+    // logf("CheckInstallUninstallPossible(silent=%d)\n", silent);
     KillProcessesUsingInstallation();
-    // logf("CheckInstallUninstallPossible: KillProcessesUsingInstallation() returned %d\n", ok);
+    // // logf("CheckInstallUninstallPossible: KillProcessesUsingInstallation() returned %d\n", ok);
 
     // now determine which processes are using installation files
     // and ask user to close them.

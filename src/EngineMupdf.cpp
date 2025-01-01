@@ -191,8 +191,8 @@ static int FzGetPageNo(fz_context* ctx, fz_document* doc, fz_link* link, fz_outl
 
 static IPageDestination* NewPageDestinationMupdf(fz_context* ctx, fz_document* doc, fz_link* link,
                                                  fz_outline* outline) {
-    ReportIf(link && outline);
-    ReportIf(!link && !outline);
+    ReportDebugIf(link && outline);
+    ReportDebugIf(!link && !outline);
     char* uri = FzGetURL(link, outline);
 
     const char* maybePath = (const char*)uri;
@@ -222,7 +222,7 @@ static IPageDestination* NewPageDestinationMupdf(fz_context* ctx, fz_document* d
             fz_urldecode(dest);
         }
 
-        logf("NewPageDestinationMupdf: path='%s', dest='%s'\n", path, dest);
+        // logf("NewPageDestinationMupdf: path='%s', dest='%s'\n", path, dest);
         auto res = new PageDestinationFile(path, dest);
         res->rect = FzGetRectF(link, outline);
         return res;
@@ -272,7 +272,7 @@ fz_matrix FzCreateViewCtm(fz_rect mediabox, float zoom, int rotation) {
 
     // TODO: this is happening quite often so don't report it
     // not sure if it indicates an actual issue
-    // ReportIf(0 != mediabox.x0 || 0 != mediabox.y0);
+    // ReportDebugIf(0 != mediabox.x0 || 0 != mediabox.y0);
     rotation = (rotation + 360) % 360;
     if (90 == rotation) {
         ctm = fz_pre_translate(ctm, 0, -mediabox.y1);
@@ -282,7 +282,7 @@ fz_matrix FzCreateViewCtm(fz_rect mediabox, float zoom, int rotation) {
         ctm = fz_pre_translate(ctm, -mediabox.x1, 0);
     }
 
-    ReportIf(fz_matrix_expansion(ctm) <= 0);
+    ReportDebugIf(fz_matrix_expansion(ctm) <= 0);
     if (fz_matrix_expansion(ctm) == 0) {
         return fz_identity;
     }
@@ -292,7 +292,7 @@ fz_matrix FzCreateViewCtm(fz_rect mediabox, float zoom, int rotation) {
 
 // TODO: maybe make dpi a float as well
 static float DpiScale(float x, int dpi) {
-    ReportIf(dpi < 70.f);
+    ReportDebugIf(dpi < 70.f);
     // TODO: maybe implement step scaling like mupdf
     float res = x * (float)dpi;
     res = res / 96.f;
@@ -542,10 +542,10 @@ static void FzStreamFingerprint(fz_context* ctx, fz_stream* stm, u8 digest[16]) 
         fz_report_error(ctx);
         return;
     }
-    ReportIf(nullptr == buf);
+    ReportDebugIf(nullptr == buf);
     u8* data;
     size_t size = fz_buffer_extract(ctx, buf, &data);
-    ReportIf((size_t)fileLen != size);
+    ReportDebugIf((size_t)fileLen != size);
     fz_drop_buffer(ctx, buf);
 
     fz_md5 md5;
@@ -563,7 +563,7 @@ static ByteSlice FzExtractStreamData(fz_context* ctx, fz_stream* stream) {
 
     u8* data = nullptr;
     size_t size = fz_buffer_extract(ctx, buf, &data);
-    ReportIf((size_t)fileLen != size);
+    ReportDebugIf((size_t)fileLen != size);
     fz_drop_buffer(ctx, buf);
     if (!data || size == 0) {
         return {};
@@ -691,7 +691,7 @@ static WCHAR* FzTextPageToStr(fz_stext_page* text, Rect** coordsOut) {
         block = block->next;
     }
 
-    ReportIf(content.size() != rects.size());
+    ReportDebugIf(content.size() != rects.size());
 
     if (coordsOut) {
         *coordsOut = rects.StealData();
@@ -1078,7 +1078,7 @@ static bool RectFullyContains(RectF r1, RectF r2) {
 // if an elements fully obscures another, remove it from the list
 static bool RemoveHeWhoFullyContains(Vec<IPageElement*>& els) {
     int n = els.Size();
-    ReportIf(n < 2);
+    ReportDebugIf(n < 2);
     for (int i = 0; i < n; i++) {
         RectF r1 = els[i]->GetRect();
         for (int j = 0; j < n; j++) {
@@ -1118,7 +1118,7 @@ static IPageElement* PickBestElement(Vec<IPageElement*>& els) {
 Encore:
     bool didRemove = RemoveHeWhoFullyContains(els);
     if (didRemove) {
-        ReportIf(els.Size() != n - 1);
+        ReportDebugIf(els.Size() != n - 1);
         n = els.Size();
         if (n == 1) {
             return els[0];
@@ -1331,8 +1331,8 @@ static fz_link* FixupPageLinks(fz_link* root) {
         if (link->rect.y0 > link->rect.y1) {
             std::swap(link->rect.y0, link->rect.y1);
         }
-        ReportIf(link->rect.x1 < link->rect.x0);
-        ReportIf(link->rect.y1 < link->rect.y0);
+        ReportDebugIf(link->rect.x1 < link->rect.x0);
+        ReportDebugIf(link->rect.y1 < link->rect.y0);
     }
     return new_root;
 }
@@ -1634,13 +1634,13 @@ static Vec<ContextThreadID>* gPerThreadContexts;
 static CRITICAL_SECTION gPerThreadContextsCs;
 
 void InitializeEngineMupdf() {
-    ReportIf(gPerThreadContexts);
+    ReportDebugIf(gPerThreadContexts);
     InitializeCriticalSection(&gPerThreadContextsCs);
     gPerThreadContexts = new Vec<ContextThreadID>();
 }
 
 void DestroyEngineMupdf() {
-    ReportIf(gPerThreadContexts->Size() != 0);
+    ReportDebugIf(gPerThreadContexts->Size() != 0);
     delete gPerThreadContexts;
     gPerThreadContexts = nullptr;
     DeleteCriticalSection(&gPerThreadContextsCs);
@@ -1830,7 +1830,7 @@ const char* ParseEmbeddedStreamNumber(const char* path, int* streamNoOut) {
     if (streamNoStr) {
         char* rest = (char*)str::Parse(streamNoStr, ":%d", &streamNo);
         // there shouldn't be any left unparsed data
-        ReportIf(!rest);
+        ReportDebugIf(!rest);
         if (!rest) {
             streamNo = -1;
         }
@@ -1950,7 +1950,7 @@ bool EngineMupdf::Load(const char* path, PasswordUI* pwdUI) {
     bool ok;
     const char* pathA = path;
     auto ctx = Ctx();
-    ReportIf(FilePath() || _doc || !ctx);
+    ReportDebugIf(FilePath() || _doc || !ctx);
     SetFilePath(path);
 
     auto ext = path::GetExtTemp(path);
@@ -2055,7 +2055,7 @@ bool EngineMupdf::Load(const char* path, PasswordUI* pwdUI) {
 // TODO: need to do stuff to support .txt etc.
 bool EngineMupdf::Load(IStream* stream, const char* nameHint, PasswordUI* pwdUI) {
     auto ctx = Ctx();
-    ReportIf(FilePath() || _doc || !ctx);
+    ReportDebugIf(FilePath() || _doc || !ctx);
     if (!ctx) {
         return false;
     }
@@ -2471,7 +2471,7 @@ bool EngineMupdf::FinishLoading() {
     }
 
     // TODO: support javascript
-    ReportIf(pdf_js_supported(ctx, pdfdoc));
+    ReportDebugIf(pdf_js_supported(ctx, pdfdoc));
 
     return true;
 }
@@ -2521,7 +2521,7 @@ TocItem* EngineMupdf::BuildTocTree(TocItem* parent, fz_outline* outline, int& id
         item->id = ++idCounter;
         item->fontFlags = 0; // TODO: had outline->flags; but mupdf changed outline
         item->pageNo = pageNo;
-        ReportIf(!isAttachment && !item->PageNumbersMatch());
+        ReportDebugIf(!isAttachment && !item->PageNumbersMatch());
 
         // TODO: had outline->n_color and outline->color but mupdf changed outline
         /*
@@ -2538,7 +2538,7 @@ TocItem* EngineMupdf::BuildTocTree(TocItem* parent, fz_outline* outline, int& id
             root = item;
             curr = item;
         } else {
-            ReportIf(!curr);
+            ReportDebugIf(!curr);
             if (curr) {
                 curr->next = item;
             }
@@ -2604,7 +2604,7 @@ void EngineMupdf::InvalidateTocCache() {
         outline = nullptr;
     }
     
-    logf("InvalidateTocCache: TOC cache cleared\n");
+    // logf("InvalidateTocCache: TOC cache cleared\n");
 }
 
 // Refresh the TOC by reloading outline data from PDF and rebuilding cache
@@ -2626,10 +2626,10 @@ void EngineMupdf::RefreshToc() {
     fz_context* ctx = Ctx();
     fz_try(ctx) {
         outline = fz_load_outline(ctx, _doc);
-        logf("RefreshToc: Reloaded outline from PDF document\n");
+        // logf("RefreshToc: Reloaded outline from PDF document\n");
     }
     fz_catch(ctx) {
-        logf("RefreshToc: Failed to reload outline from PDF\n");
+        // logf("RefreshToc: Failed to reload outline from PDF\n");
         fz_report_error(ctx);
         outline = nullptr;
     }
@@ -2714,7 +2714,7 @@ IPageDestination* EngineMupdf::GetNamedDest(const char* name) {
 // return a page but only if is fully loaded
 FzPageInfo* EngineMupdf::GetFzPageInfoFast(int pageNo) {
     ScopedCritSec scope(&pagesAccess);
-    ReportIf(pageNo < 1 || pageNo > pageCount);
+    ReportDebugIf(pageNo < 1 || pageNo > pageCount);
     FzPageInfo* pageInfo = pages[pageNo - 1];
     if (!pageInfo->page || !pageInfo->fullyLoaded) {
         return nullptr;
@@ -2758,11 +2758,11 @@ static void RebuildCommentsFromAnnotationsInner(fz_context* ctx, pdf_annot* anno
     bool isEmpty = isContentsEmpty && isLabelEmpty;
 
     // const char* tpStr = pdf_string_from_annot_type(ctx, tp);
-    //  logf("MakePageElementCommentsFromAnnotations: annot %d '%s', contents: '%s', label: '%s'\n", tp, tpStr,
+    //  // logf("MakePageElementCommentsFromAnnotations: annot %d '%s', contents: '%s', label: '%s'\n", tp, tpStr,
     //  contents, abel);
 
     if (PDF_ANNOT_FILE_ATTACHMENT == tp) {
-        logf("found file attachment annotation\n");
+        // logf("found file attachment annotation\n");
 
         pdf_filespec_params fileParams = {};
         pdf_obj* fs = pdf_annot_filespec(ctx, annot);
@@ -2774,7 +2774,7 @@ static void RebuildCommentsFromAnnotationsInner(fz_context* ctx, pdf_annot* anno
             return;
         }
 
-        logf("attachment: %s, num: %d\n", attname, num);
+        // logf("attachment: %s, num: %d\n", attname, num);
 
         auto dest = new PageDestination();
         // TODO: kindDestinationAttachment ?
@@ -2893,7 +2893,7 @@ FzPageInfo* EngineMupdf::GetFzPageInfo(int pageNo, bool loadQuick, fz_cookie* co
     // TODO: minimize time spent under pagesAccess when fully loading
     ScopedCritSec scope(&pagesAccess);
 
-    ReportIf(pageNo < 1 || pageNo > pageCount);
+    ReportDebugIf(pageNo < 1 || pageNo > pageCount);
     int pageIdx = pageNo - 1;
     FzPageInfo* pageInfo = pages[pageIdx];
 
@@ -2935,7 +2935,7 @@ FzPageInfo* EngineMupdf::GetFzPageInfo(int pageNo, bool loadQuick, fz_cookie* co
         return pageInfo;
     }
 
-    ReportIf(pageInfo->pageNo != pageNo);
+    ReportDebugIf(pageInfo->pageNo != pageNo);
 
     pageInfo->fullyLoaded = true;
 
@@ -3036,9 +3036,9 @@ RectF EngineMupdf::Transform(const RectF& rect, int pageNo, float zoom, int rota
         if (!name) {
             name = "";
         }
-        logf("doc: %s, pageNo: %d, zoom: %.2f\n", name, pageNo, zoom);
+        // logf("doc: %s, pageNo: %d, zoom: %.2f\n", name, pageNo, zoom);
     }
-    ReportIf(zoom <= 0);
+    ReportDebugIf(zoom <= 0);
     if (zoom <= 0) {
         zoom = 1;
     }
@@ -3173,9 +3173,9 @@ Vec<IPageElement*> EngineMupdf::GetElements(int pageNo) {
 }
 
 void HandleLinkMupdf(EngineMupdf* e, IPageDestination* dest, ILinkHandler* linkHandler) {
-    ReportIf(kindDestinationMupdf != dest->GetKind());
+    ReportDebugIf(kindDestinationMupdf != dest->GetKind());
     PageDestinationMupdf* link = (PageDestinationMupdf*)dest;
-    ReportIf(!(link->outline || link->link));
+    ReportDebugIf(!(link->outline || link->link));
     const char* uri = link->outline ? link->outline->uri : nullptr;
     if (!link->outline) {
         uri = link->link->uri;
@@ -3205,7 +3205,7 @@ void HandleLinkMupdf(EngineMupdf* e, IPageDestination* dest, ILinkHandler* linkH
     }
     if (pageNo < 0) {
         // TODO: more?
-        // ReportIf(true);
+        // ReportDebugIf(true);
         return;
     }
 
@@ -3233,7 +3233,7 @@ bool EngineMupdf::HandleLink(IPageDestination* dest, ILinkHandler* linkHandler) 
 }
 
 RenderedBitmap* EngineMupdf::GetImageForPageElement(IPageElement* ipel) {
-    ReportIf(kindPageElementImage != ipel->GetKind());
+    ReportDebugIf(kindPageElementImage != ipel->GetKind());
     auto pel = (PageElementImage*)ipel;
     auto r = pel->rect;
     int pageNo = pel->pageNo;
@@ -3279,8 +3279,8 @@ RenderedBitmap* EngineMupdf::GetPageImage(int pageNo, RectF rect, int imageIdx) 
     bool outOfBounds = imageIdx >= images.Size();
     fz_rect imgRect = images.at(imageIdx)->rect;
     bool badRect = ToRectF(imgRect) != rect;
-    ReportIf(outOfBounds);
-    ReportIf(badRect);
+    ReportDebugIf(outOfBounds);
+    ReportDebugIf(badRect);
     if (outOfBounds || badRect) {
         return nullptr;
     }
@@ -3288,7 +3288,7 @@ RenderedBitmap* EngineMupdf::GetPageImage(int pageNo, RectF rect, int imageIdx) 
     ScopedCritSec scope(ctxAccess);
 
     fz_image* image = FzFindImageAtIdx(ctx, pageInfo, imageIdx);
-    ReportIf(!image);
+    ReportDebugIf(!image);
     if (!image) {
         return nullptr;
     }
@@ -3468,7 +3468,7 @@ TempStr EngineMupdf::ExtractFontListTemp() {
             fz_report_error(ctx);
             continue;
         }
-        ReportIf(!name || !type || !encoding);
+        ReportDebugIf(!name || !type || !encoding);
 
         str::Str info;
         if (name[0] < 0 && MultiByteToWideChar(936, MB_ERR_INVALID_CHARS, name, -1, nullptr, 0)) {
@@ -3567,7 +3567,7 @@ TempStr EngineMupdf::GetPropertyTemp(const char* name) {
             int n = pdf_array_len(ctx, pdf_dict_gets(ctx, pdfInfo, "OutputIntents"));
             for (int i = 0; i < n; i++) {
                 pdf_obj* intent = pdf_array_get(ctx, pdf_dict_gets(ctx, pdfInfo, "OutputIntents"), i);
-                ReportIf(!str::StartsWith(pdf_to_name(ctx, intent), "GTS_"));
+                ReportDebugIf(!str::StartsWith(pdf_to_name(ctx, intent), "GTS_"));
                 const char* s = pdf_to_name(ctx, intent) + 4;
                 fstruct.Append(s);
             }
@@ -3684,7 +3684,7 @@ const pdf_write_options pdf_default_write_options2 = {
 // if filePath is not given, we save under the same name
 // TODO: if the file is locked, this might fail.
 bool EngineMupdfSaveUpdated(EngineBase* engine, const char* path, const ShowErrorCb& showErrorFunc) {
-    ReportIf(!engine);
+    ReportDebugIf(!engine);
     if (!engine) {
         return false;
     }
@@ -3721,12 +3721,12 @@ bool EngineMupdfSaveUpdated(EngineBase* engine, const char* path, const ShowErro
         pdf_save_document(ctx, epdf->pdfdoc, path, &save_opts);
         ok = true;
         auto dur = TimeSinceInMs(timeStart);
-        logf("Saved annotations to '%s' in  %.2f ms, incremental: %d\n", path, dur, save_opts.do_incremental);
+        // logf("Saved annotations to '%s' in  %.2f ms, incremental: %d\n", path, dur, save_opts.do_incremental);
     }
     fz_catch(ctx) {
         fz_report_error(ctx);
         const char* mupdfErr = fz_caught_message(ctx);
-        logf("Saving '%s' failed with: '%s'\n", path, mupdfErr);
+        // logf("Saving '%s' failed with: '%s'\n", path, mupdfErr);
         if (showErrorFunc.IsValid()) {
             showErrorFunc.Call(mupdfErr);
         }
@@ -3942,7 +3942,7 @@ ByteSlice EngineMupdfLoadAttachment(EngineBase* engine, int attachmentNo) {
 // if an elements fully obscures another, remove it from the list
 static bool RemoveHeWhoFullyContains(Vec<Annotation*>& els) {
     int n = els.Size();
-    ReportIf(n < 2);
+    ReportDebugIf(n < 2);
     for (int i = 0; i < n; i++) {
         RectF r1 = els[i]->bounds;
         for (int j = 0; j < n; j++) {
@@ -3997,7 +3997,7 @@ Encore:
     }
     bool didRemove = RemoveHeWhoFullyContains(els);
     if (didRemove) {
-        ReportIf(els.Size() != n - 1);
+        ReportDebugIf(els.Size() != n - 1);
         goto Encore;
     }
     return els[0];
@@ -4024,7 +4024,7 @@ NO_INLINE void MarkNotificationAsModified(EngineMupdf* e, Annotation* annot, Ann
         return;
     }
     int pageNo = annot->pageNo;
-    ReportIf(pageNo < 1 || pageNo > e->pageCount);
+    ReportDebugIf(pageNo < 1 || pageNo > e->pageCount);
     int pageIdx = pageNo - 1;
 
     // EngineMupdf is the ultimate source of truth for Annotation* list
@@ -4040,20 +4040,20 @@ NO_INLINE void MarkNotificationAsModified(EngineMupdf* e, Annotation* annot, Ann
     if (change == AnnotationChange::Remove) {
         int sizeBefore = pageInfo->annotations.Size();
         int removedPos = pageInfo->annotations.Remove(annot);
-        ReportIf(removedPos < 0); // must exist
+        ReportDebugIf(removedPos < 0); // must exist
         int sizeNow = pageInfo->annotations.Size();
-        ReportIf(sizeBefore != sizeNow + 1);
+        ReportDebugIf(sizeBefore != sizeNow + 1);
         ValidateAnnotationsInSync(e, pageInfo);
     } else if (change == AnnotationChange::Add) {
         int sizeBefore = pageInfo->annotations.Size();
         int pos = pageInfo->annotations.Find(annot);
-        ReportIf(pos >= 0); // shouldn't exist
+        ReportDebugIf(pos >= 0); // shouldn't exist
         pageInfo->annotations.Append(annot);
         int sizeNow = pageInfo->annotations.Size();
-        ReportIf(sizeBefore != sizeNow - 1);
+        ReportDebugIf(sizeBefore != sizeNow - 1);
         ValidateAnnotationsInSync(e, pageInfo);
     } else {
-        ReportIf(change != AnnotationChange::Modify);
+        ReportDebugIf(change != AnnotationChange::Modify);
     }
     auto ctx = e->Ctx();
     RebuildCommentsFromAnnotations(ctx, pageInfo);
@@ -4062,8 +4062,8 @@ NO_INLINE void MarkNotificationAsModified(EngineMupdf* e, Annotation* annot, Ann
 
 // creates Annotation wrapper around pdf_annot
 Annotation* MakeAnnotationWrapper(EngineMupdf* engine, pdf_annot* annot, int pageNo) {
-    ReportIf(pageNo < 1);
-    ReportIf(!engine->pdfdoc);
+    ReportDebugIf(pageNo < 1);
+    ReportDebugIf(!engine->pdfdoc);
     ScopedCritSec cs(engine->ctxAccess);
 
     AnnotationType typ = AnnotationType::Unknown;
@@ -4213,11 +4213,11 @@ bool CreateHierarchicalSearchBookmarks(EngineBase* engine, Vec<TermPageData>& te
     fz_try(ctx) {
         iter = pdf_new_outline_iterator(ctx, epdf->pdfdoc);
         if (!iter) {
-            logf("CreateHierarchicalSearchBookmarks: Failed to create outline iterator\n");
+            // logf("CreateHierarchicalSearchBookmarks: Failed to create outline iterator\n");
             return false;
         }
         
-        logf("CreateHierarchicalSearchBookmarks: Starting two-pass bookmark creation for %d terms\n", (int)termData.Size());
+        // logf("CreateHierarchicalSearchBookmarks: Starting two-pass bookmark creation for %d terms\n", (int)termData.Size());
         
         // PASS 1: Create parent structure
         // Navigate to end of existing bookmarks
@@ -4243,11 +4243,11 @@ bool CreateHierarchicalSearchBookmarks(EngineBase* engine, Vec<TermPageData>& te
         free(parentTitle);
         
         if (result < 0) {
-            logf("CreateHierarchicalSearchBookmarks: Failed to create 'Search Results' parent, result: %d\n", result);
+            // logf("CreateHierarchicalSearchBookmarks: Failed to create 'Search Results' parent, result: %d\n", result);
             return false;
         }
         
-        logf("CreateHierarchicalSearchBookmarks: Created 'Search Results' parent\n");
+        // logf("CreateHierarchicalSearchBookmarks: Created 'Search Results' parent\n");
         
         // After creating "Search Results", we need to position the iterator 
         // to add children to it. Since down() failed, we need to manually
@@ -4262,30 +4262,30 @@ bool CreateHierarchicalSearchBookmarks(EngineBase* engine, Vec<TermPageData>& te
             // Continue going up to top level
         }
         
-        logf("CreateHierarchicalSearchBookmarks: Reached top level, now checking current position\n");
+        // logf("CreateHierarchicalSearchBookmarks: Reached top level, now checking current position\n");
         
         // Check if we're positioned correctly at the top level
         fz_outline_item* currentAtTop = fz_outline_iterator_item(ctx, iter);
         if (!currentAtTop) {
-            logf("CreateHierarchicalSearchBookmarks: Iterator at invalid position, recreating\n");
+            // logf("CreateHierarchicalSearchBookmarks: Iterator at invalid position, recreating\n");
             
             // The iterator might be at the end or in an invalid position
             // Recreate the iterator to get a fresh start
             fz_drop_outline_iterator(ctx, iter);
             iter = pdf_new_outline_iterator(ctx, epdf->pdfdoc);
             if (!iter) {
-                logf("CreateHierarchicalSearchBookmarks: Failed to recreate outline iterator\n");
+                // logf("CreateHierarchicalSearchBookmarks: Failed to recreate outline iterator\n");
                 return false;
             }
             
             // Check if we can access the first bookmark now
             currentAtTop = fz_outline_iterator_item(ctx, iter);
             if (!currentAtTop) {
-                logf("CreateHierarchicalSearchBookmarks: No bookmarks found after recreating iterator\n");
+                // logf("CreateHierarchicalSearchBookmarks: No bookmarks found after recreating iterator\n");
                 return false;
             }
             
-            logf("CreateHierarchicalSearchBookmarks: Successfully repositioned iterator\n");
+            // logf("CreateHierarchicalSearchBookmarks: Successfully repositioned iterator\n");
         }
         
         // Find the "Search Results" bookmark
@@ -4309,18 +4309,18 @@ bool CreateHierarchicalSearchBookmarks(EngineBase* engine, Vec<TermPageData>& te
         }
         
         if (!foundSearchResults) {
-            logf("CreateHierarchicalSearchBookmarks: Could not find 'Search Results' bookmark\n");
+            // logf("CreateHierarchicalSearchBookmarks: Could not find 'Search Results' bookmark\n");
             return false;
         }
         
         // Navigate into the "Search Results" folder to add term folders
         int downResult = fz_outline_iterator_down(ctx, iter);
         if (downResult != 1 && downResult != 0) {
-            logf("CreateHierarchicalSearchBookmarks: Cannot navigate into 'Search Results', downResult: %d\n", downResult);
+            // logf("CreateHierarchicalSearchBookmarks: Cannot navigate into 'Search Results', downResult: %d\n", downResult);
             return false;
         }
         
-        logf("CreateHierarchicalSearchBookmarks: Successfully positioned to add term folders\n");
+        // logf("CreateHierarchicalSearchBookmarks: Successfully positioned to add term folders\n");
         
         // Create term folders (regardless of down() result)
         for (size_t i = 0; i < termData.Size(); i++) {
@@ -4335,11 +4335,11 @@ bool CreateHierarchicalSearchBookmarks(EngineBase* engine, Vec<TermPageData>& te
             
             result = fz_outline_iterator_insert(ctx, iter, &termItem);
             if (result < 0) {
-                logf("CreateHierarchicalSearchBookmarks: Failed to create term folder '%s', result: %d\n", termData[i].termName, result);
+                // logf("CreateHierarchicalSearchBookmarks: Failed to create term folder '%s', result: %d\n", termData[i].termName, result);
                 continue;
             }
             
-            logf("CreateHierarchicalSearchBookmarks: Created term folder '%s'\n", termData[i].termName);
+            // logf("CreateHierarchicalSearchBookmarks: Created term folder '%s'\n", termData[i].termName);
         }
         
         // PASS 2: Add page bookmarks to each term folder
@@ -4360,18 +4360,18 @@ bool CreateHierarchicalSearchBookmarks(EngineBase* engine, Vec<TermPageData>& te
         } while (fz_outline_iterator_next(ctx, iter) == 0);
         
         if (!foundSearchResultsPass2) {
-            logf("CreateHierarchicalSearchBookmarks: Could not find Search Results folder for pass 2\n");
+            // logf("CreateHierarchicalSearchBookmarks: Could not find Search Results folder for pass 2\n");
             return false;
         }
         
         // Enter Search Results folder
         downResult = fz_outline_iterator_down(ctx, iter);
         if (downResult != 1 && downResult != 0) {
-            logf("CreateHierarchicalSearchBookmarks: Could not enter Search Results for pass 2, downResult: %d\n", downResult);
+            // logf("CreateHierarchicalSearchBookmarks: Could not enter Search Results for pass 2, downResult: %d\n", downResult);
             return false;
         }
         
-        logf("CreateHierarchicalSearchBookmarks: Starting Pass 2 - adding page bookmarks\n");
+        // logf("CreateHierarchicalSearchBookmarks: Starting Pass 2 - adding page bookmarks\n");
         
         // For each term, find its folder and add page bookmarks
         for (size_t i = 0; i < termData.Size(); i++) {
@@ -4394,14 +4394,14 @@ bool CreateHierarchicalSearchBookmarks(EngineBase* engine, Vec<TermPageData>& te
             }
             
             if (!foundTerm) {
-                logf("CreateHierarchicalSearchBookmarks: Could not find term folder '%s'\n", termData[i].termName);
+                // logf("CreateHierarchicalSearchBookmarks: Could not find term folder '%s'\n", termData[i].termName);
                 continue;
             }
             
             // Enter term folder to add page bookmarks
             downResult = fz_outline_iterator_down(ctx, iter);
             if (downResult != 1 && downResult != 0) {
-                logf("CreateHierarchicalSearchBookmarks: Could not enter term folder '%s'\n", termData[i].termName);
+                // logf("CreateHierarchicalSearchBookmarks: Could not enter term folder '%s'\n", termData[i].termName);
                 continue;
             }
             
@@ -4424,7 +4424,7 @@ bool CreateHierarchicalSearchBookmarks(EngineBase* engine, Vec<TermPageData>& te
                 
                 result = fz_outline_iterator_insert(ctx, iter, &pageItem);
                 if (result < 0) {
-                    logf("CreateHierarchicalSearchBookmarks: Failed to add page bookmark 'Page %d', result: %d\n", pageNo, result);
+                    // logf("CreateHierarchicalSearchBookmarks: Failed to add page bookmark 'Page %d', result: %d\n", pageNo, result);
                 }
             }
             
@@ -4433,11 +4433,11 @@ bool CreateHierarchicalSearchBookmarks(EngineBase* engine, Vec<TermPageData>& te
         }
         
         success = true;
-        logf("CreateHierarchicalSearchBookmarks: Completed two-pass bookmark creation\n");
+        // logf("CreateHierarchicalSearchBookmarks: Completed two-pass bookmark creation\n");
         
     }
     fz_catch(ctx) {
-        logf("CreateHierarchicalSearchBookmarks: Exception caught\n");
+        // logf("CreateHierarchicalSearchBookmarks: Exception caught\n");
         fz_report_error(ctx);
         success = false;
     }
@@ -4449,7 +4449,7 @@ bool CreateHierarchicalSearchBookmarks(EngineBase* engine, Vec<TermPageData>& te
     // Refresh TOC cache if bookmarks were successfully created
     if (success) {
         epdf->RefreshToc();
-        logf("CreateHierarchicalSearchBookmarks: Refreshed TOC cache after adding bookmarks\n");
+        // logf("CreateHierarchicalSearchBookmarks: Refreshed TOC cache after adding bookmarks\n");
     }
     
     return success;
@@ -4471,11 +4471,11 @@ void RefreshTocForEngine(EngineBase* engine) {
     EngineMupdf* epdf = AsEngineMupdf(engine);
     if (epdf) {
         epdf->RefreshToc();
-        logf("RefreshTocForEngine: Refreshed TOC cache for MuPDF engine\n");
+        // logf("RefreshTocForEngine: Refreshed TOC cache for MuPDF engine\n");
     } else {
         // For non-MuPDF engines, there might not be TOC caching issues
         // but we can add support for other engines here if needed
-        logf("RefreshTocForEngine: Engine type does not support TOC refresh\n");
+        // logf("RefreshTocForEngine: Engine type does not support TOC refresh\n");
     }
 }
 
@@ -4525,13 +4525,11 @@ bool ExtractSinglePageToNewPDF(EngineBase* engine, int pageNumber, const char* o
         int annotationsCopied = CopyPageAnnotations(ctx, epdf->pdfdoc, newDoc, 
                                                    pageNumber - 1, 0);
         if (annotationsCopied > 0) {
-            logf("ExtractSinglePageToNewPDF: Copied %d annotations from page %d", 
-                 annotationsCopied, pageNumber);
+            // logf("ExtractSinglePageToNewPDF: Copied %d annotations from page %d", annotationsCopied, pageNumber);
         } else if (annotationsCopied == 0) {
-            logf("ExtractSinglePageToNewPDF: No annotations found on page %d", pageNumber);
+            // logf("ExtractSinglePageToNewPDF: No annotations found on page %d", pageNumber);
         } else {
-            logf("ExtractSinglePageToNewPDF: WARNING - Failed to copy annotations from page %d", 
-                 pageNumber);
+            // logf("ExtractSinglePageToNewPDF: WARNING - Failed to copy annotations from page %d", pageNumber);
         }
         
         // Copy relevant bookmarks/outlines
@@ -4540,12 +4538,12 @@ bool ExtractSinglePageToNewPDF(EngineBase* engine, int pageNumber, const char* o
         int bookmarksCopied = CopyRelevantOutlines(ctx, epdf->pdfdoc, newDoc, 
                                                   &pageNumber, 1);
         if (bookmarksCopied > 0) {
-            logf("ExtractSinglePageToNewPDF: Copied %d bookmarks for page %d", 
+            // logf("ExtractSinglePageToNewPDF: Copied %d bookmarks for page %d",
                  bookmarksCopied, pageNumber);
         } else if (bookmarksCopied == 0) {
-            logf("ExtractSinglePageToNewPDF: No relevant bookmarks found for page %d", pageNumber);
+            // logf("ExtractSinglePageToNewPDF: No relevant bookmarks found for page %d", pageNumber);
         } else {
-            logf("ExtractSinglePageToNewPDF: WARNING - Failed to copy bookmarks for page %d", 
+            // logf("ExtractSinglePageToNewPDF: WARNING - Failed to copy bookmarks for page %d",
                  pageNumber);
         }
         */
@@ -4690,32 +4688,31 @@ bool ExtractPagesToNewPDF(EngineBase* engine, Vec<int>& pageNumbers, const char*
 
 // Memory-safe page range extraction using PageRangeData structure
 bool ExtractPageRangeToNewPDF(EngineBase* engine, const PageRangeData* data, const char* outputPath) {
-    logf("=== ExtractPageRangeToNewPDF: ENTRY ===");
+    // logf("=== ExtractPageRangeToNewPDF: ENTRY ===");
     
     if (!engine || !data || !outputPath || !data->isValid || data->count <= 0) {
-        logf("ExtractPageRangeToNewPDF: ERROR - Invalid parameters (engine=%p, data=%p, outputPath=%p)", 
-             engine, data, outputPath);
+        // logf("ExtractPageRangeToNewPDF: ERROR - Invalid parameters (engine=%p, data=%p, outputPath=%p)", engine, data, outputPath);
         if (data) {
-            logf("ExtractPageRangeToNewPDF: data->isValid=%d, data->count=%d", data->isValid, data->count);
+            // logf("ExtractPageRangeToNewPDF: data->isValid=%d, data->count=%d", data->isValid, data->count);
         }
         return false;
     }
     
-    logf("ExtractPageRangeToNewPDF: Extracting %d pages to '%s'", data->count, outputPath);
-    logf("ExtractPageRangeToNewPDF: Original input was '%s'", data->inputText);
+    // logf("ExtractPageRangeToNewPDF: Extracting %d pages to '%s'", data->count, outputPath);
+    // logf("ExtractPageRangeToNewPDF: Original input was '%s'", data->inputText);
     
     // Special case: single page - use existing proven function
     if (data->count == 1) {
-        logf("ExtractPageRangeToNewPDF: Single page %d - using ExtractSinglePageToNewPDF", data->pages[0]);
+        // logf("ExtractPageRangeToNewPDF: Single page %d - using ExtractSinglePageToNewPDF", data->pages[0]);
         bool result = ExtractSinglePageToNewPDF(engine, data->pages[0], outputPath);
-        logf("ExtractPageRangeToNewPDF: Single page extraction result: %d", result);
+        // logf("ExtractPageRangeToNewPDF: Single page extraction result: %d", result);
         return result;
     }
     
     // Multiple pages - use proper grafting approach
     EngineMupdf* epdf = AsEngineMupdf(engine);
     if (!epdf || !epdf->pdfdoc) {
-        logf("ExtractPageRangeToNewPDF: ERROR - Invalid MuPDF engine");
+        // logf("ExtractPageRangeToNewPDF: ERROR - Invalid MuPDF engine");
         return false;
     }
     
@@ -4729,12 +4726,11 @@ bool ExtractPageRangeToNewPDF(EngineBase* engine, const PageRangeData* data, con
     fz_try(ctx) {
         // Validate all page numbers against document
         int totalPages = pdf_count_pages(ctx, epdf->pdfdoc);
-        logf("ExtractPageRangeToNewPDF: Document has %d total pages", totalPages);
+        // logf("ExtractPageRangeToNewPDF: Document has %d total pages", totalPages);
         
         for (int i = 0; i < data->count; i++) {
             if (data->pages[i] < 1 || data->pages[i] > totalPages) {
-                logf("ExtractPageRangeToNewPDF: ERROR - Invalid page %d (valid: 1-%d)", 
-                     data->pages[i], totalPages);
+                // logf("ExtractPageRangeToNewPDF: ERROR - Invalid page %d (valid: 1-%d)", data->pages[i], totalPages);
                 fz_throw(ctx, FZ_ERROR_ARGUMENT, "Invalid page number");
             }
         }
@@ -4742,40 +4738,38 @@ bool ExtractPageRangeToNewPDF(EngineBase* engine, const PageRangeData* data, con
         // Create a new PDF document
         newDoc = pdf_create_document(ctx);
         if (!newDoc) {
-            logf("ExtractPageRangeToNewPDF: ERROR - Failed to create new document");
+            // logf("ExtractPageRangeToNewPDF: ERROR - Failed to create new document");
             fz_throw(ctx, FZ_ERROR_GENERIC, "Failed to create document");
         }
         
         // Create graft map for proper resource copying
         graftMap = pdf_new_graft_map(ctx, newDoc);
         if (!graftMap) {
-            logf("ExtractPageRangeToNewPDF: ERROR - Failed to create graft map");
+            // logf("ExtractPageRangeToNewPDF: ERROR - Failed to create graft map");
             fz_throw(ctx, FZ_ERROR_GENERIC, "Failed to create graft map");
         }
         
-        logf("ExtractPageRangeToNewPDF: Grafting pages using proper MuPDF API");
+        // logf("ExtractPageRangeToNewPDF: Grafting pages using proper MuPDF API");
         
         // Graft each page using proper resource copying (following ExtractSinglePageToNewPDF pattern)
         for (int i = 0; i < data->count; i++) {
             int pageNumber = data->pages[i];
-            logf("ExtractPageRangeToNewPDF: Grafting page %d (index %d)", pageNumber, pageNumber - 1);
+            // logf("ExtractPageRangeToNewPDF: Grafting page %d (index %d)", pageNumber, pageNumber - 1);
             
             // Use same approach as ExtractSinglePageToNewPDF
             pdf_graft_mapped_page(ctx, graftMap, -1, epdf->pdfdoc, pageNumber - 1);
             
-            logf("ExtractPageRangeToNewPDF: Successfully grafted page %d", pageNumber);
+            // logf("ExtractPageRangeToNewPDF: Successfully grafted page %d", pageNumber);
             
             // Copy annotations from source page to destination page
             int annotationsCopied = CopyPageAnnotations(ctx, epdf->pdfdoc, newDoc, 
                                                        pageNumber - 1, i);
             if (annotationsCopied > 0) {
-                logf("ExtractPageRangeToNewPDF: Copied %d annotations from page %d", 
-                     annotationsCopied, pageNumber);
+                // logf("ExtractPageRangeToNewPDF: Copied %d annotations from page %d", annotationsCopied, pageNumber);
             } else if (annotationsCopied == 0) {
-                logf("ExtractPageRangeToNewPDF: No annotations found on page %d", pageNumber);
+                // logf("ExtractPageRangeToNewPDF: No annotations found on page %d", pageNumber);
             } else {
-                logf("ExtractPageRangeToNewPDF: WARNING - Failed to copy annotations from page %d", 
-                     pageNumber);
+                // logf("ExtractPageRangeToNewPDF: WARNING - Failed to copy annotations from page %d", pageNumber);
             }
         }
         
@@ -4785,40 +4779,39 @@ bool ExtractPageRangeToNewPDF(EngineBase* engine, const PageRangeData* data, con
         int bookmarksCopied = CopyRelevantOutlines(ctx, epdf->pdfdoc, newDoc, 
                                                   data->pages, data->count);
         if (bookmarksCopied > 0) {
-            logf("ExtractPageRangeToNewPDF: Copied %d bookmarks for %d pages", 
-                 bookmarksCopied, data->count);
+            // logf("ExtractPageRangeToNewPDF: Copied %d bookmarks for %d pages", bookmarksCopied, data->count);
         } else if (bookmarksCopied == 0) {
-            logf("ExtractPageRangeToNewPDF: No relevant bookmarks found for extracted pages");
+            // logf("ExtractPageRangeToNewPDF: No relevant bookmarks found for extracted pages");
         } else {
-            logf("ExtractPageRangeToNewPDF: WARNING - Failed to copy bookmarks for extracted pages");
+            // logf("ExtractPageRangeToNewPDF: WARNING - Failed to copy bookmarks for extracted pages");
         }
         */
         
-        logf("ExtractPageRangeToNewPDF: Saving document to '%s'", outputPath);
+        // logf("ExtractPageRangeToNewPDF: Saving document to '%s'", outputPath);
         
         // Save the new document
         pdf_save_document(ctx, newDoc, outputPath, nullptr);
         success = true;
         
-        logf("ExtractPageRangeToNewPDF: Successfully saved %d pages", data->count);
+        // logf("ExtractPageRangeToNewPDF: Successfully saved %d pages", data->count);
         
     }
     fz_catch(ctx) {
         success = false;
-        logf("ExtractPageRangeToNewPDF: ERROR - Exception during extraction: %s", fz_caught_message(ctx));
+        // logf("ExtractPageRangeToNewPDF: ERROR - Exception during extraction: %s", fz_caught_message(ctx));
     }
     
     // Clean up resources
     if (graftMap) {
         pdf_drop_graft_map(ctx, graftMap);
-        logf("ExtractPageRangeToNewPDF: Cleaned up graft map");
+        // logf("ExtractPageRangeToNewPDF: Cleaned up graft map");
     }
     if (newDoc) {
         pdf_drop_document(ctx, newDoc);
-        logf("ExtractPageRangeToNewPDF: Cleaned up new document");
+        // logf("ExtractPageRangeToNewPDF: Cleaned up new document");
     }
     
-    logf("ExtractPageRangeToNewPDF: Final result: %d", success);
+    // logf("ExtractPageRangeToNewPDF: Final result: %d", success);
     return success;
 }
 
@@ -4826,11 +4819,11 @@ bool ExtractPageRangeToNewPDF(EngineBase* engine, const PageRangeData* data, con
 // Returns number of annotations copied, or -1 on error
 static int CopyPageAnnotations(fz_context* ctx, pdf_document* srcDoc, pdf_document* dstDoc, 
                               int srcPageNo, int dstPageNo) {
-    logf("=== CopyPageAnnotations: ENTRY ===");
-    logf("CopyPageAnnotations: Copying annotations from source page %d to dest page %d", srcPageNo, dstPageNo);
+    // logf("=== CopyPageAnnotations: ENTRY ===");
+    // logf("CopyPageAnnotations: Copying annotations from source page %d to dest page %d", srcPageNo, dstPageNo);
     
     if (!ctx || !srcDoc || !dstDoc || srcPageNo < 0 || dstPageNo < 0) {
-        logf("CopyPageAnnotations: ERROR - Invalid parameters");
+        // logf("CopyPageAnnotations: ERROR - Invalid parameters");
         return -1;
     }
     
@@ -4842,26 +4835,25 @@ static int CopyPageAnnotations(fz_context* ctx, pdf_document* srcDoc, pdf_docume
         pdf_page* dstPage = pdf_load_page(ctx, dstDoc, dstPageNo);
 
         if (!srcPage || !dstPage) {
-            logf("CopyPageAnnotations: ERROR - Could not load pages (src=%p, dst=%p)", srcPage, dstPage);
-            logf("CopyPageAnnotations: Source doc page count: %d, Dest doc page count: %d",
-                 pdf_count_pages(ctx, srcDoc), pdf_count_pages(ctx, dstDoc));
+            // logf("CopyPageAnnotations: ERROR - Could not load pages (src=%p, dst=%p)", srcPage, dstPage);
+            // logf("CopyPageAnnotations: Source doc page count: %d, Dest doc page count: %d", pdf_count_pages(ctx, srcDoc), pdf_count_pages(ctx, dstDoc));
             fz_throw(ctx, FZ_ERROR_ARGUMENT, "Failed to load pages");
         }
 
-        logf("CopyPageAnnotations: Successfully loaded source and destination pages");
+        // logf("CopyPageAnnotations: Successfully loaded source and destination pages");
 
         // First, check if source page has any annotations at all
         pdf_annot* firstAnnot = pdf_first_annot(ctx, srcPage);
         if (!firstAnnot) {
-            logf("CopyPageAnnotations: No annotations found on source page %d", srcPageNo);
+            // logf("CopyPageAnnotations: No annotations found on source page %d", srcPageNo);
             // No annotations to copy - annotationsCopied stays 0, fall through to return
         } else {
-            logf("CopyPageAnnotations: Found annotations on source page, proceeding with copy");
+            // logf("CopyPageAnnotations: Found annotations on source page, proceeding with copy");
 
             // Enumerate annotations on source page
             pdf_annot* srcAnnot = pdf_first_annot(ctx, srcPage);
             while (srcAnnot) {
-            logf("CopyPageAnnotations: Processing annotation type %d", pdf_annot_type(ctx, srcAnnot));
+            // logf("CopyPageAnnotations: Processing annotation type %d", pdf_annot_type(ctx, srcAnnot));
             
             // Get annotation properties from source
             enum pdf_annot_type annotType = pdf_annot_type(ctx, srcAnnot);
@@ -4874,8 +4866,7 @@ static int CopyPageAnnotations(fz_context* ctx, pdf_document* srcDoc, pdf_docume
             // Get annotation contents
             const char* contents = pdf_annot_contents(ctx, srcAnnot);
             
-            logf("CopyPageAnnotations: Annotation details - type:%d, colors:%d", 
-                 annotType, colorComponents);
+            // logf("CopyPageAnnotations: Annotation details - type:%d, colors:%d", annotType, colorComponents);
             
             // Create new annotation on destination page
             pdf_annot* dstAnnot = pdf_create_annot(ctx, dstPage, annotType);
@@ -4885,7 +4876,7 @@ static int CopyPageAnnotations(fz_context* ctx, pdf_document* srcDoc, pdf_docume
                     // Handle highlight-specific properties (quad points) first
                     int quadCount = pdf_annot_quad_point_count(ctx, srcAnnot);
                     if (quadCount > 0) {
-                        logf("CopyPageAnnotations: Copying %d quad points for highlight annotation", quadCount);
+                        // logf("CopyPageAnnotations: Copying %d quad points for highlight annotation", quadCount);
                         
                         // Copy quad points for precise highlight positioning
                         fz_quad* quads = (fz_quad*)fz_malloc(ctx, quadCount * sizeof(fz_quad));
@@ -4900,7 +4891,7 @@ static int CopyPageAnnotations(fz_context* ctx, pdf_document* srcDoc, pdf_docume
                     if (pdf_annot_has_rect(ctx, srcAnnot)) {
                         fz_rect annotRect = pdf_annot_rect(ctx, srcAnnot);
                         pdf_set_annot_rect(ctx, dstAnnot, annotRect);
-                        logf("CopyPageAnnotations: Copied rect for annotation type %d", annotType);
+                        // logf("CopyPageAnnotations: Copied rect for annotation type %d", annotType);
                     }
                 }
                 
@@ -4920,20 +4911,20 @@ static int CopyPageAnnotations(fz_context* ctx, pdf_document* srcDoc, pdf_docume
                 pdf_update_annot(ctx, dstAnnot);
                 
                 annotationsCopied++;
-                logf("CopyPageAnnotations: Successfully copied annotation #%d", annotationsCopied);
+                // logf("CopyPageAnnotations: Successfully copied annotation #%d", annotationsCopied);
             } else {
-                logf("CopyPageAnnotations: ERROR - Failed to create destination annotation");
+                // logf("CopyPageAnnotations: ERROR - Failed to create destination annotation");
             }
             
                 // Move to next annotation
                 srcAnnot = pdf_next_annot(ctx, srcAnnot);
             }
 
-            logf("CopyPageAnnotations: Completed copying %d annotations", annotationsCopied);
+            // logf("CopyPageAnnotations: Completed copying %d annotations", annotationsCopied);
 
             // If we copied any annotations, make sure the destination page is updated
             if (annotationsCopied > 0) {
-                logf("CopyPageAnnotations: Updating destination page to finalize annotations");
+                // logf("CopyPageAnnotations: Updating destination page to finalize annotations");
                 // Note: pdf_update_annot is called for each annotation, but we may need
                 // to ensure the page itself is marked as modified
             }
@@ -4941,11 +4932,11 @@ static int CopyPageAnnotations(fz_context* ctx, pdf_document* srcDoc, pdf_docume
 
     }
     fz_catch(ctx) {
-        logf("CopyPageAnnotations: ERROR - Exception during annotation copying: %s", fz_caught_message(ctx));
+        // logf("CopyPageAnnotations: ERROR - Exception during annotation copying: %s", fz_caught_message(ctx));
         return -1;
     }
     
-    logf("CopyPageAnnotations: Final result: %d annotations copied", annotationsCopied);
+    // logf("CopyPageAnnotations: Final result: %d annotations copied", annotationsCopied);
     return annotationsCopied;
 }
 
@@ -4957,11 +4948,11 @@ static int CopyPageAnnotations(fz_context* ctx, pdf_document* srcDoc, pdf_docume
 #pragma warning(disable: 4505) // unreferenced function with internal linkage removed
 static int CopyRelevantOutlines(fz_context* ctx, pdf_document* srcDoc, pdf_document* dstDoc,
                                const int* pageNumbers, int pageCount) {
-    logf("=== CopyRelevantOutlines: ENTRY (Using Proven MuPDF Pattern) ===");
-    logf("CopyRelevantOutlines: Copying bookmarks with hierarchy for %d pages", pageCount);
+    // logf("=== CopyRelevantOutlines: ENTRY (Using Proven MuPDF Pattern) ===");
+    // logf("CopyRelevantOutlines: Copying bookmarks with hierarchy for %d pages", pageCount);
     
     if (!ctx || !srcDoc || !dstDoc || !pageNumbers || pageCount <= 0) {
-        logf("CopyRelevantOutlines: ERROR - Invalid parameters");
+        // logf("CopyRelevantOutlines: ERROR - Invalid parameters");
         return -1;
     }
     
@@ -4973,11 +4964,11 @@ static int CopyRelevantOutlines(fz_context* ctx, pdf_document* srcDoc, pdf_docum
         // Load the source document's outline/bookmarks
         srcOutline = fz_load_outline(ctx, (fz_document*)srcDoc);
         if (!srcOutline) {
-            logf("CopyRelevantOutlines: No outline found in source document");
+            // logf("CopyRelevantOutlines: No outline found in source document");
             return 0; // Not an error, just no bookmarks to copy
         }
         
-        logf("CopyRelevantOutlines: Loaded source outline, processing with proven pattern");
+        // logf("CopyRelevantOutlines: Loaded source outline, processing with proven pattern");
         
         // Helper function to check if a page number is in our extraction list
         auto pageIsBeingExtracted = [pageNumbers, pageCount](int pageNo) -> int {
@@ -5036,12 +5027,12 @@ static int CopyRelevantOutlines(fz_context* ctx, pdf_document* srcDoc, pdf_docum
             do {
                 fz_outline_item* current = fz_outline_iterator_item(ctx, iter);
                 if (current && current->title && strcmp(current->title, title) == 0) {
-                    logf("CopyRelevantOutlines: Found bookmark '%s' via manual search", title);
+                    // logf("CopyRelevantOutlines: Found bookmark '%s' via manual search", title);
                     return true;
                 }
             } while (fz_outline_iterator_next(ctx, iter) == 0);
             
-            logf("CopyRelevantOutlines: Could not find bookmark '%s'", title);
+            // logf("CopyRelevantOutlines: Could not find bookmark '%s'", title);
             return false;
         };
         
@@ -5076,51 +5067,46 @@ static int CopyRelevantOutlines(fz_context* ctx, pdf_document* srcDoc, pdf_docum
                 // Direct page reference - use TempStr like proven pattern
                 TempStr pageUri = str::FormatTemp("#page=%d", newPageIndex + 1);
                 parentItem.uri = (char*)pageUri;
-                logf("CopyRelevantOutlines: Inserting direct bookmark '%s' -> page %d", 
-                     srcBm->title, newPageIndex + 1);
+                // logf("CopyRelevantOutlines: Inserting direct bookmark '%s' -> page %d", srcBm->title, newPageIndex + 1);
             } else {
                 // Parent bookmark without direct page destination
                 parentItem.uri = nullptr;
-                logf("CopyRelevantOutlines: Inserting parent bookmark '%s' (has relevant children)", 
-                     srcBm->title);
+                // logf("CopyRelevantOutlines: Inserting parent bookmark '%s' (has relevant children)", srcBm->title);
             }
             
             int result = fz_outline_iterator_insert(ctx, dstIter, &parentItem);
             free(parentTitle); // Clean up allocated title
             
             if (result < 0) {
-                logf("CopyRelevantOutlines: Failed to insert parent bookmark '%s', result: %d", 
-                     srcBm->title, result);
+                // logf("CopyRelevantOutlines: Failed to insert parent bookmark '%s', result: %d", srcBm->title, result);
                 return false;
             }
             
             bookmarksCopied++;
-            logf("CopyRelevantOutlines: Successfully inserted parent bookmark '%s'", srcBm->title);
+            // logf("CopyRelevantOutlines: Successfully inserted parent bookmark '%s'", srcBm->title);
             
             // STEP 2: If bookmark has relevant children, use proven pattern to add them
             if (hasRelevantChildren && srcBm->down) {
-                logf("CopyRelevantOutlines: Parent '%s' has children, applying proven pattern", srcBm->title);
+                // logf("CopyRelevantOutlines: Parent '%s' has children, applying proven pattern", srcBm->title);
                 
                 // STEP 3: Recreate iterator (critical step from proven pattern!)
                 fz_drop_outline_iterator(ctx, dstIter);
                 dstIter = pdf_new_outline_iterator(ctx, dstDoc);
                 if (!dstIter) {
-                    logf("CopyRelevantOutlines: ERROR - Failed to recreate iterator");
+                    // logf("CopyRelevantOutlines: ERROR - Failed to recreate iterator");
                     fz_throw(ctx, FZ_ERROR_GENERIC, "Failed to recreate outline iterator");
                 }
                 
-                logf("CopyRelevantOutlines: Recreated iterator for '%s'", srcBm->title);
+                // logf("CopyRelevantOutlines: Recreated iterator for '%s'", srcBm->title);
                 
                 // STEP 4: Manual search for the parent we just created (proven pattern)
                 if (findBookmarkByTitle(dstIter, srcBm->title)) {
                     // STEP 5: Navigate down (accept both 0 and 1 as success, proven pattern)
                     int downResult = fz_outline_iterator_down(ctx, dstIter);
-                    logf("CopyRelevantOutlines: Down navigation result for '%s': %d", 
-                         srcBm->title, downResult);
+                    // logf("CopyRelevantOutlines: Down navigation result for '%s': %d", srcBm->title, downResult);
                     
                     if (downResult >= 0) { // Accept both 0 and 1 like proven pattern
-                        logf("CopyRelevantOutlines: Successfully navigated into '%s', adding children", 
-                             srcBm->title);
+                        // logf("CopyRelevantOutlines: Successfully navigated into '%s', adding children", srcBm->title);
                         
                         // STEP 6: Add children
                         fz_outline* child = srcBm->down;
@@ -5130,13 +5116,12 @@ static int CopyRelevantOutlines(fz_context* ctx, pdf_document* srcDoc, pdf_docum
                             child = child->next;
                         }
                         
-                        logf("CopyRelevantOutlines: Completed adding children for '%s'", srcBm->title);
+                        // logf("CopyRelevantOutlines: Completed adding children for '%s'", srcBm->title);
                     } else {
-                        logf("CopyRelevantOutlines: Could not navigate into '%s', children will be missing", 
-                             srcBm->title);
+                        // logf("CopyRelevantOutlines: Could not navigate into '%s', children will be missing", srcBm->title);
                     }
                 } else {
-                    logf("CopyRelevantOutlines: Could not find parent '%s' after insertion", srcBm->title);
+                    // logf("CopyRelevantOutlines: Could not find parent '%s' after insertion", srcBm->title);
                 }
             }
             
@@ -5146,7 +5131,7 @@ static int CopyRelevantOutlines(fz_context* ctx, pdf_document* srcDoc, pdf_docum
         // Initialize destination iterator
         dstIter = pdf_new_outline_iterator(ctx, dstDoc);
         if (!dstIter) {
-            logf("CopyRelevantOutlines: ERROR - Failed to create destination outline iterator");
+            // logf("CopyRelevantOutlines: ERROR - Failed to create destination outline iterator");
             fz_throw(ctx, FZ_ERROR_GENERIC, "Failed to create outline iterator");
         }
         
@@ -5155,7 +5140,7 @@ static int CopyRelevantOutlines(fz_context* ctx, pdf_document* srcDoc, pdf_docum
             // Continue to end
         }
         
-        logf("CopyRelevantOutlines: Positioned at end of destination outline tree");
+        // logf("CopyRelevantOutlines: Positioned at end of destination outline tree");
         
         // Process all top-level bookmarks from source
         fz_outline* current = srcOutline;
@@ -5164,12 +5149,12 @@ static int CopyRelevantOutlines(fz_context* ctx, pdf_document* srcDoc, pdf_docum
             current = current->next;
         }
         
-        logf("CopyRelevantOutlines: Completed processing, copied %d bookmarks using proven pattern", bookmarksCopied);
+        // logf("CopyRelevantOutlines: Completed processing, copied %d bookmarks using proven pattern", bookmarksCopied);
         
     }
     fz_catch(ctx) {
         bookmarksCopied = -1;
-        logf("CopyRelevantOutlines: ERROR - Exception during outline copying: %s", fz_caught_message(ctx));
+        // logf("CopyRelevantOutlines: ERROR - Exception during outline copying: %s", fz_caught_message(ctx));
     }
     
     // Clean up resources
@@ -5180,23 +5165,23 @@ static int CopyRelevantOutlines(fz_context* ctx, pdf_document* srcDoc, pdf_docum
         fz_drop_outline_iterator(ctx, dstIter);
     }
     
-    logf("CopyRelevantOutlines: Final result: %d bookmarks copied", bookmarksCopied);
+    // logf("CopyRelevantOutlines: Final result: %d bookmarks copied", bookmarksCopied);
     return bookmarksCopied;
 }
 
 // Delete specified pages from PDF and save to new file
 // Creates a new PDF without the specified pages (does NOT modify original)
 bool DeletePagesFromPDF(EngineBase* engine, const PageRangeData* pagesToDelete, const char* outputPath) {
-    logf("=== DeletePagesFromPDF: ENTRY ===");
+    // logf("=== DeletePagesFromPDF: ENTRY ===");
 
     if (!engine || !pagesToDelete || !outputPath || !pagesToDelete->isValid || pagesToDelete->count <= 0) {
-        logf("DeletePagesFromPDF: ERROR - Invalid parameters");
+        // logf("DeletePagesFromPDF: ERROR - Invalid parameters");
         return false;
     }
 
     EngineMupdf* epdf = AsEngineMupdf(engine);
     if (!epdf || !epdf->pdfdoc) {
-        logf("DeletePagesFromPDF: ERROR - Not a PDF engine");
+        // logf("DeletePagesFromPDF: ERROR - Not a PDF engine");
         return false;
     }
 
@@ -5223,33 +5208,33 @@ bool DeletePagesFromPDF(EngineBase* engine, const PageRangeData* pagesToDelete, 
     pagesToKeep.isValid = true;
 
     if (pagesToKeep.count == 0) {
-        logf("DeletePagesFromPDF: ERROR - Cannot delete all pages");
+        // logf("DeletePagesFromPDF: ERROR - Cannot delete all pages");
         return false;
     }
 
-    logf("DeletePagesFromPDF: Keeping %d pages, deleting %d pages", pagesToKeep.count, pagesToDelete->count);
+    // logf("DeletePagesFromPDF: Keeping %d pages, deleting %d pages", pagesToKeep.count, pagesToDelete->count);
 
     // Use existing extraction function to create new PDF with kept pages
     bool success = ExtractPageRangeToNewPDF(engine, &pagesToKeep, outputPath);
 
-    logf("DeletePagesFromPDF: Result: %s", success ? "SUCCESS" : "FAILED");
+    // logf("DeletePagesFromPDF: Result: %s", success ? "SUCCESS" : "FAILED");
     return success;
 }
 
 // Combine multiple PDF files into one
 bool CombinePDFs(const char* outputPath, const char** inputPaths, int numInputs) {
-    logf("=== CombinePDFs: ENTRY ===");
+    // logf("=== CombinePDFs: ENTRY ===");
 
     if (!outputPath || !inputPaths || numInputs <= 0) {
-        logf("CombinePDFs: ERROR - Invalid parameters");
+        // logf("CombinePDFs: ERROR - Invalid parameters");
         return false;
     }
 
-    logf("CombinePDFs: Combining %d PDFs into '%s'", numInputs, outputPath);
+    // logf("CombinePDFs: Combining %d PDFs into '%s'", numInputs, outputPath);
 
     fz_context* ctx = fz_new_context(nullptr, nullptr, FZ_STORE_DEFAULT);
     if (!ctx) {
-        logf("CombinePDFs: ERROR - Failed to create context");
+        // logf("CombinePDFs: ERROR - Failed to create context");
         return false;
     }
 
@@ -5266,17 +5251,17 @@ bool CombinePDFs(const char* outputPath, const char** inputPaths, int numInputs)
         for (int i = 0; i < numInputs; i++) {
             if (!inputPaths[i]) continue;
 
-            logf("CombinePDFs: Processing input %d: '%s'", i, inputPaths[i]);
+            // logf("CombinePDFs: Processing input %d: '%s'", i, inputPaths[i]);
 
             // Open source PDF
             pdf_document* srcDoc = pdf_open_document(ctx, inputPaths[i]);
             if (!srcDoc) {
-                logf("CombinePDFs: WARNING - Could not open '%s', skipping", inputPaths[i]);
+                // logf("CombinePDFs: WARNING - Could not open '%s', skipping", inputPaths[i]);
                 continue;
             }
 
             int srcPageCount = pdf_count_pages(ctx, srcDoc);
-            logf("CombinePDFs: Source has %d pages", srcPageCount);
+            // logf("CombinePDFs: Source has %d pages", srcPageCount);
 
             // Create graft map for this source document
             graftMap = pdf_new_graft_map(ctx, newDoc);
@@ -5292,11 +5277,11 @@ bool CombinePDFs(const char* outputPath, const char** inputPaths, int numInputs)
             graftMap = nullptr;
             pdf_drop_document(ctx, srcDoc);
 
-            logf("CombinePDFs: Added %d pages from input %d", srcPageCount, i);
+            // logf("CombinePDFs: Added %d pages from input %d", srcPageCount, i);
         }
 
         if (totalPagesAdded == 0) {
-            logf("CombinePDFs: ERROR - No pages were added");
+            // logf("CombinePDFs: ERROR - No pages were added");
             fz_throw(ctx, FZ_ERROR_ARGUMENT, "No pages to combine");
         }
 
@@ -5304,11 +5289,11 @@ bool CombinePDFs(const char* outputPath, const char** inputPaths, int numInputs)
         pdf_save_document(ctx, newDoc, outputPath, nullptr);
         success = true;
 
-        logf("CombinePDFs: Successfully combined %d pages into output", totalPagesAdded);
+        // logf("CombinePDFs: Successfully combined %d pages into output", totalPagesAdded);
     }
     fz_catch(ctx) {
         success = false;
-        logf("CombinePDFs: ERROR - Exception: %s", fz_caught_message(ctx));
+        // logf("CombinePDFs: ERROR - Exception: %s", fz_caught_message(ctx));
     }
 
     // Cleanup
@@ -5321,16 +5306,16 @@ bool CombinePDFs(const char* outputPath, const char** inputPaths, int numInputs)
 
 // Insert pages from another PDF into current document at specified position
 bool InsertPDFPages(EngineBase* engine, const char* insertPath, int insertAfterPage, const char* outputPath) {
-    logf("=== InsertPDFPages: ENTRY ===");
+    // logf("=== InsertPDFPages: ENTRY ===");
 
     if (!engine || !insertPath || !outputPath) {
-        logf("InsertPDFPages: ERROR - Invalid parameters");
+        // logf("InsertPDFPages: ERROR - Invalid parameters");
         return false;
     }
 
     EngineMupdf* epdf = AsEngineMupdf(engine);
     if (!epdf || !epdf->pdfdoc) {
-        logf("InsertPDFPages: ERROR - Not a PDF engine");
+        // logf("InsertPDFPages: ERROR - Not a PDF engine");
         return false;
     }
 
@@ -5342,7 +5327,7 @@ bool InsertPDFPages(EngineBase* engine, const char* insertPath, int insertAfterP
     if (insertAfterPage < 0) insertAfterPage = 0;
     if (insertAfterPage > totalPages) insertAfterPage = totalPages;
 
-    logf("InsertPDFPages: Inserting '%s' after page %d of %d", insertPath, insertAfterPage, totalPages);
+    // logf("InsertPDFPages: Inserting '%s' after page %d of %d", insertPath, insertAfterPage, totalPages);
 
     pdf_document* newDoc = nullptr;
     pdf_document* insertDoc = nullptr;
@@ -5360,13 +5345,13 @@ bool InsertPDFPages(EngineBase* engine, const char* insertPath, int insertAfterP
             fz_throw(ctx, FZ_ERROR_ARGUMENT, "Could not open insert document");
         }
         int insertPageCount = pdf_count_pages(ctx, insertDoc);
-        logf("InsertPDFPages: Insert document has %d pages", insertPageCount);
+        // logf("InsertPDFPages: Insert document has %d pages", insertPageCount);
 
         // Copy pages before insertion point from original
         for (int p = 0; p < insertAfterPage; p++) {
             pdf_graft_mapped_page(ctx, graftMap, -1, epdf->pdfdoc, p);
         }
-        logf("InsertPDFPages: Copied %d pages before insertion point", insertAfterPage);
+        // logf("InsertPDFPages: Copied %d pages before insertion point", insertAfterPage);
 
         // Insert all pages from insert document
         pdf_graft_map* insertGraftMap = pdf_new_graft_map(ctx, newDoc);
@@ -5374,24 +5359,23 @@ bool InsertPDFPages(EngineBase* engine, const char* insertPath, int insertAfterP
             pdf_graft_mapped_page(ctx, insertGraftMap, -1, insertDoc, p);
         }
         pdf_drop_graft_map(ctx, insertGraftMap);
-        logf("InsertPDFPages: Inserted %d pages", insertPageCount);
+        // logf("InsertPDFPages: Inserted %d pages", insertPageCount);
 
         // Copy pages after insertion point from original
         for (int p = insertAfterPage; p < totalPages; p++) {
             pdf_graft_mapped_page(ctx, graftMap, -1, epdf->pdfdoc, p);
         }
-        logf("InsertPDFPages: Copied %d pages after insertion point", totalPages - insertAfterPage);
+        // logf("InsertPDFPages: Copied %d pages after insertion point", totalPages - insertAfterPage);
 
         // Save result
         pdf_save_document(ctx, newDoc, outputPath, nullptr);
         success = true;
 
-        logf("InsertPDFPages: Successfully created document with %d total pages",
-             insertAfterPage + insertPageCount + (totalPages - insertAfterPage));
+        // logf("InsertPDFPages: Successfully created document with %d total pages", insertAfterPage + insertPageCount + (totalPages - insertAfterPage));
     }
     fz_catch(ctx) {
         success = false;
-        logf("InsertPDFPages: ERROR - Exception: %s", fz_caught_message(ctx));
+        // logf("InsertPDFPages: ERROR - Exception: %s", fz_caught_message(ctx));
     }
 
     // Cleanup
@@ -5405,15 +5389,15 @@ bool InsertPDFPages(EngineBase* engine, const char* insertPath, int insertAfterP
 // Extract all text from PDF document (for LLM analysis)
 // Returns allocated string - caller must free with str::Free()
 char* ExtractAllText(EngineBase* engine) {
-    logf("=== ExtractAllText: ENTRY ===");
+    // logf("=== ExtractAllText: ENTRY ===");
 
     if (!engine) {
-        logf("ExtractAllText: ERROR - No engine");
+        // logf("ExtractAllText: ERROR - No engine");
         return nullptr;
     }
 
     int pageCount = engine->PageCount();
-    logf("ExtractAllText: Extracting text from %d pages", pageCount);
+    // logf("ExtractAllText: Extracting text from %d pages", pageCount);
 
     str::Str result;
 
@@ -5435,7 +5419,7 @@ char* ExtractAllText(EngineBase* engine) {
         }
     }
 
-    logf("ExtractAllText: Extracted %d characters from %d pages", (int)result.Size(), pageCount);
+    // logf("ExtractAllText: Extracted %d characters from %d pages", (int)result.Size(), pageCount);
 
     return result.StealData();
 }
@@ -5443,16 +5427,16 @@ char* ExtractAllText(EngineBase* engine) {
 // Extract text from a single page
 // Returns allocated string - caller must free with str::Free()
 char* ExtractPageTextStr(EngineBase* engine, int pageNo) {
-    logf("=== ExtractPageTextStr: ENTRY (page %d) ===", pageNo);
+    // logf("=== ExtractPageTextStr: ENTRY (page %d) ===", pageNo);
 
     if (!engine || pageNo < 1 || pageNo > engine->PageCount()) {
-        logf("ExtractPageTextStr: ERROR - Invalid parameters");
+        // logf("ExtractPageTextStr: ERROR - Invalid parameters");
         return nullptr;
     }
 
     PageText pageText = engine->ExtractPageText(pageNo);
     if (!pageText.text) {
-        logf("ExtractPageTextStr: No text found on page %d", pageNo);
+        // logf("ExtractPageTextStr: No text found on page %d", pageNo);
         return nullptr;
     }
 
@@ -5461,8 +5445,7 @@ char* ExtractPageTextStr(EngineBase* engine, int pageNo) {
 
     FreePageText(&pageText);
 
-    logf("ExtractPageTextStr: Extracted %d characters from page %d",
-         result ? (int)str::Len(result) : 0, pageNo);
+    // logf("ExtractPageTextStr: Extracted %d characters from page %d", result ? (int)str::Len(result) : 0, pageNo);
 
     return result;
 }

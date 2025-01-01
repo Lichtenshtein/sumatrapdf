@@ -87,7 +87,7 @@ static NO_INLINE bool MaybeMakePluginWindow(MainWindow* win, HWND hwndParent) {
     }
     logfa("MakePluginWindow: win: 0x%p, hwndParent: 0x%p (isWindow: %d), gPluginURL: %s\n", win, hwndParent,
           (int)IsWindow(hwndParent), gPluginURL ? gPluginURL : "<nulL>");
-    ReportIf(!gPluginMode);
+    ReportDebugIf(!gPluginMode);
 
     if (!IsWindow(hwndParent)) {
         // we validated hwndParent for validity at startup but I'm seeing cases
@@ -326,7 +326,7 @@ void SetTabState(WindowTab* tab, TabState* state) {
 // TODO: when files are lazy loaded, they do not restore TabState. Need to remember
 // it in LoadArgs and call SetTabState() if present after loading
 static void RestoreTabOnStartup(MainWindow* win, TabState* state, bool lazyLoad = true) {
-    logf("RestoreTabOnStartup: state->filePath: '%s'\n", state->filePath);
+    // logf("RestoreTabOnStartup: state->filePath: '%s'\n", state->filePath);
     LoadArgs args(state->filePath, win);
     args.noSavePrefs = true;
     if (lazyLoad) {
@@ -697,7 +697,7 @@ static bool ForceRunningAsInstaller() {
     }
 
     u32 expectedSize = GetLibmupdfDllSize();
-    ReportIf(0 == expectedSize);
+    ReportDebugIf(0 == expectedSize);
     if (0 == expectedSize) {
         // shouldn't happen
         return false;
@@ -854,7 +854,7 @@ static void ShowNoAdminErrorMessage() {
 static void DeleteStaleFilesAsync() {
     TempStr dir = GetNotImportantDataDirTemp();
     TempStr ver = GetVerDirNameTemp("");
-    logf("DeleteStaleFilesAsync: dir: '%s', gIsPreRelaseBuild: %d, ver: %s\n", dir, (int)gIsPreReleaseBuild, ver);
+    // logf("DeleteStaleFilesAsync: dir: '%s', gIsPreRelaseBuild: %d, ver: %s\n", dir, (int)gIsPreReleaseBuild, ver);
 
     DirIter di{dir};
     di.includeFiles = false;
@@ -863,23 +863,23 @@ static void DeleteStaleFilesAsync() {
         const char* name = de->name;
         bool maybeDelete = str::StartsWith(name, "manual-") || str::StartsWith(name, "crashinfo-");
         if (!maybeDelete) {
-            logf("DeleteStaleFilesAsync: skipping '%s' because not manual-* or crsahinfo-*\n", name);
+            // logf("DeleteStaleFilesAsync: skipping '%s' because not manual-* or crsahinfo-*\n", name);
             continue;
         }
         TempStr currVer = GetVerDirNameTemp("");
         if (str::Contains(name, currVer)) {
-            logf("DeleteStaleFilesAsync: skipping '%s' because our ver '%s'\n", name, currVer);
+            // logf("DeleteStaleFilesAsync: skipping '%s' because our ver '%s'\n", name, currVer);
             continue;
         }
         bool ok = dir::RemoveAll(dir);
-        logf("DeleteStaleFilesAsync: dir::RemoveAll('%s') returned %d\n", dir, ok);
+        // logf("DeleteStaleFilesAsync: dir::RemoveAll('%s') returned %d\n", dir, ok);
     }
 }
 
 void StartDeleteStaleFiles() {
     // for now we only care about pre-release builds as they can be updated frequently
     if (!(gIsPreReleaseBuild || gIsDebugBuild)) {
-        logf("DeleteStaleFiles: skipping because gIsPreRelaseBuild: %d\n", (int)gIsPreReleaseBuild);
+        // logf("DeleteStaleFiles: skipping because gIsPreRelaseBuild: %d\n", (int)gIsPreReleaseBuild);
         return;
     }
     auto fn = MkFunc0Void(DeleteStaleFilesAsync);
@@ -918,18 +918,18 @@ static void LogDpiAwareness() {
         aws = "DPI_AWARENESS_PER_MONITOR_AWARE";
     }
 
-    logf("aw: %d %s\n", (int)aw, aws);
+    // logf("aw: %d %s\n", (int)aw, aws);
 }
 #endif
 
 #if 0
-static void testLogf() {
+static void test// logf() {
     TempStr fileName = path::GetBaseNameTemp(__FILE__);
     WCHAR* gswin32c = L"this is a path";
     WCHAR* tmpFile = L"c:\foo\bar.txt";
     auto gswin = ToUtf8Temp(gswin32c);
     auto tmpFileName = ToUtf8Temp(path::GetBaseNameTemp(tmpFile));
-    logf("- %s:%d: using '%s' for creating '%%TEMP%%\\%s'\n", fileName, __LINE__, gswin.Get(), tmpFileName.Get());
+    // logf("- %s:%d: using '%s' for creating '%%TEMP%%\\%s'\n", fileName, __LINE__, gswin.Get(), tmpFileName.Get());
 }
 #endif
 
@@ -997,7 +997,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int) {
         auto di = DirIter{dir};
         di.recurse = true;
         for (DirIterEntry* d : di) {
-            logf("d->filePath: '%s'\n", d->filePath);
+            // logf("d->filePath: '%s'\n", d->filePath);
         }
     }
     if (false) {
@@ -1020,8 +1020,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int) {
 
     {
         char* s = ToUtf8Temp(GetCommandLineW());
-        logf("Starting: '%s'\n  ver %s, flags.install: %d, flags.uninstall: %d\n", s, UPDATE_CHECK_VERA,
-             (int)flags.install, (int)flags.uninstall);
+        // logf("Starting: '%s'\n  ver %s, flags.install: %d, flags.uninstall: %d\n", s, UPDATE_CHECK_VERA, (int)flags.install, (int)flags.uninstall);
     }
 #if defined(DEBUG)
     if (gIsDebugBuild || gIsPreReleaseBuild) {
@@ -1060,7 +1059,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int) {
     }
 
     if (flags.updateSelfTo) {
-        logf(" flags.updateSelfTo: '%s'\n", flags.updateSelfTo);
+        // logf(" flags.updateSelfTo: '%s'\n", flags.updateSelfTo);
         RedirectIOToExistingConsole();
         UpdateSelfTo(flags.updateSelfTo);
         if (flags.exitWhenDone) {
@@ -1070,7 +1069,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int) {
     }
 
     if (flags.deleteFile) {
-        logf(" flags.deleteFile: '%s'\n", flags.deleteFile);
+        // logf(" flags.deleteFile: '%s'\n", flags.deleteFile);
         RedirectIOToExistingConsole();
         // sleeping for a bit to make sure that the program that launched us
         // had time to exit so that we can overwrite it
@@ -1080,9 +1079,9 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int) {
         // TODO: retry if file busy?
         bool ok = file::Delete(flags.deleteFile);
         if (ok) {
-            logf("Deleted '%s'\n", flags.deleteFile);
+            // logf("Deleted '%s'\n", flags.deleteFile);
         } else {
-            logf("Failed to delete '%s'\n", flags.deleteFile);
+            // logf("Failed to delete '%s'\n", flags.deleteFile);
         }
         if (flags.exitWhenDone) {
             HandleRedirectedConsoleOnShutdown();
@@ -1109,7 +1108,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int) {
     }
 
     if (ForceRunningAsInstaller()) {
-        logf("forcing running as an installer\n");
+        // logf("forcing running as an installer\n");
         exitCode = RunInstaller();
         // exit immediately. for some reason exit handlers try to
         // pull in libmupdf.dll which we don't have access to in the installer
@@ -1233,7 +1232,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int) {
             }
         }
         --exitCode; // was 1 if no print failures, turn 1 into 0
-        logf("Finished printing, exitCode: %d\n", exitCode);
+        // logf("Finished printing, exitCode: %d\n", exitCode);
         goto Exit;
     }
 
@@ -1249,7 +1248,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int) {
     }
 
     if (flags.dde) {
-        logf("sending flags.dde '%s', hwnd: 0x%p\n", flags.dde, existingHwnd);
+        // logf("sending flags.dde '%s', hwnd: 0x%p\n", flags.dde, existingHwnd);
         SendMyselfDDE(flags.dde, existingHwnd);
         goto Exit;
     }
@@ -1293,7 +1292,7 @@ ContinueOpenWindow:
         // do not restore a session if tabs are disabled and SumatraPDF is already running
         // TODO: maybe disable restoring if tabs are disabled?
         restoreSession = false;
-        logf("not restoring a session because the same exe is already running and tabs are disabled\n");
+        // logf("not restoring a session because the same exe is already running and tabs are disabled\n");
     }
 
     showStartPage = !restoreSession && flags.fileNames.Size() == 0 && gGlobalPrefs->rememberOpenedFiles &&
@@ -1312,7 +1311,7 @@ ContinueOpenWindow:
             win = CreateAndShowMainWindow(data);
             for (TabState* state : *data->tabStates) {
                 if (str::IsEmpty(state->filePath)) {
-                    logf("WinMain: skipping RestoreTabOnStartup() because state->filePath is empty\n");
+                    // logf("WinMain: skipping RestoreTabOnStartup() because state->filePath is empty\n");
                     continue;
                 }
                 RestoreTabOnStartup(win, state, gGlobalPrefs->lazyLoading);
@@ -1357,7 +1356,7 @@ ContinueOpenWindow:
 
     nWithDde = gDdeOpenOnStartup.Size();
     if (nWithDde > 0) {
-        logf("Loading %d documents queued by dde open\n", nWithDde);
+        // logf("Loading %d documents queued by dde open\n", nWithDde);
         for (char* path : gDdeOpenOnStartup) {
             if (restoreSession && FindMainWindowByFile(path, false)) {
                 continue;
@@ -1429,7 +1428,7 @@ ContinueOpenWindow:
     CleanUpThumbnailCache();
 
 Exit:
-    logf("Exiting with exit code: %d\n", exitCode);
+    // logf("Exiting with exit code: %d\n", exitCode);
     UnregisterSettingsForFileChanges();
 
     HandleRedirectedConsoleOnShutdown();

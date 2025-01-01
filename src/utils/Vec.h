@@ -53,7 +53,7 @@ class Vec {
             newEls = (T*)Allocator::Realloc(allocator, els, allocSize);
         }
         if (!newEls) {
-            ReportIf(InterlockedExchangeAdd(&gAllowAllocFailure, 0) == 0);
+            ReportDebugIf(InterlockedExchangeAdd(&gAllowAllocFailure, 0) == 0);
             return false;
         }
         els = newEls;
@@ -169,41 +169,41 @@ class Vec {
     }
 
     T& operator[](size_t idx) const {
-        ReportIf(idx >= len);
+        ReportDebugIf(idx >= len);
         return els[idx];
     }
 
     T& operator[](long idx) const {
-        ReportIf(idx < 0);
-        ReportIf((size_t)idx >= len);
+        ReportDebugIf(idx < 0);
+        ReportDebugIf((size_t)idx >= len);
         return els[idx];
     }
 
     T& operator[](ULONG idx) const {
-        ReportIf((size_t)idx >= len);
+        ReportDebugIf((size_t)idx >= len);
         return els[idx];
     }
 
     T& operator[](int idx) const {
-        ReportIf(idx < 0);
-        ReportIf((size_t)idx >= len);
+        ReportDebugIf(idx < 0);
+        ReportDebugIf((size_t)idx >= len);
         return els[idx];
     }
 
     T& at(size_t idx) const {
-        ReportIf(idx >= len);
+        ReportDebugIf(idx >= len);
         return els[idx];
     }
 
     T& at(int idx) const {
-        ReportIf(idx < 0);
-        ReportIf(idx >= (int)len);
+        ReportDebugIf(idx < 0);
+        ReportDebugIf(idx >= (int)len);
         return els[idx];
     }
 
     T& At(int idx) const {
-        ReportIf(idx < 0);
-        ReportIf(idx >= (int)len);
+        ReportDebugIf(idx < 0);
+        ReportDebugIf(idx >= (int)len);
         return els[idx];
     }
 
@@ -278,7 +278,7 @@ class Vec {
     // can be copied via memcpy()
     // TODO: could be extend to take number of elements to remove
     void RemoveAtFast(size_t idx) {
-        ReportIf(idx >= len);
+        ReportDebugIf(idx >= len);
         if (idx >= len) {
             return;
         }
@@ -292,21 +292,21 @@ class Vec {
     }
 
     T Pop() {
-        ReportIf(0 == len);
+        ReportDebugIf(0 == len);
         T el = at(len - 1);
         RemoveAtFast(len - 1);
         return el;
     }
 
     T PopAt(size_t idx) {
-        ReportIf(idx >= len);
+        ReportDebugIf(idx >= len);
         T el = at(idx);
         RemoveAt(idx);
         return el;
     }
 
     T& Last() const {
-        ReportIf(0 == len);
+        ReportDebugIf(0 == len);
         return at(len - 1);
     }
 

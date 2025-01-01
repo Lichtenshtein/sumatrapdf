@@ -44,7 +44,7 @@ constexpr size_t kFileHistoryMaxFiles = 1000;
 FileHistory gFileHistory;
 
 void FileHistory::Append(FileState* fs) const {
-    ReportIf(!fs->filePath);
+    ReportDebugIf(!fs->filePath);
     states->Append(fs);
 }
 
@@ -123,7 +123,7 @@ FileState* FileHistory::FindByName(const char* filePath, size_t* idxOut) const {
 }
 
 FileState* FileHistory::MarkFileLoaded(const char* filePath) const {
-    ReportIf(!filePath);
+    ReportDebugIf(!filePath);
     // if a history entry with the same name already exists,
     // then reuse it. That way we don't have duplicates and
     // the file moves to the front of the list
@@ -141,7 +141,7 @@ FileState* FileHistory::MarkFileLoaded(const char* filePath) const {
 }
 
 bool FileHistory::MarkFileInexistent(const char* filePath, bool hide) const {
-    ReportIf(!filePath);
+    ReportDebugIf(!filePath);
     FileState* state = FindByPath(filePath);
     if (!state) {
         return false;
@@ -195,7 +195,7 @@ static int cmpOpenCount(const void* a, const void* b) {
 // and with all missing states filtered out
 // caller needs to delete the result (but not the contained states)
 void FileHistory::GetFrequencyOrder(Vec<FileState*>& list) const {
-    ReportIf(list.size() > 0);
+    ReportDebugIf(list.size() > 0);
     size_t i = 0;
     for (FileState* ds : *states) {
         ds->index = i++;
@@ -223,7 +223,7 @@ static int cmpRecentlyOpened(const void* a, const void* b) {
 }
 
 void FileHistory::GetRecentlyOpenedOrder(Vec<FileState*>& list) const {
-    ReportIf(list.size() > 0);
+    ReportDebugIf(list.size() > 0);
     size_t i = 0;
     for (FileState* ds : *states) {
         ds->index = i++;
@@ -338,13 +338,13 @@ void CleanUpThumbnailCache() {
         }
         ok = filePaths.Remove(path);
         if (!ok) {
-            logf("CleanUpThumbnailCache: failed to remove '%s'\n", path);
+            // logf("CleanUpThumbnailCache: failed to remove '%s'\n", path);
         }
     }
 
     for (char* path : filePaths) {
         if (shouldDeleteThumbnail) {
-            logf("CleanUpThumbnailCache: deleting '%s'\n", path);
+            // logf("CleanUpThumbnailCache: deleting '%s'\n", path);
             file::Delete(path);
         }
     }
@@ -407,7 +407,7 @@ static void FileExistenceCheckerAsync(FileExistenceData* d) {
             continue;
         }
         d->missing.Append(path);
-        logf("FileExistenceChecker: missing '%s' at %d\n", path, i + 1);
+        // logf("FileExistenceChecker: missing '%s' at %d\n", path, i + 1);
     }
 
     Func0 fn = MkFunc0<FileExistenceData>(HideMissingFiles, d);
@@ -439,7 +439,7 @@ void RemoveNonExistentFilesAsync() {
     if (d->toCheck.Size() == 0) {
         return;
     }
-    logf("RemoveNonExistentFilesAsync: starting FileExistenceCheckerThread to check %d files\n", d->toCheck.Size());
+    // logf("RemoveNonExistentFilesAsync: starting FileExistenceCheckerThread to check %d files\n", d->toCheck.Size());
     Func0 fn = MkFunc0<FileExistenceData>(FileExistenceCheckerAsync, d);
     RunAsync(fn, "FileExistenceThread");
 }

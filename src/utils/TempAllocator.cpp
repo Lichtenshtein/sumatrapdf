@@ -131,7 +131,7 @@ TempStr ReplaceNoCaseTemp(const char* s, const char* toReplace, const char* repl
 
 TempStr ToUtf8Temp(const WCHAR* s, size_t cch) {
     if (!s) {
-        ReportIf((int)cch > 0);
+        ReportDebugIf((int)cch > 0);
         return nullptr;
     }
     return strconv::WStrToUtf8(s, cch, GetTempAllocator());
@@ -139,7 +139,7 @@ TempStr ToUtf8Temp(const WCHAR* s, size_t cch) {
 
 TempWStr ToWStrTemp(const char* s, size_t cb) {
     if (!s) {
-        ReportIf((int)cb > 0);
+        ReportDebugIf((int)cb > 0);
         return nullptr;
     }
     return strconv::Utf8ToWStr(s, cb, GetTempAllocator());

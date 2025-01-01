@@ -155,10 +155,10 @@ static const char* GetReason(DWORD dwReason) {
 
 STDAPI_(BOOL) DllMain(HINSTANCE hInstance, DWORD dwReason, void*) {
     if (dwReason == DLL_PROCESS_ATTACH) {
-        ReportIf(hInstance != GetInstance());
+        ReportDebugIf(hInstance != GetInstance());
     }
     gLogAppName = "PdfPreview";
-    logf("PdfPreview: DllMain %s\n", GetReason(dwReason));
+    // logf("PdfPreview: DllMain %s\n", GetReason(dwReason));
     return TRUE;
 }
 
@@ -181,7 +181,7 @@ STDAPI DllRegisterServer() {
     if (!dllPath) {
         return HRESULT_FROM_WIN32(GetLastError());
     }
-    logf("DllRegisterServer: dllPath=%s\n", dllPath);
+    // logf("DllRegisterServer: dllPath=%s\n", dllPath);
 
     // for compat with SumatraPDF 3.3 and lower
     // in 3.4 we call this code from the installer

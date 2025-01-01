@@ -44,7 +44,7 @@ struct PdfsyncPoint {
 class Pdfsync : public Synchronizer {
   public:
     Pdfsync(const char* syncfilename, EngineBase* engine) : Synchronizer(syncfilename), engine(engine) {
-        ReportIf(!str::EndsWithI(syncfilename, ".pdfsync"));
+        ReportDebugIf(!str::EndsWithI(syncfilename, ".pdfsync"));
     }
 
     int DocToSource(int pageNo, Point pt, AutoFreeStr& filename, int* line, int* col) override;
@@ -68,7 +68,7 @@ class SyncTex : public Synchronizer {
     SyncTex(const char* syncfilename, EngineBase* engineIn) : Synchronizer(syncfilename) {
         engine = engineIn;
         scanner = nullptr;
-        ReportIf(!str::EndsWithI(syncfilename, ".synctex"));
+        ReportDebugIf(!str::EndsWithI(syncfilename, ".synctex"));
     }
 
     ~SyncTex() override {
@@ -297,7 +297,7 @@ int Pdfsync::RebuildIndexIfNeeded() {
     }
 
     fileIndex.at(0).end = lines.size();
-    ReportIf(filestack.size() != 1);
+    ReportDebugIf(filestack.size() != 1);
 
     return MarkIndexWasRebuilt();
 }
@@ -364,7 +364,7 @@ int Pdfsync::DocToSource(int pageNo, Point pt, AutoFreeStr& filename, int* line,
     cmp.record = selected_record;
     PdfsyncLine* found =
         (PdfsyncLine*)bsearch(&cmp, lines.LendData(), lines.size(), sizeof(PdfsyncLine), cmpLineRecords);
-    ReportIf(!found);
+    ReportDebugIf(!found);
     if (!found) {
         return PDFSYNCERR_NO_SYNC_AT_LOCATION;
     }
@@ -498,10 +498,10 @@ TempStr ungzipToFile(char* path) {
     // to see if we can read when gzopen in synctex_scanner_new_with_output_file cannot
     ByteSlice compr = file::ReadFile(path);
     if (compr.IsEmpty()) {
-        logf("ungzip: file::ReadFile() '%s' failed\n", path);
+        // logf("ungzip: file::ReadFile() '%s' failed\n", path);
         return nullptr;
     }
-    logf("ungzip: file::ReadFile() did read '%s'\n", path);
+    // logf("ungzip: file::ReadFile() did read '%s'\n", path);
     ByteSlice uncompr = Ungzip(compr);
     compr.Free();
     if (uncompr.IsEmpty()) {
@@ -561,7 +561,7 @@ Repeat:
         return PDFSYNCERR_SYNCFILE_NOTFOUND;
     }
     fsize = file::GetSize(pathSyncGz);
-    logf("SyncTex::RebuildIndexIfNeeded: trying to uncompress %s, size: %d\n", pathSyncGz, (int)fsize);
+    // logf("SyncTex::RebuildIndexIfNeeded: trying to uncompress %s, size: %d\n", pathSyncGz, (int)fsize);
 
     syncPathTemp = ungzipToFile(pathSyncGz);
     if (!syncPathTemp) {
@@ -585,7 +585,7 @@ int SyncTex::DocToSource(int pageNo, Point pt, AutoFreeStr& filename, int* line,
         ReportDebugIf(true);
         return res;
     }
-    ReportIf(!scanner);
+    ReportDebugIf(!scanner);
 
     // Coverity: at this point, this->scanner->flags.has_parsed == 1 and thus
     // synctex_scanner_parse never gets the chance to freeing the scanner
@@ -637,10 +637,10 @@ int SyncTex::SourceToDoc(const char* srcfilename, int line, int col, int* page, 
     logfa("SyncTex::SourceToDoc: '%s', line: %d, col: %d\n", srcfilename, line, col);
     int res = RebuildIndexIfNeeded();
     if (res != PDFSYNCERR_SUCCESS) {
-        ReportIf(true);
+        ReportDebugIf(true);
         return res;
     }
-    ReportIf(!scanner);
+    ReportDebugIf(!scanner);
 
     TempStr srcfilepath = (TempStr)srcfilename;
     // convert the source file to an absolute path

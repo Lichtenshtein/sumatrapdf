@@ -147,7 +147,7 @@ static void TocCustomizeTooltip(TreeView::GetTooltipEvent* ev) {
     bool isOk = (k == kindDestinationLaunchURL) || (k == kindDestinationLaunchFile) ||
                 (k == kindDestinationLaunchEmbedded) || (k == kindDestinationMupdf) || (k = kindDestinationDjVu) ||
                 (k == kindDestinationAttachment);
-    ReportIf(!isOk);
+    ReportDebugIf(!isOk);
 
     str::Str infotip;
 
@@ -544,7 +544,7 @@ static void OpenAttachment(WindowTab* tab, const char* fileName, int attachmentN
 }
 
 static void OpenEmbeddedFile(WindowTab* tab, IPageDestination* dest) {
-    ReportIf(!tab || !dest);
+    ReportDebugIf(!tab || !dest);
     if (!tab || !dest) {
         return;
     }
@@ -780,7 +780,7 @@ static void AutoExpandTopLevelItems(TocItem* root) {
 
 void LoadTocTree(MainWindow* win) {
     WindowTab* tab = win->CurrentTab();
-    ReportIf(!tab);
+    ReportDebugIf(!tab);
 
     if (win->tocLoaded) {
         return;
@@ -891,7 +891,7 @@ void TocTreeClick(TreeView::ClickEvent* ev) {
         return;
     }
     MainWindow* win = FindMainWindowByHwnd(ev->w->hwnd);
-    ReportIf(!win);
+    ReportDebugIf(!win);
     bool allowExternal = false;
     GoToTocTreeItem(win, ev->treeItem, allowExternal);
 #endif
@@ -900,7 +900,7 @@ void TocTreeClick(TreeView::ClickEvent* ev) {
 
 static void TocTreeSelectionChanged(TreeView::SelectionChangedEvent* ev) {
     MainWindow* win = FindMainWindowByHwnd(ev->treeView->hwnd);
-    ReportIf(!win);
+    ReportDebugIf(!win);
 
     // When the focus is set to the toc window the first item in the treeview is automatically
     // selected and a TVN_SELCHANGEDW notification message is sent with the special code pnmtv->action ==
@@ -1011,7 +1011,7 @@ static void SubclassToc(MainWindow* win) {
     if (win->tocBoxSubclassId == 0) {
         win->tocBoxSubclassId = NextSubclassId();
         BOOL ok = SetWindowSubclass(hwndTocBox, WndProcTocBox, win->tocBoxSubclassId, (DWORD_PTR)win);
-        ReportIf(!ok);
+        ReportDebugIf(!ok);
     }
 }
 
@@ -1026,7 +1026,7 @@ void UnsubclassToc(MainWindow* win) {
 #if 0
 void TocTreeMouseWheelHandler(MouseWheelEvent* ev) {
     MainWindow* win = FindMainWindowByHwnd(ev->hwnd);
-    ReportIf(!win);
+    ReportDebugIf(!win);
     if (!win) {
         return;
     }
@@ -1042,7 +1042,7 @@ void TocTreeMouseWheelHandler(MouseWheelEvent* ev) {
 #if 0
 void TocTreeCharHandler(CharEvent* ev) {
     MainWindow* win = FindMainWindowByHwnd(ev->hwnd);
-    ReportIf(!win);
+    ReportDebugIf(!win);
     if (!win) {
         return;
     }
@@ -1098,7 +1098,7 @@ void CreateToc(MainWindow* win) {
     // treeView->onMouseWheel = TocTreeMouseWheelHandler;
 
     treeView->Create(args);
-    ReportIf(!treeView->hwnd);
+    ReportDebugIf(!treeView->hwnd);
     win->tocTreeView = treeView;
 
     // NEW: attach hjkl + Shift-only search behavior directly to the TOC TreeView
@@ -1106,7 +1106,7 @@ void CreateToc(MainWindow* win) {
         auto* st = new TocTreeSubState();
         // Use a fresh subclass id; cleanup is handled in WM_NCDESTROY
         BOOL ok = SetWindowSubclass(treeView->hwnd, TocTree_SubclassProc, NextSubclassId(), (DWORD_PTR)st);
-        ReportIf(!ok);
+        ReportDebugIf(!ok);
     }
 
     SubclassToc(win);

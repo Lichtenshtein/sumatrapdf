@@ -63,7 +63,7 @@ ULONG STDMETHODCALLTYPE SumatraUIAutomationPageProvider::AddRef() {
 
 ULONG STDMETHODCALLTYPE SumatraUIAutomationPageProvider::Release() {
     LONG res = InterlockedDecrement(&refCount);
-    ReportIf(res < 0);
+    ReportDebugIf(res < 0);
     if (0 == res) {
         delete this;
     }
@@ -114,7 +114,7 @@ HRESULT STDMETHODCALLTYPE SumatraUIAutomationPageProvider::GetRuntimeId(SAFEARRA
     int rId[] = {(int)canvasHwnd, SUMATRA_UIA_PAGE_RUNTIME_ID(pageNum)};
     for (LONG i = 0; i < 2; i++) {
         HRESULT hr = SafeArrayPutElement(psa, &i, (void*)&(rId[i]));
-        ReportIf(FAILED(hr));
+        ReportDebugIf(FAILED(hr));
     }
 
     *pRetVal = psa;

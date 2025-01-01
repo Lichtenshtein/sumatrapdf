@@ -137,7 +137,7 @@ EngineImages::~EngineImages() {
     EnterCriticalSection(&cacheAccess);
     while (pageCache.size() > 0) {
         ImagePage* lastPage = pageCache.Last();
-        ReportIf(lastPage->refs != 1);
+        ReportDebugIf(lastPage->refs != 1);
         DropPage(lastPage, true);
     }
     DeleteVecMembers(pages);
@@ -146,7 +146,7 @@ EngineImages::~EngineImages() {
 }
 
 RectF EngineImages::PageMediabox(int pageNo) {
-    ReportIf((pageNo < 1) || (pageNo > pageCount));
+    ReportDebugIf((pageNo < 1) || (pageNo > pageCount));
     int n = pageNo - 1;
     ImagePageInfo* pi = pages[n];
     RectF& mbox = pi->mediabox;
@@ -172,7 +172,7 @@ RenderedBitmap* EngineImages::RenderPage(RenderPageArgs& args) {
     defer {
         auto dur = TimeSinceInMs(timeStart);
         if (dur > 300.f) {
-            logf("EngineImages::RenderPage() in %.2f ms\n", dur);
+            // logf("EngineImages::RenderPage() in %.2f ms\n", dur);
         }
     };
 
@@ -253,7 +253,7 @@ static IPageElement* NewImageElement(int pageNo, float dx, float dy) {
 
 // don't delete the result
 Vec<IPageElement*> EngineImages::GetElements(int pageNo) {
-    ReportIf(pageNo < 1 || pageNo > pageCount);
+    ReportDebugIf(pageNo < 1 || pageNo > pageCount);
     auto* pi = pages[pageNo - 1];
     if (pi->allElements.size() > 0) {
         return pi->allElements;
@@ -281,7 +281,7 @@ IPageElement* EngineImages::GetElementAtPos(int pageNo, PointF pt) {
 }
 
 RenderedBitmap* EngineImages::GetImageForPageElement(IPageElement* pel) {
-    ReportIf(pel->GetKind() != kindPageElementImage);
+    ReportDebugIf(pel->GetKind() != kindPageElementImage);
     auto ipel = (PageElementImage*)pel;
     int pageNo = ipel->pageNo;
     auto page = GetPage(pageNo);
@@ -339,7 +339,7 @@ ImagePage* EngineImages::GetPage(int pageNo, bool tryOnly) {
     if (!result) {
         // TODO: drop most memory intensive pages first
         if (pageCache.size() >= MAX_IMAGE_PAGE_CACHE) {
-            ReportIf(pageCache.size() != MAX_IMAGE_PAGE_CACHE);
+            ReportDebugIf(pageCache.size() != MAX_IMAGE_PAGE_CACHE);
             DropPage(pageCache.Last(), true);
         }
         result = new ImagePage(pageNo, nullptr);
@@ -365,7 +365,7 @@ ImagePage* EngineImages::GetPage(int pageNo, bool tryOnly) {
 void EngineImages::DropPage(ImagePage* page, bool forceRemove) {
     ScopedCritSec scope(&cacheAccess);
     page->refs--;
-    ReportIf(page->refs < 0);
+    ReportDebugIf(page->refs < 0);
 
     if (0 == page->refs || forceRemove) {
         pageCache.Remove(page);
@@ -422,7 +422,7 @@ RectF EngineImages::PageContentBox(int pageNo, RenderTarget target) {
     }
 
     auto getPixel = [&bmpData, bytesPerPixel](int x, int y) -> uint32_t {
-        ReportIf(x < 0 || x >= (int)bmpData.Width || y < 0 || y >= (int)bmpData.Height);
+        ReportDebugIf(x < 0 || x >= (int)bmpData.Width || y < 0 || y >= (int)bmpData.Height);
         auto data = static_cast<const uint8_t*>(bmpData.Scan0);
         unsigned idx = bytesPerPixel * x + bmpData.Stride * y;
         uint32_t rgb = (data[idx + 2] << 16) | (data[idx + 1] << 8) | data[idx];
@@ -555,7 +555,7 @@ bool EngineImage::LoadSingleFile(const char* path) {
     }
     if (imageFormat == nullptr) {
         logfa("EngineImage::LoadSingleFile: '%s'\n", path);
-        ReportIf(imageFormat == nullptr);
+        ReportDebugIf(imageFormat == nullptr);
     }
 
     // TODO: maybe default to file extension and only use detected from content
@@ -611,7 +611,7 @@ static void ReportIfNotMultiImage(EngineImage* e) {
         return;
     }
     logfa("EngineImage::LoadBitmapForPage: trying for non-multi image, %s, path: '%s'\n", fmt, e->FilePath());
-    ReportIf(true);
+    ReportDebugIf(true);
 }
 
 bool EngineImage::FinishLoading() {
@@ -624,7 +624,7 @@ bool EngineImage::FinishLoading() {
     pi->mediabox = RectF(0, 0, (float)image->GetWidth(), (float)image->GetHeight());
     pages.Append(pi);
     pi->hasMediaBox = true;
-    ReportIf(pages.size() != 1);
+    ReportDebugIf(pages.size() != 1);
 
     // extract all frames from multi-page TIFFs and animated GIFs
     // TODO: do the same for .avif and .heic formats
@@ -706,7 +706,7 @@ Bitmap* EngineImage::LoadBitmapForPage(int pageNo, bool& deleteAfterUse) {
     ReportIfNotMultiImage(this);
     const GUID* dim = imageFormat == kindFileTiff ? &FrameDimensionPage : &FrameDimensionTime;
     uint frameCount = image->GetFrameCount(dim);
-    ReportIf((unsigned int)pageNo > frameCount);
+    ReportDebugIf((unsigned int)pageNo > frameCount);
     Bitmap* frame = image->Clone(0, 0, image->GetWidth(), image->GetHeight(), PixelFormat32bppARGB);
     if (!frame) {
         return nullptr;
@@ -748,7 +748,7 @@ RectF EngineImage::LoadMediabox(int pageNo) {
 }
 
 EngineBase* EngineImage::CreateFromFile(const char* path) {
-    logf("EngineImage::CreateFromFile(%s)\n", path);
+    // logf("EngineImage::CreateFromFile(%s)\n", path);
     EngineImage* engine = new EngineImage();
     if (!engine->LoadSingleFile(path)) {
         SafeEngineRelease(&engine);
@@ -777,13 +777,13 @@ static Kind imageEngineKinds[] = {
 // clang-format on
 
 bool IsEngineImageSupportedFileType(Kind kind) {
-    // logf("IsEngineImageSupportedFileType(%s)\n", kind);
+    // // logf("IsEngineImageSupportedFileType(%s)\n", kind);
     int n = (int)dimof(imageEngineKinds);
     return KindInArray(imageEngineKinds, n, kind);
 }
 
 EngineBase* CreateEngineImageFromFile(const char* path) {
-    logf("CreateEngineImageFromFile(%s)\n", path);
+    // logf("CreateEngineImageFromFile(%s)\n", path);
     return EngineImage::CreateFromFile(path);
 }
 
@@ -972,7 +972,7 @@ RectF EngineImageDir::LoadMediabox(int pageNo) {
 }
 
 EngineBase* EngineImageDir::CreateFromFile(const char* fileName) {
-    ReportIf(!dir::Exists(fileName));
+    ReportDebugIf(!dir::Exists(fileName));
     EngineImageDir* engine = new EngineImageDir();
     if (!LoadImageDir(engine, fileName)) {
         SafeEngineRelease(&engine);
@@ -1190,12 +1190,12 @@ static const char* GetExtFromArchiveType(MultiFormatArchive* cbxFile) {
         case MultiFormatArchive::Format::Tar:
             return ".cbt";
     }
-    ReportIf(true);
+    ReportDebugIf(true);
     return nullptr;
 }
 
 bool EngineCbx::FinishLoading() {
-    ReportIf(!cbxFile);
+    ReportDebugIf(!cbxFile);
     if (!cbxFile) {
         return false;
     }
@@ -1203,7 +1203,7 @@ bool EngineCbx::FinishLoading() {
     auto timeStart = TimeGet();
     defer {
         auto dur = TimeSinceInMs(timeStart);
-        logf("EngineCbx::FinisHLoading() in %.2f ms\n", dur);
+        // logf("EngineCbx::FinisHLoading() in %.2f ms\n", dur);
     };
 
     // not using the resolution of the contained images seems to be
@@ -1293,7 +1293,7 @@ TocTree* EngineCbx::GetToc() {
 }
 
 ByteSlice EngineCbx::GetImageData(int pageNo) {
-    ReportIf((pageNo < 1) || (pageNo > PageCount()));
+    ReportDebugIf((pageNo < 1) || (pageNo > PageCount()));
     size_t fileId = files[pageNo - 1]->fileId;
     ByteSlice d = cbxFile->GetFileDataById(fileId);
     return d;
@@ -1332,7 +1332,7 @@ Bitmap* EngineCbx::LoadBitmapForPage(int pageNo, bool& deleteAfterUse) {
     auto timeStart = TimeGet();
     defer {
         auto dur = TimeSinceInMs(timeStart);
-        logf("EngineCbx::LoadBitmapForPage(page: %d) took %.2f ms\n", pageNo, dur);
+        // logf("EngineCbx::LoadBitmapForPage(page: %d) took %.2f ms\n", pageNo, dur);
     };
     ByteSlice img = GetImageData(pageNo);
     if (img.empty()) {
@@ -1352,7 +1352,7 @@ RectF EngineCbx::LoadMediabox(int pageNo) {
         img.Free();
         if (size.IsEmpty()) {
             ;
-            logf("EngineCbx::LoadMediabox: empty media box for page: %d\n", pageNo);
+            // logf("EngineCbx::LoadMediabox: empty media box for page: %d\n", pageNo);
         }
         return RectF(0, 0, (float)size.dx, (float)size.dy);
     }
@@ -1392,7 +1392,7 @@ EngineBase* EngineCbx::CreateFromFile(const char* path) {
     if (!archive) {
         return nullptr;
     }
-    logf("EngineCbx::CreateFromFile(): opening archive took %.2f\n", TimeSinceInMs(timeStart));
+    // logf("EngineCbx::CreateFromFile(): opening archive took %.2f\n", TimeSinceInMs(timeStart));
 
     auto* engine = new EngineCbx(archive);
     if (engine->LoadFromFile(path)) {

@@ -50,7 +50,7 @@ static void onCheckboxChanged(Checkbox::State state) {
             break;
     }
 
-    logf("new checkbox state: %s (%d)\n", name, (int)state);
+    // logf("new checkbox state: %s (%d)\n", name, (int)state);
 }
 
 static CheckboxCtrl* CreateCheckbox(HWND parent, std::string_view s) {
@@ -63,7 +63,7 @@ static CheckboxCtrl* CreateCheckbox(HWND parent, std::string_view s) {
 
 static void onTextChanged(EditTextChangedEvent* args) {
     std::string_view s = args->text;
-    logf("text changed: '%s'\n", s.data());
+    // logf("text changed: '%s'\n", s.data());
 }
 
 static EditCtrl* CreateEdit(HWND parent, std::string_view s) {
@@ -80,7 +80,7 @@ static const char* ddItems[3] = {"foo", "another one", "bar"};
 static void onDropDownSelected(DropDownSelectionChangedEvent* args) {
     int idx = args->idx;
     std::string_view s = args->item;
-    logf("drop down selection changed: %d, %s\n", idx, s.data());
+    // logf("drop down selection changed: %d, %s\n", idx, s.data());
 }
 
 static DropDownCtrl* CreatedDropDown(HWND parent) {
@@ -118,7 +118,7 @@ static void ToggleMainAxis(void*) {
         n = 0;
     }
     vboxLayout->alignMain = (MainAxisAlign)n;
-    logf("toggle main axis to %d\n", (int)n);
+    // logf("toggle main axis to %d\n", (int)n);
     doMainLayout();
 }
 
@@ -128,7 +128,7 @@ static void ToggleCrossAxis(void*) {
         n = 0;
     }
     vboxLayout->alignCross = (CrossAxisAlign)n;
-    logf("toggle cross axis to %d\n", (int)n);
+    // logf("toggle cross axis to %d\n", (int)n);
     doMainLayout();
 }
 
@@ -138,7 +138,7 @@ static void AdvanceProgress(void*) {
         currProgress = 0;
     }
     gProgress->SetCurrent(currProgress);
-    logf("advance progress to %d\n", currProgress);
+    // logf("advance progress to %d\n", currProgress);
 }
 
 static void CreateMainLayout(HWND hwnd) {
@@ -221,7 +221,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
             GetClientRect(hwnd, &rect);
             currWinDx = RectDx(rect);
             currWinDy = RectDy(rect);
-            //logf("WM_SIZE: wp: %d, (%d,%d)\n", (int)wp, currWinDx, currWinDy);
+            //// logf("WM_SIZE: wp: %d, (%d,%d)\n", (int)wp, currWinDx, currWinDy);
             doMainLayout();
             return 0;
             // return DefWindowProc(hwnd, msg, wp, lp);
@@ -299,7 +299,7 @@ int TestLayout(HINSTANCE hInstance, int nCmdShow) {
     RegisterWinClass(hInstance);
 
     if (!CreateMainWindow(hInstance, nCmdShow)) {
-        ReportIf(true);
+        ReportDebugIf(true);
         return FALSE;
     }
     HACCEL accelTable = LoadAccelerators(hInst, MAKEINTRESOURCE(IDC_TESTWIN));

@@ -62,7 +62,7 @@ static void DecodePalmDocHeader(const u8* buf, PalmDocHeader* hdr) {
     hdr->maxRecSize = d.UInt16();
     hdr->currPos = d.UInt32();
 
-    ReportIf(kPalmDocHeaderLen != d.Offset());
+    ReportDebugIf(kPalmDocHeaderLen != d.Offset());
 }
 
 // http://wiki.mobileread.com/wiki/MOBI#MOBI_Header
@@ -220,26 +220,26 @@ HuffDicDecompressor::HuffDicDecompressor() {
 bool HuffDicDecompressor::DecodeOne(u32 code, str::Str& dst) {
     u16 dict = (u16)(code >> codeLength);
     if (dict >= dictsCount) {
-        logf("invalid dict value\n");
+        // logf("invalid dict value\n");
         return false;
     }
     code &= ((1 << (codeLength)) - 1);
     u16 offset = UInt16BE(dicts[dict] + code * 2);
 
     if ((u32)offset + 2 > dictSize[dict]) {
-        logf("invalid offset\n");
+        // logf("invalid offset\n");
         return false;
     }
     u16 symLen = UInt16BE(dicts[dict] + offset);
     u8* p = dicts[dict] + offset + 2;
     if ((u32)(symLen & 0x7fff) > dictSize[dict] - offset - 2) {
-        logf("invalid symLen\n");
+        // logf("invalid symLen\n");
         return false;
     }
 
     if (!(symLen & 0x8000)) {
         if (recursionGuard.Contains(code)) {
-            logf("infinite recursion\n");
+            // logf("infinite recursion\n");
             return false;
         }
         recursionGuard.Append(code);
@@ -250,7 +250,7 @@ bool HuffDicDecompressor::DecodeOne(u32 code, str::Str& dst) {
     } else {
         symLen &= 0x7fff;
         if (symLen > 127) {
-            logf("symLen too big\n");
+            // logf("symLen too big\n");
             return false;
         }
         dst.Append((char*)p, symLen);
@@ -266,7 +266,7 @@ bool HuffDicDecompressor::Decompress(u8* src, size_t srcSize, str::Str& dst) {
 
     for (;;) {
         if (bitsConsumed > br.BitsLeft()) {
-            logf("not enough data\n");
+            // logf("not enough data\n");
             return false;
         }
         br.Eat(bitsConsumed);
@@ -281,7 +281,7 @@ bool HuffDicDecompressor::Decompress(u8* src, size_t srcSize, str::Str& dst) {
         u32 v = cacheTable[bits >> 24];
         u32 codeLen = v & 0x1f;
         if (!codeLen) {
-            logf("corrupted table, zero code len\n");
+            // logf("corrupted table, zero code len\n");
             return false;
         }
         bool isTerminal = (v & 0x80) != 0;
@@ -295,7 +295,7 @@ bool HuffDicDecompressor::Decompress(u8* src, size_t srcSize, str::Str& dst) {
             do {
                 codeLen++;
                 if (codeLen > 32) {
-                    logf("code len > 32 bits\n");
+                    // logf("code len > 32 bits\n");
                     return false;
                 }
                 baseVal = baseTable[codeLen * 2 - 2];
@@ -311,7 +311,7 @@ bool HuffDicDecompressor::Decompress(u8* src, size_t srcSize, str::Str& dst) {
     }
 
     if (br.BitsLeft() > 0 && 0 != bits) {
-        logf("compressed data left\n");
+        // logf("compressed data left\n");
     }
     return true;
 }
@@ -323,13 +323,13 @@ static void ReadHuffReader(HuffHeader& huffHdr, ByteOrderDecoder& d) {
     huffHdr.baseTableOffset = d.UInt32();
     huffHdr.cacheLEOffset = d.UInt32();
     huffHdr.baseTableLEOffset = d.UInt32();
-    ReportIf(d.Offset() != kHuffHeaderLen);
+    ReportDebugIf(d.Offset() != kHuffHeaderLen);
 }
 
 bool HuffDicDecompressor::SetHuffData(u8* huffData, size_t huffDataLen) {
     // for now catch cases where we don't have both big endian and little endian
     // versions of the data
-    ReportIf(kHuffRecordLen != huffDataLen);
+    ReportDebugIf(kHuffRecordLen != huffDataLen);
     // but conservatively assume we only need big endian version
     if (huffDataLen < kHuffRecordMinLen) {
         return false;
@@ -343,7 +343,7 @@ bool HuffDicDecompressor::SetHuffData(u8* huffData, size_t huffDataLen) {
         return false;
     }
 
-    ReportIf(huffHdr.hdrLen != kHuffHeaderLen);
+    ReportDebugIf(huffHdr.hdrLen != kHuffHeaderLen);
     if (huffHdr.hdrLen != kHuffHeaderLen) {
         return false;
     }
@@ -360,7 +360,7 @@ bool HuffDicDecompressor::SetHuffData(u8* huffData, size_t huffDataLen) {
     for (int i = 0; i < kBaseTableItemCount; i++) {
         baseTable[i] = d.UInt32();
     }
-    ReportIf(d.Offset() != kHuffRecordMinLen);
+    ReportDebugIf(d.Offset() != kHuffRecordMinLen);
     return true;
 }
 
@@ -379,10 +379,10 @@ bool HuffDicDecompressor::AddCdicData(u8* cdicData, u32 cdicDataLen) {
     if (0 == codeLength) {
         codeLength = codeLen;
     } else {
-        ReportIf(codeLen != codeLength);
+        ReportDebugIf(codeLen != codeLength);
         codeLength = std::min(codeLength, codeLen);
     }
-    ReportIf(hdrLen != kCdicHeaderLen);
+    ReportDebugIf(hdrLen != kCdicHeaderLen);
     if (hdrLen != kCdicHeaderLen) {
         return false;
     }
@@ -432,7 +432,7 @@ static void DecodeMobiDocHeader(const u8* buf, MobiHeader* hdr) {
     hdr->huffmanTableOffset = d.UInt32();
     hdr->huffmanTableLen = d.UInt32();
     hdr->exthFlags = d.UInt32();
-    ReportIf(kMobiHeaderMinLen != d.Offset());
+    ReportDebugIf(kMobiHeaderMinLen != d.Offset());
 
     if (hdr->hdrLen < kMobiHeaderMinLen + 48) {
         return;
@@ -452,9 +452,9 @@ static void DecodeMobiDocHeader(const u8* buf, MobiHeader* hdr) {
     hdr->extraDataFlags = d.UInt16();
     if (hdr->hdrLen >= 232) {
         hdr->indxRec = d.UInt32();
-        ReportIf(kMobiHeaderLen != d.Offset());
+        ReportDebugIf(kMobiHeaderLen != d.Offset());
     } else {
-        ReportIf(kMobiHeaderLen - 4 != d.Offset());
+        ReportDebugIf(kMobiHeaderLen - 4 != d.Offset());
     }
 }
 
@@ -476,7 +476,7 @@ MobiDoc::~MobiDoc() {
 }
 
 bool MobiDoc::ParseHeader() {
-    ReportIf(!pdbReader);
+    ReportDebugIf(!pdbReader);
     if (!pdbReader) {
         return false;
     }
@@ -487,7 +487,7 @@ bool MobiDoc::ParseHeader() {
 
     docType = GetPdbDocType(pdbReader->GetDbType());
     if (PdbDocType::Unknown == docType) {
-        logf("unknown pdb type/creator\n");
+        // logf("unknown pdb type/creator\n");
         return false;
     }
 
@@ -503,14 +503,14 @@ bool MobiDoc::ParseHeader() {
     DecodePalmDocHeader(firstRecData, &palmDocHdr);
     compressionType = palmDocHdr.compressionType;
     if (!IsValidCompression(compressionType)) {
-        logf("MobiDoc::ParseHeader: unknown compression type %d\n", (int)compressionType);
+        // logf("MobiDoc::ParseHeader: unknown compression type %d\n", (int)compressionType);
         return false;
     }
     if (PdbDocType::Mobipocket == docType) {
         // TODO: this needs to be surfaced to the client so
         // that we can show the right error message
         if (palmDocHdr.mobi.encrType != ENCRYPTION_NONE) {
-            logf("encryption is unsupported\n");
+            // logf("encryption is unsupported\n");
             return false;
         }
     }
@@ -527,7 +527,7 @@ bool MobiDoc::ParseHeader() {
         return PdbDocType::Mobipocket != docType;
     }
     if (kPalmDocHeaderLen + kMobiHeaderMinLen > recSize) {
-        logf("not enough data for decoding MobiHeader\n");
+        // logf("not enough data for decoding MobiHeader\n");
         // id and hdrLen
         return false;
     }
@@ -535,11 +535,11 @@ bool MobiDoc::ParseHeader() {
     MobiHeader mobiHdr;
     DecodeMobiDocHeader(firstRecData + kPalmDocHeaderLen, &mobiHdr);
     if (!str::EqN("MOBI", mobiHdr.id, 4)) {
-        logf("MobiHeader.id is not 'MOBI'\n");
+        // logf("MobiHeader.id is not 'MOBI'\n");
         return false;
     }
     if (mobiHdr.drmEntriesCount != (u32)-1) {
-        logf("DRM is unsupported\n");
+        // logf("DRM is unsupported\n");
         // load an empty document and display a warning
         compressionType = COMPRESSION_UNSUPPORTED_DRM;
         char* v = strconv::WStrToCodePage(mobiHdr.textEncoding, L"DRM");
@@ -558,7 +558,7 @@ bool MobiDoc::ParseHeader() {
         }
     }
     if (kPalmDocHeaderLen + (size_t)mobiHdr.hdrLen > recSize) {
-        logf("MobiHeader too big\n");
+        // logf("MobiHeader too big\n");
         return false;
     }
 
@@ -575,21 +575,21 @@ bool MobiDoc::ParseHeader() {
     }
 
     if (COMPRESSION_HUFF == compressionType) {
-        ReportIf(PdbDocType::Mobipocket != docType);
+        ReportDebugIf(PdbDocType::Mobipocket != docType);
         rec = pdbReader->GetRecord(mobiHdr.huffmanFirstRec);
         size_t huffRecSize = rec.size();
         u8* recData = rec.data();
         if (!recData) {
             return false;
         }
-        ReportIf(nullptr != huffDic);
+        ReportDebugIf(nullptr != huffDic);
         huffDic = new HuffDicDecompressor();
         if (!huffDic->SetHuffData((u8*)recData, huffRecSize)) {
             return false;
         }
         size_t cdicsCount = mobiHdr.huffmanRecCount - 1;
         if (cdicsCount > kCdicsMax) {
-            logf("MobiDoc::ParseHeader: cdicsCount: %d, kCdicsMax: %d\n", (int)cdicsCount, kCdicsMax);
+            // logf("MobiDoc::ParseHeader: cdicsCount: %d, kCdicsMax: %d\n", (int)cdicsCount, kCdicsMax);
             ReportDebugIf(true);
             return false;
         }
@@ -732,7 +732,7 @@ bool MobiDoc::LoadImage(size_t imageNo) {
         return true;
     }
     if (!KnownImageFormat(rec)) {
-        logf("MobiDoc::LoadImage: unknown image format\n");
+        // logf("MobiDoc::LoadImage: unknown image format\n");
         return true;
     }
     images[imageNo] = rec;
@@ -833,14 +833,14 @@ bool MobiDoc::LoadDocRecordIntoBuffer(size_t recNo, str::Str& strOut) {
     if (COMPRESSION_PALM == compressionType) {
         bool ok = PalmdocUncompress(recData, recSize, strOut);
         if (!ok) {
-            logf("PalmDoc decompression failed\n");
+            // logf("PalmDoc decompression failed\n");
         }
         return ok;
     }
     if (COMPRESSION_HUFF == compressionType && huffDic) {
         bool ok = huffDic->Decompress((u8*)recData, recSize, strOut);
         if (!ok) {
-            logf("HuffDic decompression failed\n");
+            // logf("HuffDic decompression failed\n");
         }
         return ok;
     }
@@ -862,7 +862,7 @@ bool MobiDoc::LoadForPdbReader(PdbReader* pdbReader) {
         return false;
     }
 
-    ReportIf(doc != nullptr);
+    ReportDebugIf(doc != nullptr);
     doc = new str::Str(docUncompressedSize);
     size_t nFailed = 0;
     for (size_t i = 1; i <= docRecCount; i++) {

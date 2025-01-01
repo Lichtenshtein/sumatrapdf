@@ -172,7 +172,7 @@ void FindSelection(MainWindow* win, TextSearch::Direction direction) {
 }
 
 static void ShowSearchResult(MainWindow* win, TextSel* result, bool addNavPt) {
-    ReportIf(0 == result->len || !result->pages || !result->rects);
+    ReportDebugIf(0 == result->len || !result->pages || !result->rects);
     if (0 == result->len || !result->pages || !result->rects) {
         return;
     }
@@ -209,7 +209,7 @@ static void UpdateFindStatus(UpdateFindStatusData* d) {
     }
     auto wnd = GetNotificationForGroup(win->hwndCanvas, kNotifFindProgress);
     if (!wnd) {
-        logf("UpdateFindStatus: no wnd, setting win->findCancelled to true\n");
+        // logf("UpdateFindStatus: no wnd, setting win->findCancelled to true\n");
         win->findCancelled = true;
         return;
     }
@@ -217,7 +217,7 @@ static void UpdateFindStatus(UpdateFindStatusData* d) {
     int perc = CalcPerc(d->current, d->total);
     if (!UpdateNotificationProgress(wnd, msg, perc)) {
         // the search has been canceled by closing the notification
-        logf("UpdateFindStatus: UpdateNotificationProgress() returned false, setting win->findCancelled to true\n");
+        // logf("UpdateFindStatus: UpdateNotificationProgress() returned false, setting win->findCancelled to true\n");
         win->findCancelled = true;
     }
 }
@@ -290,8 +290,7 @@ struct FindThreadData {
         bool winValid = IsMainWindowValid(win);
         auto res = !winValid || win->findCancelled;
         if (res) {
-            logf("FindThreadData: WasCanceled() returns true, isMainWindowValid: %d, win->findCancelled: %d\n",
-                 (int)winValid, (int)win->findCancelled);
+            // logf("FindThreadData: WasCanceled() returns true, isMainWindowValid: %d, win->findCancelled: %d\n", (int)winValid, (int)win->findCancelled);
         }
         return res;
     }
@@ -366,7 +365,7 @@ static void UpdateSearchProgress(FindThreadData* ftd, ProgressUpdateData* data) 
 }
 
 static void FindThread(FindThreadData* ftd) {
-    ReportIf(!(ftd && ftd->win && ftd->win->ctrl && ftd->win->ctrl->AsFixed()));
+    ReportDebugIf(!(ftd && ftd->win && ftd->win->ctrl && ftd->win->ctrl->AsFixed()));
 
     MainWindow* win = ftd->win;
     DisplayModel* dm = win->AsFixed();
@@ -429,7 +428,7 @@ bool AbortFinding(MainWindow* win, bool hideMessage) {
     bool res = false;
     if (win->findThread) {
         res = true;
-        logf("AboftFinding: setting win->findCancelled to true\n");
+        // logf("AboftFinding: setting win->findCancelled to true\n");
         win->findCancelled = true;
         WaitForSingleObject(win->findThread, INFINITE);
     }
@@ -491,7 +490,7 @@ void FindTextOnThread(MainWindow* win, TextSearch::Direction direction, bool sho
 }
 
 void PaintForwardSearchMark(MainWindow* win, HDC hdc) {
-    ReportIf(!win->AsFixed());
+    ReportDebugIf(!win->AsFixed());
     DisplayModel* dm = win->AsFixed();
     int pageNo = win->fwdSearchMark.page;
     PageInfo* pageInfo = dm->GetPageInfo(pageNo);
@@ -620,7 +619,7 @@ bool OnInverseSearch(MainWindow* win, int x, int y) {
 // Show the result of a PDF forward-search synchronization (initiated by a DDE command)
 void ShowForwardSearchResult(MainWindow* win, const char* fileName, int line, int /* col */, int ret, int page,
                              Vec<Rect>& rects) {
-    ReportIf(!win->AsFixed());
+    ReportDebugIf(!win->AsFixed());
     DisplayModel* dm = win->AsFixed();
     win->fwdSearchMark.rects.Reset();
     const PageInfo* pi = dm->GetPageInfo(page);
@@ -828,19 +827,18 @@ static const char* HandleOpenCmd(const char* cmd, bool* ack) {
         return nullptr;
     }
     bool isCtrl = IsCtrlPressed();
-    logf("HandleOpenCmd: '%s', newWindow: %d, setFocus: %d, forceRefresh: %d, inCurrentTab: %d, isCtrl: %d\n",
-         filePath.CStr(), newWindow, setFocus, forceRefresh, inCurrentTab, isCtrl);
+    // logf("HandleOpenCmd: '%s', newWindow: %d, setFocus: %d, forceRefresh: %d, inCurrentTab: %d, isCtrl: %d\n", filePath.CStr(), newWindow, setFocus, forceRefresh, inCurrentTab, isCtrl);
     // on startup this is called while LoadDocument is in progress, which causes
     // all sort of mayhem. Queue files to be loaded in a sequence
     if (gIsStartup) {
-        logf("HandleOpenCmd: gIsStartup, appending to gDdeOpenOnStartup\n");
+        // logf("HandleOpenCmd: gIsStartup, appending to gDdeOpenOnStartup\n");
         gDdeOpenOnStartup.Append(filePath);
         return next;
     }
 
     if (newWindow != 0 && inCurrentTab != 0) {
         inCurrentTab = 0;
-        logf("HandleOpenCmd: setting inCurrentTab to 0 because newWindow != 0\n");
+        // logf("HandleOpenCmd: setting inCurrentTab to 0 because newWindow != 0\n");
     }
 
     bool focusTab = (newWindow == 0);
@@ -852,7 +850,7 @@ static const char* HandleOpenCmd(const char* cmd, bool* ack) {
     for (auto& w : gWindows) {
         if (!w->HasDocsLoaded()) {
             emptyExistingWin = w;
-            logf("HandleOpenCmd: found empty existing window\n");
+            // logf("HandleOpenCmd: found empty existing window\n");
             break;
         }
     }
@@ -860,22 +858,22 @@ static const char* HandleOpenCmd(const char* cmd, bool* ack) {
         if (emptyExistingWin) {
             // instead of opening new window, re-use exisitng open window
             win = emptyExistingWin;
-            logf("HandleOpenCmd: newWindow > 0, using empty existing window\n");
+            // logf("HandleOpenCmd: newWindow > 0, using empty existing window\n");
         } else {
             win = CreateAndShowMainWindow(nullptr);
-            logf("HandleOpenCmd: newWindow > 0, created new window\n");
+            // logf("HandleOpenCmd: newWindow > 0, created new window\n");
         }
     }
     bool doLoad = true;
     if (!win) {
         win = FindMainWindowByFile(filePath, focusTab);
         if (win) {
-            logf("HandleOpenCmd: found existing window with file '%s'\n", filePath.Get());
+            // logf("HandleOpenCmd: found existing window with file '%s'\n", filePath.Get());
             doLoad = false;
             if (!win->IsDocLoaded()) {
                 ReloadDocument(win, false);
                 forceRefresh = 0;
-                logf("HandleOpenCmd: existing tab was not loaded, so reloaded, set forceRefresh = 0\n");
+                // logf("HandleOpenCmd: existing tab was not loaded, so reloaded, set forceRefresh = 0\n");
             }
         }
     }
@@ -883,22 +881,22 @@ static const char* HandleOpenCmd(const char* cmd, bool* ack) {
         if (nWindows == 1) {
             // of only one window, use that one
             win = gWindows[0];
-            logf("HandleOpenCmd: using the only window\n");
+            // logf("HandleOpenCmd: using the only window\n");
         }
         if (!win) {
             // https://github.com/sumatrapdfreader/sumatrapdf/issues/2315
             // open in the last active window
             win = FindMainWindowByHwnd(gLastActiveFrameHwnd);
             if (win) {
-                logf("HandleOpenCmd: found last active window\n");
+                // logf("HandleOpenCmd: found last active window\n");
             } else {
-                logf("HandleOpenCmd: didn't find last active window\n");
+                // logf("HandleOpenCmd: didn't find last active window\n");
             }
         }
         if (!win && nWindows > 0) {
             // if can't find active, using the first
             win = gWindows[0];
-            logf("HandleOpenCmd: first window\n");
+            // logf("HandleOpenCmd: first window\n");
         }
     }
 
@@ -908,24 +906,24 @@ static const char* HandleOpenCmd(const char* cmd, bool* ack) {
         if (newWindow) {
             args.activateExisting = false;
         }
-        logf("HandleOpenCmd: calling LoadDocument(), activateExisting: %d\n", (int)args.activateExisting);
+        // logf("HandleOpenCmd: calling LoadDocument(), activateExisting: %d\n", (int)args.activateExisting);
         win = LoadDocument(&args);
         if (!win) {
-            logf("HandleOpenCmd: LoadDocument() for '%s' failed\n", filePath.Get());
+            // logf("HandleOpenCmd: LoadDocument() for '%s' failed\n", filePath.Get());
         }
     }
 
     // TODO: not sure why this triggers. Seems to happen when opening multiple files
     // via Open menu in explorer. The first one is opened via cmd-line arg, the
     // rest via DDE.
-    // ReportIf(win && win->IsAboutWindow());
+    // ReportDebugIf(win && win->IsAboutWindow());
     if (win) {
         if (forceRefresh) {
-            logf("HandleOpenCmd: forceRefresh != 0 so calling ReloadDocument()\n");
+            // logf("HandleOpenCmd: forceRefresh != 0 so calling ReloadDocument()\n");
             ReloadDocument(win, true);
         }
         if (setFocus) {
-            logf("HandleOpenCmd: setFocus != 0 so calling win->Focus()\n");
+            // logf("HandleOpenCmd: setFocus != 0 so calling win->Focus()\n");
             win->Focus();
         }
     }
@@ -1066,7 +1064,7 @@ static const char* HandleNewWindowCmd(const char* cmd, bool* ack) {
     if (!str::StartsWith(cmd, "[NewWindow]")) {
         return nullptr;
     }
-    logf("HandleNewWindowCmd\n");
+    // logf("HandleNewWindowCmd\n");
     const char* next = cmd + str::Leni("[NewWindow]");
     CreateAndShowMainWindow(nullptr);
     *ack = true;
@@ -1158,7 +1156,7 @@ static bool HandleExecuteCmds(HWND hwnd, const char* cmd) {
     bool didHandle = false;
     while (!str::IsEmpty(cmd)) {
         {
-            logf("HandleExecuteCmds: '%s'\n", cmd);
+            // logf("HandleExecuteCmds: '%s'\n", cmd);
         }
 
         const char* nextCmd = HandleSyncCmd(cmd, &didHandle);
@@ -1197,7 +1195,7 @@ static bool HandleRequestCmds(HWND hwnd, const char* cmd, str::Str& rsp) {
     bool didHandle = false;
     while (!str::IsEmpty(cmd)) {
         {
-            logf("HandleRequestCmds: '%s'\n", cmd);
+            // logf("HandleRequestCmds: '%s'\n", cmd);
         }
 
         const char* nextCmd = HandleGetFileStateCmd(hwnd, cmd, &didHandle, rsp);
@@ -1221,7 +1219,7 @@ LRESULT OnDDERequest(HWND hwnd, WPARAM wp, LPARAM lp) {
             // we handle those
             break;
         default:
-            logf("OnDDERequest: invalid fmt '%s'\n", (int)fmt);
+            // logf("OnDDERequest: invalid fmt '%s'\n", (int)fmt);
             return 0;
     }
     ATOM a = HIWORD(lp);
@@ -1246,7 +1244,7 @@ LRESULT OnDDERequest(HWND hwnd, WPARAM wp, LPARAM lp) {
         data = (void*)tmp;
         cbData = (str::Leni(tmp) + 1) * 2;
     } else {
-        ReportIf(true);
+        ReportDebugIf(true);
         return 0;
     }
 
@@ -1317,7 +1315,7 @@ bool RegisterDDeServer() {
     auto err = DdeInitializeW(&ddeInst, nullptr, APPCMD_CLIENTONLY | CBF_FAIL_ADVISES, 0);
     if (err != DMLERR_NO_ERROR) {
         // Handle initialization error
-        logf("RegisterDDeServer: DdeInitializeW() failed with '%d'\n", (int)err);
+        // logf("RegisterDDeServer: DdeInitializeW() failed with '%d'\n", (int)err);
         return false;
     }
     return true;

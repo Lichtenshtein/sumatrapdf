@@ -38,7 +38,7 @@ const char* gAllProps[] = {
 
 int PropsCount(const Props& props) {
     int n = props.Size();
-    ReportIf(n < 0 || (n % 2) != 0);
+    ReportDebugIf(n < 0 || (n % 2) != 0);
     return n / 2;
 }
 
@@ -64,7 +64,7 @@ char* GetPropValueTemp(const Props& props, const char* name) {
 }
 
 void AddProp(Props& props, const char* name, const char* val, bool replaceIfExists) {
-    ReportIf(!name || !val);
+    ReportDebugIf(!name || !val);
     int idx = GetPropIdx(props, name);
     if (idx < 0) {
         // doesn't exsit

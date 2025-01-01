@@ -36,7 +36,7 @@ bool HasWebView() {
     WCHAR* ver = nullptr;
     HRESULT hr = GetAvailableCoreWebView2BrowserVersionString(nullptr, &ver);
     if (FAILED(hr) || str::IsEmpty(ver)) {
-        logf("WebView2 is not available\n");
+        // logf("WebView2 is not available\n");
         return false;
     }
     return true;
@@ -218,7 +218,7 @@ static void OnBrowserMessageCb(WebviewWnd* self, const char* msg) {
 }
 
 HWND WebviewWnd::Create(const CreateWebViewArgs& args) {
-    ReportIf(!dataDir);
+    ReportDebugIf(!dataDir);
     CreateCustomArgs cargs;
     cargs.parent = args.parent;
     cargs.pos = args.pos;

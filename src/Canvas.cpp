@@ -102,13 +102,13 @@ void UpdateDeltaPerLine() {
     } else if (ulScrollLines != 0) {
         gDeltaPerLine = WHEEL_DELTA / ulScrollLines;
     }
-    // logf("SPI_GETWHEELSCROLLLINES: ulScrollLines=%d, gDeltaPerLine=%d\n", (int)ulScrollLines, gDeltaPerLine);
+    // // logf("SPI_GETWHEELSCROLLLINES: ulScrollLines=%d, gDeltaPerLine=%d\n", (int)ulScrollLines, gDeltaPerLine);
 }
 
 ///// methods needed for FixedPageUI canvases with document loaded /////
 
 static void OnVScroll(MainWindow* win, WPARAM wp) {
-    ReportIf(!win->AsFixed());
+    ReportDebugIf(!win->AsFixed());
 
     SCROLLINFO si{};
     si.cbSize = sizeof(si);
@@ -218,7 +218,7 @@ static void OnVScroll(MainWindow* win, WPARAM wp) {
 }
 
 static void OnHScroll(MainWindow* win, WPARAM wp) {
-    ReportIf(!win->AsFixed());
+    ReportDebugIf(!win->AsFixed());
 
     SCROLLINFO si{};
     si.cbSize = sizeof(si);
@@ -391,8 +391,8 @@ static bool StopDraggingAnnotation(MainWindow* win, int x, int y, bool aborted) 
         RectF ar = GetRect(annot);
         r.dx = ar.dx;
         r.dy = ar.dy;
-        // logf("prev rect: x=%.2f, y=%.2f, dx=%.2f, dy=%.2f\n", ar.x, ar.y, ar.dx, ar.dy);
-        // logf(" new rect: x=%.2f, y=%.2f, dx=%.2f, dy=%.2f\n", r.x, r.y, r.dx, r.dy);
+        // // logf("prev rect: x=%.2f, y=%.2f, dx=%.2f, dy=%.2f\n", ar.x, ar.y, ar.dx, ar.dy);
+        // // logf(" new rect: x=%.2f, y=%.2f, dx=%.2f, dy=%.2f\n", r.x, r.y, r.dx, r.dy);
         SetRect(annot, r);
         NotifyAnnotationsChanged(win->CurrentTab()->editAnnotsWindow);
         MainWindowRerender(win);
@@ -453,24 +453,24 @@ static RectF CalculateResizedRect(MainWindow* win, int x, int y);
 
 static void OnMouseMove(MainWindow* win, int x, int y, WPARAM) {
     DisplayModel* dm = win->AsFixed();
-    ReportIf(!dm);
+    ReportDebugIf(!dm);
 
     if (win->InPresentation()) {
         if (PM_BLACK_SCREEN == win->presentation || PM_WHITE_SCREEN == win->presentation) {
-            // logf("OnMouseMove: hiding cursor because black screen or white screen\n");
+            // // logf("OnMouseMove: hiding cursor because black screen or white screen\n");
             SetCursor((HCURSOR) nullptr);
             return;
         }
 
         bool showingCursor = (GetCursor() != nullptr);
         bool sameAsLastPos = win->dragPrevPos.Eq(x, y);
-        // logf("OnMouseMove(): win->InPresentation() (%d, %d) showingCursor: %d, same as last pos: %d\n", x,
+        // // logf("OnMouseMove(): win->InPresentation() (%d, %d) showingCursor: %d, same as last pos: %d\n", x,
         // y,
         //     (int)showingCursor, (int)sameAsLastPos);
         if (!sameAsLastPos) {
             // shortly display the cursor if the mouse has moved and the cursor is hidden
             if (!showingCursor) {
-                // logf("OnMouseMove: temporary showing cursor\n");
+                // // logf("OnMouseMove: temporary showing cursor\n");
                 if (win->mouseAction == MouseAction::None) {
                     SetCursorCached(IDC_ARROW);
                 } else {
@@ -481,7 +481,7 @@ static void OnMouseMove(MainWindow* win, int x, int y, WPARAM) {
                 // hack: hide cursor immediately. see EnterFullScreen
                 SetTimer(win->hwndCanvas, kHideCursorTimerID, 1, nullptr);
             } else {
-                // logf("OnMouseMove: starting kHideCursorTimerID\n");
+                // // logf("OnMouseMove: starting kHideCursorTimerID\n");
                 SetTimer(win->hwndCanvas, kHideCursorTimerID, kHideCursorDelayInMs, nullptr);
             }
         }
@@ -507,12 +507,12 @@ static void OnMouseMove(MainWindow* win, int x, int y, WPARAM) {
 #if 0
                 TempStr name = annot ? AnnotationReadableNameTemp(annot->type) : (TempStr) "none";
                 TempStr prevName = prev ? AnnotationReadableNameTemp(prev->type) : (TempStr) "none";
-                logf("different annot under cursor. prev: %s, new: %s\n", prevName, name);
+                // logf("different annot under cursor. prev: %s, new: %s\n", prevName, name);
 #endif
                 if (gShowAnnotationNotification) {
                     if (annot) {
                         // auto r = annot->bounds;
-                        // logf("new pos: %d-%d, size: %d-%d\n", (int)r.x, (int)r.y, (int)r.dx, (int)r.dy);
+                        // // logf("new pos: %d-%d, size: %d-%d\n", (int)r.x, (int)r.y, (int)r.dx, (int)r.dy);
                         RemoveNotificationsForGroup(win->hwndCanvas, kNotifAnnotation);
                         NotificationCreateArgs args;
                         args.hwndParent = win->hwndCanvas;
@@ -771,12 +771,12 @@ static void OnMouseLeftButtonDown(MainWindow* win, int x, int y, WPARAM key) {
     if (win->mouseAction != MouseAction::None) {
         // this can be MouseAction::SelectingText (4)
         // can't reproduce it so far
-        logf("OnMouseLeftButtonDown: win->mouseAction=%d\n", (int)win->mouseAction);
-        // ReportIf(win->mouseAction != MouseAction::Idle);
+        // logf("OnMouseLeftButtonDown: win->mouseAction=%d\n", (int)win->mouseAction);
+        // ReportDebugIf(win->mouseAction != MouseAction::Idle);
         win->mouseAction = MouseAction::None;
         return;
     }
-    ReportIf(!win->AsFixed());
+    ReportDebugIf(!win->AsFixed());
 
     HwndSetFocus(win->hwndFrame);
 
@@ -798,7 +798,7 @@ static void OnMouseLeftButtonDown(MainWindow* win, int x, int y, WPARAM key) {
     } else if (isMoveableAnnot) {
         StartAnnotationDrag(win, annot, pt);
     } else {
-        ReportIf(win->linkOnLastButtonDown);
+        ReportDebugIf(win->linkOnLastButtonDown);
         IPageElement* pageEl = dm->GetElementAtPos(pt, nullptr);
         if (pageEl) {
             if (pageEl->Is(kindPageElementDest)) {
@@ -829,7 +829,7 @@ static void OnMouseLeftButtonDown(MainWindow* win, int x, int y, WPARAM key) {
 
 static void OnMouseLeftButtonUp(MainWindow* win, int x, int y, WPARAM key) {
     DisplayModel* dm = win->AsFixed();
-    ReportIf(!dm);
+    ReportDebugIf(!dm);
     auto ma = win->mouseAction;
     if (MouseAction::None == ma || IsRightDragging(win)) {
         return;
@@ -840,7 +840,7 @@ static void OnMouseLeftButtonUp(MainWindow* win, int x, int y, WPARAM key) {
         // TODO: I'm seeing this in crash reports. Can we get button up without button down?
         // maybe when down happens on a different hwnd? How can I add more logging.
         // logfa("OnMouseLeftButtonUp: unexpected MouseAction::Scrolling (%d)\n", ma);
-        // ReportIf(true);
+        // ReportDebugIf(true);
         return;
     }
 
@@ -1041,7 +1041,7 @@ static void OnMouseRightButtonDown(MainWindow* win, int x, int y) {
     } else if (win->mouseAction != MouseAction::None) {
         return;
     }
-    ReportIf(!win->AsFixed());
+    ReportDebugIf(!win->AsFixed());
 
     HwndSetFocus(win->hwndFrame);
 
@@ -1052,7 +1052,7 @@ static void OnMouseRightButtonDown(MainWindow* win, int x, int y) {
 }
 
 static void OnMouseRightButtonUp(MainWindow* win, int x, int y, WPARAM key) {
-    ReportIf(!win->AsFixed());
+    ReportDebugIf(!win->AsFixed());
     if (!IsRightDragging(win)) {
         return;
     }
@@ -1275,12 +1275,12 @@ NO_INLINE static void PaintCurrentEditAnnotationMark(WindowTab* tab, HDC hdc, Di
 }
 
 static bool DrawDocument(MainWindow* win, HDC hdc, RECT* rcArea) {
-    ReportIf(!win->AsFixed());
+    ReportDebugIf(!win->AsFixed());
     if (!win->AsFixed()) {
         return false;
     }
     DisplayModel* dm = win->AsFixed();
-    // logf("DrawDocument RenderCache:\n");
+    // // logf("DrawDocument RenderCache:\n");
 
     bool isImage = dm->GetEngine()->IsImageCollection();
     // draw comic books and single images on a black background
@@ -1370,7 +1370,7 @@ static bool DrawDocument(MainWindow* win, HDC hdc, RECT* rcArea) {
         if (!pageInfo || 0.0f == pageInfo->visibleRatio) {
             continue;
         }
-        ReportIf(!pageInfo->shown);
+        ReportDebugIf(!pageInfo->shown);
         if (!pageInfo->shown) {
             continue;
         }
@@ -1525,8 +1525,8 @@ static LRESULT OnSetCursorMouseNone(MainWindow* win, HWND hwnd) {
     char* text = pageEl->GetValue();
     if (!dm->ValidPageNo(pageNo)) {
         const char* kind = pageEl->GetKind();
-        logf("OnSetCursorMouseIdle: page element '%s' of kind '%s' on invalid page %d\n", text, kind, pageNo);
-        ReportIf(true);
+        // logf("OnSetCursorMouseIdle: page element '%s' of kind '%s' on invalid page %d\n", text, kind, pageNo);
+        ReportDebugIf(true);
         return TRUE;
     }
     auto r = pageEl->GetRect();
@@ -1544,7 +1544,7 @@ static LRESULT OnSetCursorMouseNone(MainWindow* win, HWND hwnd) {
 }
 
 static LRESULT OnSetCursor(MainWindow* win, HWND hwnd) {
-    ReportIf(win->hwndCanvas != hwnd);
+    ReportDebugIf(win->hwndCanvas != hwnd);
     if (win->mouseAction != MouseAction::None) {
         win->DeleteToolTip();
     }
@@ -1584,11 +1584,11 @@ bool IsFirstWheelMsg(LARGE_INTEGER& lastTime) {
     auto elapsedMs = TimeDiffMs(lastTime, currTime);
     // 150 ms is a heuristic based on looking at logs
     if (elapsedMs < 150.0) {
-        // logf("IsFirstWheelMsg: no, elapsed: %.f\n", (float)elapsedMs);
+        // // logf("IsFirstWheelMsg: no, elapsed: %.f\n", (float)elapsedMs);
         lastTime = currTime;
         return false;
     }
-    // logf("IsFirstWheelMsg: yes, elapsed: %.f\n", (float)elapsedMs);
+    // // logf("IsFirstWheelMsg: yes, elapsed: %.f\n", (float)elapsedMs);
     lastTime = currTime;
     return true;
 }
@@ -1645,7 +1645,7 @@ static void ZoomByMouseWheel(MainWindow* win, WPARAM wp) {
     bool smartZoom = false; // Note: if true will prioritze selection
     SmartZoom(win, newZoom, &pt, smartZoom);
 
-    // logf("delta: %d, accumDelta: %d, factor: %f, newZoom: %f\n", delta, accumDelta, factor, newZoom);
+    // // logf("delta: %d, accumDelta: %d, factor: %f, newZoom: %f\n", delta, accumDelta, factor, newZoom);
 }
 
 static LRESULT CanvasOnMouseWheel(MainWindow* win, UINT msg, WPARAM wp, LPARAM lp) {
@@ -1675,7 +1675,7 @@ static LRESULT CanvasOnMouseWheel(MainWindow* win, UINT msg, WPARAM wp, LPARAM l
     bool vScroll = !hScroll;
     bool isCont = !IsContinuous(win->ctrl->GetDisplayMode());
 
-    // logf("delta: %d, accumDelta: %d, hscroll: %d, continuous: %d, gDeltaPerLine: %d\n", (int)delta,
+    // // logf("delta: %d, accumDelta: %d, hscroll: %d, continuous: %d, gDeltaPerLine: %d\n", (int)delta,
     // win->wheelAccumDelta,
     //      (int)hScroll, (int)isCont, gDeltaPerLine);
 
@@ -1723,7 +1723,7 @@ static LRESULT CanvasOnMouseWheel(MainWindow* win, UINT msg, WPARAM wp, LPARAM l
         DisplayModel* dm = win->AsFixed();
         if (dm && !dm->NeedVScroll()) {
             // if page/pages fully fit in window, flip the whole page
-            // logf("  flipping page because !dm->NeedVScroll()\n");
+            // // logf("  flipping page because !dm->NeedVScroll()\n");
             flipPage = true;
         }
         // int scrolLPos = GetScrollPos(win->hwndCanvas, SB_VERT);
@@ -1810,7 +1810,7 @@ static LRESULT CanvasOnMouseWheel(MainWindow* win, UINT msg, WPARAM wp, LPARAM l
         while (win->wheelAccumDelta <= -gDeltaPerLine) {
             SendMessageW(win->hwndCanvas, scrollMsg, scrollWp, 0);
             win->wheelAccumDelta += gDeltaPerLine;
-            // logf("  line down\n");
+            // // logf("  line down\n");
             didScrollByLine = true;
         }
     } else {
@@ -1818,7 +1818,7 @@ static LRESULT CanvasOnMouseWheel(MainWindow* win, UINT msg, WPARAM wp, LPARAM l
         while (win->wheelAccumDelta >= gDeltaPerLine) {
             SendMessageW(win->hwndCanvas, scrollMsg, scrollWp, 0);
             win->wheelAccumDelta -= gDeltaPerLine;
-            // logf("  line up\n");
+            // // logf("  line up\n");
             didScrollByLine = true;
         }
     }
@@ -1837,7 +1837,7 @@ static LRESULT CanvasOnMouseWheel(MainWindow* win, UINT msg, WPARAM wp, LPARAM l
         // we don't flip a page if we did scroll by line
         return 0;
     }
-    // logf("  flip page: delta: %d, accumDelta: %d\n", (int)delta, (int)win->wheelAccumDelta);
+    // // logf("  flip page: delta: %d, accumDelta: %d\n", (int)delta, (int)win->wheelAccumDelta);
     if (delta > 0) {
         win->ctrl->GoToPrevPage(true);
     } else {
@@ -1935,7 +1935,7 @@ static LRESULT OnGesture(MainWindow* win, UINT msg, WPARAM wp, LPARAM lp) {
                 touchState.panStarted = true;
                 touchState.panPos = gi.ptsLocation;
                 touchState.panScrollOrigX = GetScrollPos(win->hwndCanvas, SB_HORZ);
-                // logf("OnGesture: GID_PAN, GF_BEGIN, scrollX: %d\n", touchState.panScrollOrigX);
+                // // logf("OnGesture: GID_PAN, GF_BEGIN, scrollX: %d\n", touchState.panScrollOrigX);
             } else if (touchState.panStarted) {
                 int deltaX = touchState.panPos.x - gi.ptsLocation.x;
                 int deltaY = touchState.panPos.y - gi.ptsLocation.y;
@@ -1944,21 +1944,21 @@ static LRESULT OnGesture(MainWindow* win, UINT msg, WPARAM wp, LPARAM lp) {
                 // on left / right flick, go to next / prev page
                 // unless we can pan/scroll the document
                 bool isFlickX = (gi.dwFlags & GF_INERTIA) && (abs(deltaX) > abs(deltaY)) && (abs(deltaX) > 26);
-                // logf("OnGesture: GID_PAN, flags: %d (%s), dx: %d, dy: %d, isFlick: %d\n", gi.dwFlags,
+                // // logf("OnGesture: GID_PAN, flags: %d (%s), dx: %d, dy: %d, isFlick: %d\n", gi.dwFlags,
                 // GiFlagsToStr(gi.dwFlags), deltaX, deltaY, (int)isFlickX);
                 bool flipPage = false;
                 if (!dm->NeedHScroll()) {
                     // if the page is fully visible
                     flipPage = true;
-                    // logf("flipPage becaues !dm->NeedHScroll()");
+                    // // logf("flipPage becaues !dm->NeedHScroll()");
                 }
                 if (deltaX > 0 && !dm->CanScrollRight()) {
                     flipPage = true;
-                    // logf("flipPage becaues deltaX > 0 && !dm->CanScrollRight()");
+                    // // logf("flipPage becaues deltaX > 0 && !dm->CanScrollRight()");
                 }
                 if (deltaX < 0 && !dm->CanScrollLeft()) {
                     flipPage = true;
-                    // logf("flipPage becaues deltaX < 0 && !dm->CanScrollLeft()");
+                    // // logf("flipPage becaues deltaX < 0 && !dm->CanScrollLeft()");
                 }
 
                 if (isFlickX && flipPage) {
@@ -1966,7 +1966,7 @@ static LRESULT OnGesture(MainWindow* win, UINT msg, WPARAM wp, LPARAM lp) {
                         win->ctrl->GoToPrevPage();
                         // TODO: scroll to show the right-hand part
                         int x = dm->canvasSize.dx - dm->viewPort.dx;
-                        // logf("x: %d\n");
+                        // // logf("x: %d\n");
                         dm->ScrollXTo(x);
                     } else if (deltaX > 0) {
                         win->ctrl->GoToNextPage();
@@ -1986,11 +1986,11 @@ static LRESULT OnGesture(MainWindow* win, UINT msg, WPARAM wp, LPARAM lp) {
                     bool stopPanning = false;
                     if (canScrollRightBefore != dm->CanScrollRight()) {
                         stopPanning = true;
-                        // logf("stopPanning because canScrollRightBefore != dm->CanScrollRight()\n");
+                        // // logf("stopPanning because canScrollRightBefore != dm->CanScrollRight()\n");
                     }
                     if (canScrollLeftBefore != dm->CanScrollLeft()) {
                         stopPanning = true;
-                        // logf("stopPanning because canScrollLeftBefore != dm->CanScrollLeft()\n");
+                        // // logf("stopPanning because canScrollLeftBefore != dm->CanScrollLeft()\n");
                     }
                     if (stopPanning) {
                         touchState.panStarted = false;
@@ -2045,8 +2045,7 @@ static LRESULT WndProcCanvasFixedPageUI(MainWindow* win, HWND hwnd, UINT msg, WP
 
     if (!IsMainWindowValid(win)) {
         bool hwndValid = IsWindow(hwnd);
-        logf("WndProcCanvasFixedPageUI: MainWindow win: 0x%p is no longer valid, msg: %d, hwnd valid: %d\n", win,
-             (int)msg, (int)hwndValid);
+        // logf("WndProcCanvasFixedPageUI: MainWindow win: 0x%p is no longer valid, msg: %d, hwnd valid: %d\n", win, (int)msg, (int)hwndValid);
         ReportIfQuick(true);
         return 0;
     }
@@ -2241,7 +2240,7 @@ static void RepaintTask(RepaintTaskData* d) {
 }
 
 void ScheduleRepaint(MainWindow* win, int delayInMs) {
-    // logf("ScheduleRepaint RenderCache:\n");
+    // // logf("ScheduleRepaint RenderCache:\n");
     auto data = new RepaintTaskData;
     data->win = win;
     data->delayInMs = delayInMs;
@@ -2278,10 +2277,10 @@ static void OnTimer(MainWindow* win, HWND hwnd, WPARAM timerId) {
             break;
 
         case kHideCursorTimerID:
-            // logf("got kHideCursorTimerID\n");
+            // // logf("got kHideCursorTimerID\n");
             KillTimer(hwnd, kHideCursorTimerID);
             if (win->InPresentation()) {
-                // logf("hiding cursor because win->presentations\n");
+                // // logf("hiding cursor because win->presentations\n");
                 SetCursor((HCURSOR) nullptr);
             }
             break;
@@ -2322,7 +2321,7 @@ static void OnTimer(MainWindow* win, HWND hwnd, WPARAM timerId) {
             if (delta == 0) {
                 ResetEvent(win->scrollTimer);
             } else {
-                // logf("Smooth scrolling from %d to %d (delta %d)\n", current, target, delta);
+                // // logf("Smooth scrolling from %d to %d (delta %d)\n", current, target, delta);
 
                 double a = pow(1.0 - gSmoothScrollingFactor, 60 * win->scrollTimerDeltaTime / 1000.0);
                 double step = delta * (1.0 - a);
@@ -2377,7 +2376,7 @@ LRESULT CALLBACK WndProcCanvas(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
     MainWindow* win = FindMainWindowByHwnd(hwnd);
     switch (msg) {
         case WM_DROPFILES:
-            ReportIf(lp != 0 && lp != 1);
+            ReportDebugIf(lp != 0 && lp != 1);
             OnDropFiles(win, (HDROP)wp, !lp);
             return 0;
 

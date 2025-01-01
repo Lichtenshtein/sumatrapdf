@@ -100,7 +100,7 @@ TabState* NewTabState(FileState* fs) {
 }
 
 void FreeSessionState(Vec<SessionData*>* sessionData) {
-    ReportIf(!sessionData);
+    ReportDebugIf(!sessionData);
     if (!sessionData) {
         return;
     }
