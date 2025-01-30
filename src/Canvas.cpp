@@ -308,38 +308,38 @@ static ResizeHandle GetResizeHandleAt(MainWindow* win, Point pt, Annotation* ann
     int handleSize = kResizeHandleSize;
 
     // Check corners first (they have priority)
-    if (pt.x >= rect.x - handleSize && pt.x <= rect.x + handleSize &&
-        pt.y >= rect.y - handleSize && pt.y <= rect.y + handleSize) {
+    if (pt.x >= rect.x - handleSize && pt.x <= rect.x + handleSize && pt.y >= rect.y - handleSize &&
+        pt.y <= rect.y + handleSize) {
         return ResizeHandle::TopLeft;
     }
-    if (pt.x >= rect.x + rect.dx - handleSize && pt.x <= rect.x + rect.dx + handleSize &&
-        pt.y >= rect.y - handleSize && pt.y <= rect.y + handleSize) {
+    if (pt.x >= rect.x + rect.dx - handleSize && pt.x <= rect.x + rect.dx + handleSize && pt.y >= rect.y - handleSize &&
+        pt.y <= rect.y + handleSize) {
         return ResizeHandle::TopRight;
     }
     if (pt.x >= rect.x + rect.dx - handleSize && pt.x <= rect.x + rect.dx + handleSize &&
         pt.y >= rect.y + rect.dy - handleSize && pt.y <= rect.y + rect.dy + handleSize) {
         return ResizeHandle::BottomRight;
     }
-    if (pt.x >= rect.x - handleSize && pt.x <= rect.x + handleSize &&
-        pt.y >= rect.y + rect.dy - handleSize && pt.y <= rect.y + rect.dy + handleSize) {
+    if (pt.x >= rect.x - handleSize && pt.x <= rect.x + handleSize && pt.y >= rect.y + rect.dy - handleSize &&
+        pt.y <= rect.y + rect.dy + handleSize) {
         return ResizeHandle::BottomLeft;
     }
 
     // Check edges
-    if (pt.y >= rect.y - handleSize && pt.y <= rect.y + handleSize &&
-        pt.x >= rect.x + handleSize && pt.x <= rect.x + rect.dx - handleSize) {
+    if (pt.y >= rect.y - handleSize && pt.y <= rect.y + handleSize && pt.x >= rect.x + handleSize &&
+        pt.x <= rect.x + rect.dx - handleSize) {
         return ResizeHandle::Top;
     }
-    if (pt.x >= rect.x + rect.dx - handleSize && pt.x <= rect.x + rect.dx + handleSize &&
-        pt.y >= rect.y + handleSize && pt.y <= rect.y + rect.dy - handleSize) {
+    if (pt.x >= rect.x + rect.dx - handleSize && pt.x <= rect.x + rect.dx + handleSize && pt.y >= rect.y + handleSize &&
+        pt.y <= rect.y + rect.dy - handleSize) {
         return ResizeHandle::Right;
     }
-    if (pt.y >= rect.y + rect.dy - handleSize && pt.y <= rect.y + rect.dy + handleSize &&
-        pt.x >= rect.x + handleSize && pt.x <= rect.x + rect.dx - handleSize) {
+    if (pt.y >= rect.y + rect.dy - handleSize && pt.y <= rect.y + rect.dy + handleSize && pt.x >= rect.x + handleSize &&
+        pt.x <= rect.x + rect.dx - handleSize) {
         return ResizeHandle::Bottom;
     }
-    if (pt.x >= rect.x - handleSize && pt.x <= rect.x + handleSize &&
-        pt.y >= rect.y + handleSize && pt.y <= rect.y + rect.dy - handleSize) {
+    if (pt.x >= rect.x - handleSize && pt.x <= rect.x + handleSize && pt.y >= rect.y + handleSize &&
+        pt.y <= rect.y + rect.dy - handleSize) {
         return ResizeHandle::Left;
     }
 
@@ -722,7 +722,6 @@ static void StartAnnotationResize(MainWindow* win, Annotation* annot, Point& pt,
     win->annotationBeingResized = true;
     win->resizeHandle = (int)handle;
     win->dragStart = pt;
-    DisplayModel* dm = win->AsFixed();
     RectF r = GetRect(annot);
     win->annotationOriginalRect = r;
     SetCapture(win->hwndCanvas);
@@ -1235,34 +1234,44 @@ NO_INLINE static void PaintCurrentEditAnnotationMark(WindowTab* tab, HDC hdc, Di
 
     // Draw resize handles
     Gdiplus::SolidBrush handleBrush(Gdiplus::Color(255, 255, 255, 255)); // White
-    Gdiplus::Pen handlePen(Gdiplus::Color(255, 0, 0, 0), 1); // Black
+    Gdiplus::Pen handlePen(Gdiplus::Color(255, 0, 0, 0), 1);             // Black
     int handleSize = 6;
 
     // Draw corner handles
-    gs.FillRectangle(&handleBrush, rect.x - handleSize/2, rect.y - handleSize/2, handleSize, handleSize);
-    gs.DrawRectangle(&handlePen, rect.x - handleSize/2, rect.y - handleSize/2, handleSize, handleSize);
+    gs.FillRectangle(&handleBrush, rect.x - handleSize / 2, rect.y - handleSize / 2, handleSize, handleSize);
+    gs.DrawRectangle(&handlePen, rect.x - handleSize / 2, rect.y - handleSize / 2, handleSize, handleSize);
 
-    gs.FillRectangle(&handleBrush, rect.x + rect.dx - handleSize/2, rect.y - handleSize/2, handleSize, handleSize);
-    gs.DrawRectangle(&handlePen, rect.x + rect.dx - handleSize/2, rect.y - handleSize/2, handleSize, handleSize);
+    gs.FillRectangle(&handleBrush, rect.x + rect.dx - handleSize / 2, rect.y - handleSize / 2, handleSize, handleSize);
+    gs.DrawRectangle(&handlePen, rect.x + rect.dx - handleSize / 2, rect.y - handleSize / 2, handleSize, handleSize);
 
-    gs.FillRectangle(&handleBrush, rect.x + rect.dx - handleSize/2, rect.y + rect.dy - handleSize/2, handleSize, handleSize);
-    gs.DrawRectangle(&handlePen, rect.x + rect.dx - handleSize/2, rect.y + rect.dy - handleSize/2, handleSize, handleSize);
+    gs.FillRectangle(&handleBrush, rect.x + rect.dx - handleSize / 2, rect.y + rect.dy - handleSize / 2, handleSize,
+                     handleSize);
+    gs.DrawRectangle(&handlePen, rect.x + rect.dx - handleSize / 2, rect.y + rect.dy - handleSize / 2, handleSize,
+                     handleSize);
 
-    gs.FillRectangle(&handleBrush, rect.x - handleSize/2, rect.y + rect.dy - handleSize/2, handleSize, handleSize);
-    gs.DrawRectangle(&handlePen, rect.x - handleSize/2, rect.y + rect.dy - handleSize/2, handleSize, handleSize);
+    gs.FillRectangle(&handleBrush, rect.x - handleSize / 2, rect.y + rect.dy - handleSize / 2, handleSize, handleSize);
+    gs.DrawRectangle(&handlePen, rect.x - handleSize / 2, rect.y + rect.dy - handleSize / 2, handleSize, handleSize);
 
     // Draw edge handles
-    gs.FillRectangle(&handleBrush, rect.x + rect.dx/2 - handleSize/2, rect.y - handleSize/2, handleSize, handleSize);
-    gs.DrawRectangle(&handlePen, rect.x + rect.dx/2 - handleSize/2, rect.y - handleSize/2, handleSize, handleSize);
+    gs.FillRectangle(&handleBrush, rect.x + rect.dx / 2 - handleSize / 2, rect.y - handleSize / 2, handleSize,
+                     handleSize);
+    gs.DrawRectangle(&handlePen, rect.x + rect.dx / 2 - handleSize / 2, rect.y - handleSize / 2, handleSize,
+                     handleSize);
 
-    gs.FillRectangle(&handleBrush, rect.x + rect.dx - handleSize/2, rect.y + rect.dy/2 - handleSize/2, handleSize, handleSize);
-    gs.DrawRectangle(&handlePen, rect.x + rect.dx - handleSize/2, rect.y + rect.dy/2 - handleSize/2, handleSize, handleSize);
+    gs.FillRectangle(&handleBrush, rect.x + rect.dx - handleSize / 2, rect.y + rect.dy / 2 - handleSize / 2, handleSize,
+                     handleSize);
+    gs.DrawRectangle(&handlePen, rect.x + rect.dx - handleSize / 2, rect.y + rect.dy / 2 - handleSize / 2, handleSize,
+                     handleSize);
 
-    gs.FillRectangle(&handleBrush, rect.x + rect.dx/2 - handleSize/2, rect.y + rect.dy - handleSize/2, handleSize, handleSize);
-    gs.DrawRectangle(&handlePen, rect.x + rect.dx/2 - handleSize/2, rect.y + rect.dy - handleSize/2, handleSize, handleSize);
+    gs.FillRectangle(&handleBrush, rect.x + rect.dx / 2 - handleSize / 2, rect.y + rect.dy - handleSize / 2, handleSize,
+                     handleSize);
+    gs.DrawRectangle(&handlePen, rect.x + rect.dx / 2 - handleSize / 2, rect.y + rect.dy - handleSize / 2, handleSize,
+                     handleSize);
 
-    gs.FillRectangle(&handleBrush, rect.x - handleSize/2, rect.y + rect.dy/2 - handleSize/2, handleSize, handleSize);
-    gs.DrawRectangle(&handlePen, rect.x - handleSize/2, rect.y + rect.dy/2 - handleSize/2, handleSize, handleSize);
+    gs.FillRectangle(&handleBrush, rect.x - handleSize / 2, rect.y + rect.dy / 2 - handleSize / 2, handleSize,
+                     handleSize);
+    gs.DrawRectangle(&handlePen, rect.x - handleSize / 2, rect.y + rect.dy / 2 - handleSize / 2, handleSize,
+                     handleSize);
 }
 
 static bool DrawDocument(MainWindow* win, HDC hdc, RECT* rcArea) {
@@ -1376,7 +1385,7 @@ static bool DrawDocument(MainWindow* win, HDC hdc, RECT* rcArea) {
 
         bool renderOutOfDateCue = false;
         int renderDelay = gRenderCache->Paint(hdc, bounds, dm, pageNo, pageInfo, &renderOutOfDateCue);
-        if (renderDelay == 0) {
+        if (renderDelay == 0 || renderDelay == RENDER_DELAY_FAILED) {
             shouldPaint = true;
         }
         if (renderDelay != 0) {
@@ -1456,8 +1465,8 @@ static void OnPaintDocument(MainWindow* win) {
             FillRect(hdc, &ps.rcPaint, GetStockBrush(WHITE_BRUSH));
             break;
         default:
-            bool shouldFlush = DrawDocument(win, win->buffer->GetDC(), &ps.rcPaint);
-            if (!gNoFlickerRender || shouldFlush) {
+            bool shouldPaint = DrawDocument(win, win->buffer->GetDC(), &ps.rcPaint);
+            if (!gNoFlickerRender || shouldPaint) {
                 win->buffer->Flush(hdc);
             }
     }

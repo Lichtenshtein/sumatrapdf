@@ -188,7 +188,7 @@ struct EditAnnotationsWindow : Wnd {
 
     void ListBoxSelectionChanged();
 
-    ~EditAnnotationsWindow();
+    virtual ~EditAnnotationsWindow() override;
 };
 
 // Forward declarations

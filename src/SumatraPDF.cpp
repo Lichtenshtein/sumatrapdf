@@ -2732,7 +2732,11 @@ void LoadModelIntoTab(WindowTab* tab) {
     win->RedrawAll(true);
 }
 
-enum class MeasurementUnit { pt, mm, in };
+enum class MeasurementUnit {
+    pt,
+    mm,
+    in
+};
 
 static TempStr FormatCursorPositionTemp(EngineBase* engine, PointF pt, MeasurementUnit unit) {
     if (pt.x < 0) {

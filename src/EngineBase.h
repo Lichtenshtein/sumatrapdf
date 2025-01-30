@@ -22,7 +22,11 @@ bool IsExternalUrl(const WCHAR* url);
 bool IsExternalUrl(const char* url);
 
 /* certain OCGs will only be rendered for some of these (e.g. watermarks) */
-enum class RenderTarget { View, Print, Export };
+enum class RenderTarget {
+    View,
+    Print,
+    Export
+};
 
 struct PageLayout {
     enum class Type {
@@ -143,7 +147,7 @@ struct PageDestinationFile : IPageDestination {
         ReportIf(!u);
         kind = kindDestinationLaunchFile;
         path = str::Dup(u);
-        dest = str::Dup(dest);
+        this->dest = str::Dup(dest);
     }
 
     ~PageDestinationFile() override {

@@ -32,9 +32,21 @@ Vec<int>* ParsePageRangeString(const char* input, int totalPages); // DEPRECATED
 Vec<int>* ParsePageRanges(const char* input, int totalPages); // DEPRECATED
 char* Dialog_ExtractPages(HWND hwnd, int pageCount, int currentPage);
 
-enum class PrintRangeAdv { All = 0, Even, Odd };
-enum class PrintScaleAdv { None = 0, Shrink, Fit };
-enum class PrintRotationAdv { Auto = 0, Portrait, Landscape };
+enum class PrintRangeAdv {
+    All = 0,
+    Even,
+    Odd
+};
+enum class PrintScaleAdv {
+    None = 0,
+    Shrink,
+    Fit
+};
+enum class PrintRotationAdv {
+    Auto = 0,
+    Portrait,
+    Landscape
+};
 
 struct Print_Advanced_Data {
     PrintRangeAdv range;
