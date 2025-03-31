@@ -301,7 +301,11 @@ int
     fd = fopen(argv[1], "rb");
     if (fd == NULL) {
         fprintf(stderr, "Couldn't open file '%s'.\n", argv[1]);
-        goto err;
+
+            if (fd != NULL)
+        fclose(fd);
+    free(buffer);
+    exit(r);
     }
     fseek(fd, 0, SEEK_END);
     size = (size_t)ftell(fd);
@@ -354,7 +358,11 @@ int
     buffer = (uint8_t*)calloc(alloc_size, 1);
     if (buffer == NULL) {
         fprintf(stderr, "Couldn't allocate buffer.\n");
-        goto err;
+
+           if (fd != NULL)
+        fclose(fd);
+    free(buffer);
+    exit(r);
     }
     file_header = (IMAGE_FILE_HEADER*)&buffer[0];
     section_header = (IMAGE_SECTION_HEADER*)&buffer[sizeof(IMAGE_FILE_HEADER)];
@@ -380,7 +388,11 @@ int
     /* Populate data section */
     if (fread(&buffer[sizeof(IMAGE_FILE_HEADER) + sizeof(IMAGE_SECTION_HEADER)], 1, size, fd) != size) {
         fprintf(stderr, "Couldn't read file '%s'.\n", argv[1]);
-        goto err;
+
+           if (fd != NULL)
+        fclose(fd);
+    free(buffer);
+    exit(r);
     }
     fclose(fd);
     fd = NULL;
@@ -434,20 +446,23 @@ int
     fd = fopen(argv[2], "wb");
     if (fd == NULL) {
         fprintf(stderr, "Couldn't create file '%s'.\n", argv[2]);
-        goto err;
+
+            if (fd != NULL)
+        fclose(fd);
+    free(buffer);
+    exit(r);
     }
 
     if (fwrite(buffer, 1, alloc_size, fd) != alloc_size) {
         fprintf(stderr, "Couldn't write file '%s'.\n", argv[2]);
-        goto err;
+
+            if (fd != NULL)
+        fclose(fd);
+    free(buffer);
+    exit(r);
     }
     printf("Successfully created COFF object file '%s'\n", argv[2]);
 
     r = 0;
 
-err:
-    if (fd != NULL)
-        fclose(fd);
-    free(buffer);
-    exit(r);
 }
