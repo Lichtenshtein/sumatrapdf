@@ -806,6 +806,9 @@ struct TabsCtrl : Wnd {
     TabsCtrl::MouseState TabStateFromMousePosition(const Point& p);
     void Paint(HDC hdc, RECT& rc);
     HBITMAP RenderForDragging(int idx);
+
+    Gdiplus::PrivateFontCollection pfc;
+    Gdiplus::FontFamily fontFamily;
 };
 
 template <typename T>

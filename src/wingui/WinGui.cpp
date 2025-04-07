@@ -3147,7 +3147,7 @@ void TabsCtrl::Paint(HDC hdc, RECT& rc) {
 
     SolidBrush br(GdipCol(ThemeControlBackgroundColor()));
 
-    Font f(hdc, GetFont());
+    Font f(&fontFamily, 9, Gdiplus::FontStyleRegular, Gdiplus::UnitPoint);
 
     Gdiplus::Rect gr = ToGdipRect(rc);
     gfx.FillRectangle(&br, gr);
@@ -3272,6 +3272,11 @@ HBITMAP TabsCtrl::RenderForDragging(int idx) {
 
 TabsCtrl::TabsCtrl() {
     kind = kindTabs;
+
+    Status ret1 = pfc.AddFontFile(L"c:\\windows\\fonts\\Segoeui.ttf");
+
+    INT numFound = 0;
+    Status ret2 = pfc.GetFamilies(1, &fontFamily, &numFound);
 }
 
 // must be called after LayoutTabs()
