@@ -983,6 +983,11 @@ static void OnMouseLeftButtonDblClk(MainWindow* win, int x, int y, WPARAM key) {
     }
 
     if (!pageEl) {
+        // Toggle fullscreen when double-clicking on empty margin
+        int pageNo = dm->GetPageNoByPoint(mousePos);
+        if (-1 == pageNo && isLeft && !win->isFullScreen && PM_DISABLED == win->presentation) {
+            ToggleFullScreen(win);
+        }
         return;
     }
     if (pageEl->Is(kindPageElementDest)) {
