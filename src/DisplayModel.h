@@ -199,6 +199,9 @@ struct DisplayModel : DocController {
     // called when we decide that the display needs to be redrawn
     void RepaintDisplay();
 
+    // return true if all visible pages are already rendered
+    bool VisiblePagesReady();
+
     bool InPresentation() const;
 
     void BuildPagesInfo();
