@@ -24,6 +24,7 @@ make menus in dark themes look more like standard menus (bigger padding)
 * change: to move annotations, must press Ctrl
 * add CmdCommandPaletteOnlyTabs and bind it to Alt + K
 * exit fullscreen / presentation modes via double click with left mouse button
+* entering fullscreen via double click on empty page margin
 * ability to drag out a tab to open it in new window
 * support opening .avif images (including inside .cbz/,cbr files)
 * respect image orientation exif metadata in .jpeg and .png images
