@@ -1395,6 +1395,54 @@ static bool showTocByDefault(const char* path) {
     return showByDefault;
 }
 
+static DisplayMode GetDirDefaultDisplayMode(const char* filePath) {
+    TempStr dir = path::GetDirTemp(filePath);
+    while (dir) {
+        TempStr cfg = path::JoinTemp(dir, "_pdfsettings.txt");
+        if (file::Exists(cfg)) {
+            ByteSlice data = file::ReadFile(cfg);
+            char* txt = (char*)data.data();
+            if (txt) {
+                if (str::StartsWith(txt, UTF8_BOM)) {
+                    txt += 3;
+                }
+                for (char* line = txt; *line;) {
+                    char* next = str::FindChar(line, '\n');
+                    if (next) {
+                        *next = 0;
+                    }
+                    str::TrimWSInPlace(line, str::TrimOpt::Both);
+                    if (*line && *line != '#' && *line != ';') {
+                        char* eq = str::FindChar(line, '=');
+                        if (eq) {
+                            *eq = 0;
+                            str::TrimWSInPlace(line, str::TrimOpt::Right);
+                            char* val = eq + 1;
+                            str::TrimWSInPlace(val, str::TrimOpt::Both);
+                            if (str::EqIS(line, "DirDefaultDisplayMode")) {
+                                DisplayMode m = DisplayModeFromString(val, DisplayMode::Automatic);
+                                if (m != DisplayMode::Automatic) {
+                                    return m;
+                                }
+                            }
+                        }
+                    }
+                    if (!next) {
+                        break;
+                    }
+                    line = next + 1;
+                }
+            }
+        }
+        TempStr parent = path::GetDirTemp(dir);
+        if (str::Eq(parent, dir)) {
+            break;
+        }
+        dir = parent;
+    }
+    return DisplayMode::Automatic;
+}
+
 // Document is represented as DocController. Replace current DocController (if any) with ctrl
 // in current tab.
 // meaning of the internal values of LoadArgs:
@@ -1438,6 +1486,13 @@ static void ReplaceDocumentInCurrentTab(LoadArgs* args, DocController* ctrl, Fil
     int showType = SW_NORMAL;
     if (gGlobalPrefs->windowState == WIN_STATE_MAXIMIZED || showAsFullScreen) {
         showType = SW_MAXIMIZE;
+    }
+
+    if (!fs) {
+        DisplayMode dirMode = GetDirDefaultDisplayMode(path);
+        if (dirMode != DisplayMode::Automatic) {
+            displayMode = dirMode;
+        }
     }
 
     if (fs) {
