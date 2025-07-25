@@ -1049,6 +1049,7 @@
     <ClInclude Include="..\src\HomePage.h" />
     <ClInclude Include="..\src\HtmlFormatter.h" />
     <ClInclude Include="..\src\Installer.h" />
+    <ClInclude Include="..\src\JsonSearchTerms.h" />
     <ClInclude Include="..\src\MainWindow.h" />
     <ClInclude Include="..\src\Menu.h" />
     <ClInclude Include="..\src\MobiDoc.h" />
@@ -1100,6 +1101,7 @@
     <ClInclude Include="..\src\wingui\VirtWnd.h" />
     <ClInclude Include="..\src\wingui\WebView.h" />
     <ClInclude Include="..\src\wingui\WinGui.h" />
+    <ClInclude Include="src\utils\StrUtil.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\ext\darkmodelib\src\DarkMode.cpp" />
@@ -1144,6 +1146,7 @@
     <ClCompile Include="..\src\HtmlFormatter.cpp" />
     <ClCompile Include="..\src\Installer.cpp" />
     <ClCompile Include="..\src\InstallerCommon.cpp" />
+    <ClCompile Include="..\src\JsonSearchTerms.cpp" />
     <ClCompile Include="..\src\MainWindow.cpp" />
     <ClCompile Include="..\src\Menu.cpp" />
     <ClCompile Include="..\src\MobiDoc.cpp" />

@@ -1097,6 +1097,7 @@
     <ClInclude Include="..\src\HomePage.h" />
     <ClInclude Include="..\src\HtmlFormatter.h" />
     <ClInclude Include="..\src\Installer.h" />
+    <ClInclude Include="..\src\JsonSearchTerms.h" />
     <ClInclude Include="..\src\MainWindow.h" />
     <ClInclude Include="..\src\Menu.h" />
     <ClInclude Include="..\src\MobiDoc.h" />
@@ -1192,6 +1193,7 @@
     <ClCompile Include="..\src\HtmlFormatter.cpp" />
     <ClCompile Include="..\src\Installer.cpp" />
     <ClCompile Include="..\src\InstallerCommon.cpp" />
+    <ClCompile Include="..\src\JsonSearchTerms.cpp" />
     <ClCompile Include="..\src\MainWindow.cpp" />
     <ClCompile Include="..\src\Menu.cpp" />
     <ClCompile Include="..\src\MobiDoc.cpp" />
