@@ -5856,6 +5856,18 @@ void CopyCurrentPageAsImage(MainWindow* win) {
     Rect monitor = GetFullscreenRect(win->hwndFrame);
     float zoom = std::min((float)monitor.dx / widthPts, (float)monitor.dy / heightPts);
 
+    if (IsShiftPressed()) {
+        zoom *= 2.0;
+    }
+
+    if (IsCtrlPressed()) {
+        zoom *= 2.0;
+    }
+
+    if (IsAltPressed()) {
+        zoom *= 2.0;
+    }
+
     RenderPageArgs args(first, zoom, dm->GetRotation(), nullptr, RenderTarget::Export);
     RenderedBitmap* bmp1 = engine->RenderPage(args);
     RenderedBitmap* bmp2 = nullptr;
