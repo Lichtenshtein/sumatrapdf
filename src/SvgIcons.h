@@ -14,6 +14,8 @@ enum class TbIcon {
     PageNext,
     GoBack,
     GoForward,
+    PageFirst,
+    PageLast,
     LayoutContinuous,
     LayoutSinglePage,
     ToggleThumbnails,
