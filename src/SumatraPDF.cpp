@@ -3920,12 +3920,20 @@ void DuplicateTabInNewTab(WindowTab* tab) {
     if (!path) {
         return;
     }
+    TabState* ts = CopyTabState(tab);
     MainWindow* win = tab->win;
     LoadArgs args(path, win);
     args.forceReuse = false; // open in a new tab in the same window
     args.showWin = true;
     args.noPlaceWindow = true;
     LoadDocument(&args);
+    if (ts) {
+        WindowTab* newTab = win->CurrentTab();
+        if (newTab) {
+            SetTabState(newTab, ts);
+        }
+        //FreeStruct(&gTabStateInfo, ts);
+    }
 }
 
 // create a new window and load currently shown document into it
