@@ -267,6 +267,10 @@ static MenuDef menuDefContextTab[] = {
         CmdDuplicateInNewWindow,
     },
     {
+        _TRN("Open In New Tab"),
+        CmdDuplicateInNewTab,
+    },
+    {
         _TRN("Duplicate tab"),
         CmdDuplicateTab,
     },
@@ -421,6 +425,10 @@ static void TabsContextMenu(ContextMenuEvent* ev) {
             DuplicateTabInNewWindow(tabUnderMouse);
             break;
         }
+        case CmdDuplicateInNewTab: {
+            DuplicateTabInNewTab(tabUnderMouse);
+            break;
+        }
         case CmdDuplicateTab: {
             ReOpenCurrent(tabUnderMouse);
             break;
@@ -472,6 +480,15 @@ static void MainWindowTabMigration(MainWindow* win, TabsCtrl::MigrationEvent* ev
     MigrateTab(tab, releaseWnd);
 }
 
+static void TabDblClickEvent(MainWindow* win, TabsCtrl::TabDblClickEvent* ev) {
+    WindowTab* tab = win->GetTab(ev->tabIdx);
+    if (ev->shiftPressed) {
+        DuplicateTabInNewWindow(tab);
+    } else {
+        DuplicateTabInNewTab(tab);
+    }
+}
+
 void CreateTabbar(MainWindow* win) {
     TabsCtrl* tabsCtrl = new TabsCtrl();
 
@@ -480,6 +497,7 @@ void CreateTabbar(MainWindow* win) {
     tabsCtrl->onSelectionChanged = MkFunc1(MainWindowTabSelectionChanged, win);
     tabsCtrl->onContextMenu = MkFunc1Void(TabsContextMenu);
     tabsCtrl->onTabMigration = MkFunc1(MainWindowTabMigration, win);
+    tabsCtrl->onTabDblClick = MkFunc1(TabDblClickEvent, win);
 
     TabsCtrl::CreateArgs args;
     args.parent = win->hwndFrame;

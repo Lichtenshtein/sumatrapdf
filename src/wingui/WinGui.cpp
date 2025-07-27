@@ -3349,6 +3349,17 @@ static void TriggerTabDragged(TabsCtrl* tabs, int tab1, int tab2) {
     tabs->onTabDragged.Call(&ev);
 }
 
+static void TriggerTabDblClick(TabsCtrl* tabs, int tabIdx, bool shiftPressed) {
+    if (!tabs->onTabDblClick.IsValid()) {
+        return;
+    }
+    TabsCtrl::TabDblClickEvent ev;
+    ev.tabs = tabs;
+    ev.tabIdx = tabIdx;
+    ev.shiftPressed = shiftPressed;
+    tabs->onTabDblClick.Call(&ev);
+}
+
 static void UpdateAfterDrag(TabsCtrl* tabsCtrl, int tab1, int tab2) {
     int nTabs = tabsCtrl->TabCount();
     bool badState = (tab1 == tab2) || (tab1 < 0) || (tab2 < 0) || (tab1 >= nTabs) || (tab2 >= nTabs);
@@ -3568,6 +3579,13 @@ LRESULT TabsCtrl::WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
             if (tabUnderMouse != selectedTab && !GetTab(tabUnderMouse)->isPinned) {
                 TriggerTabDragged(this, selectedTab, tabUnderMouse);
                 UpdateAfterDrag(this, selectedTab, tabUnderMouse);
+            }
+            return 0;
+        }
+        case WM_LBUTTONDBLCLK: {
+            if (tabUnderMouse != -1 && !overClose) {
+                bool shift = IsShiftPressed();
+                TriggerTabDblClick(this, tabUnderMouse, shift);
             }
             return 0;
         }

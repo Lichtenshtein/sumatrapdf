@@ -698,11 +698,18 @@ struct TabsCtrl : Wnd {
         int tab2 = -1;
     };
 
+    struct TabDblClickEvent {
+        TabsCtrl* tabs = nullptr;
+        int tabIdx = -1;
+        bool shiftPressed = false;
+    };
+
     using SelectionChangingHandler = Func1<SelectionChangingEvent*>;
     using SelectionChangedHandler = Func1<SelectionChangedEvent*>;
     using ClosedHandler = Func1<ClosedEvent*>;
     using MigrationHandler = Func1<MigrationEvent*>;
     using DraggedHandler = Func1<DraggedEvent*>;
+    using TabDblClickHandler = Func1<TabDblClickEvent*>;
 
     struct CreateArgs {
         HWND parent = nullptr;
@@ -737,6 +744,7 @@ struct TabsCtrl : Wnd {
     SelectionChangedHandler onSelectionChanged;
     MigrationHandler onTabMigration;
     DraggedHandler onTabDragged;
+    TabDblClickHandler onTabDblClick;
 
     COLORREF currBgCol = 0;
     COLORREF tabBackgroundBg = 0;

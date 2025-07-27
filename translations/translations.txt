@@ -18608,7 +18608,7 @@ no:Lagre merknader til eksisterende PDF
 pl:Zapisz adnotacje do istniejącego pliku PDF
 pt:Guardar anotações em PDF existente
 ro:Salvează adnotări în PDF existent
-ru:Со&хранить аннотации в имеющемся PDF
+ru:Со&хранить аннотации в этот PDF
 sat:ᱢᱟᱲᱟᱝᱟᱜ PDF ᱨᱮ ᱪᱤᱱᱦᱟᱹ ᱥᱟᱧᱪᱟᱣ ᱢᱮ
 sk:Uložiť anotácie do existujúceho PDF
 sl:Shrani pripombe v obstoječi PDF
@@ -23813,3 +23813,5 @@ ru:&Удалить выбранные страницы
 ru:&Сохранить изменения
 :&Discard Changes
 ru:&Отменить изменения
+:Open In New Tab
+ru:&Открыть в новой вкладке

@@ -3773,6 +3773,23 @@ void DuplicateTabInNewWindow(WindowTab* tab) {
     LoadDocument(&args);
 }
 
+void DuplicateTabInNewTab(WindowTab* tab) {
+    if (!tab || tab->IsAboutTab()) {
+        return;
+    }
+    const char* path = tab->filePath;
+    ReportIf(!path);
+    if (!path) {
+        return;
+    }
+    MainWindow* win = tab->win;
+    LoadArgs args(path, win);
+    args.forceReuse = false; // open in a new tab in the same window
+    args.showWin = true;
+    args.noPlaceWindow = true;
+    LoadDocument(&args);
+}
+
 // create a new window and load currently shown document into it
 // meant to make it easy to compare 2 documents
 static void DuplicateInNewWindow(MainWindow* win) {
@@ -5983,6 +6000,12 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
 
         case CmdDuplicateInNewWindow:
             DuplicateInNewWindow(win);
+            break;
+
+        case CmdDuplicateInNewTab:
+            if (!win->IsCurrentTabAbout() && win->IsDocLoaded()) {
+                DuplicateTabInNewTab(win->CurrentTab());
+            }
             break;
 
         case CmdOpenFile:
