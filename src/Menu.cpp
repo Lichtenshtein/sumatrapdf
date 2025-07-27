@@ -289,6 +289,10 @@ static MenuDef menuDefEdit[] = {
         CmdConvertPdfToImages,
     },
     {
+        _TRN("Copy as Image"),
+        CmdCopyPageImage,
+    },
+    {
         _TRN("Combi&ne PDFs..."),
         CmdCombinePDFs,
     },

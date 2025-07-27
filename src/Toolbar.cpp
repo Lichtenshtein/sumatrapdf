@@ -101,6 +101,8 @@ static ToolbarButtonInfo gToolbarButtons[] = {
     {TbIcon::InvertColors, CmdInvertColors, _TRN("Invert Colors")},
     {TbIcon::ReadMode, CmdReadMode, _TRN("Reading Mode")},
     {TbIcon::DefaultMode, CmdDefaultMode, _TRN("Default Mode")},
+    {TbIcon::None, 0, nullptr}, // separator
+    {TbIcon::CopyPageImage, CmdCopyPageImage, _TRN("Copy As Image")},
 };
 // unicode chars: https://www.compart.com/en/unicode/U+25BC
 
@@ -305,7 +307,7 @@ static void SetToolbarInfoText(MainWindow* win, const char* s) {
         return;
     }
     TbSetButtonDx(win->hwndToolbar, CmdInfoText, size.dx);
-    int lastButtonCmdId = (int)CmdDefaultMode;
+    int lastButtonCmdId = (int)CmdCopyPageImage;
     if (gCustomToolbarButtons) {
         int n = gCustomToolbarButtons->Size();
         ToolbarButtonInfo& last = gCustomToolbarButtons->At(n - 1);
