@@ -220,6 +220,26 @@ static const char* gIconCopyPageImage =
   <path d="M21 15l-5-4l-3 3l-2-2l-4 4" />
 </svg>)";
 
+// icon: skip to first page
+static const char* gIconPageFirst =
+    R"(<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+  <line x1="4" y1="4" x2="4" y2="20" />
+  <line x1="20" y1="12" x2="8" y2="12" />
+  <line x1="12" y1="16" x2="8" y2="12" />
+  <line x1="12" y1="8" x2="8" y2="12" />
+</svg>)";
+
+// icon: skip to last page
+static const char* gIconPageLast =
+    R"(<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+  <line x1="20" y1="4" x2="20" y2="20" />
+  <line x1="4" y1="12" x2="16" y2="12" />
+  <line x1="12" y1="8" x2="16" y2="12" />
+  <line x1="12" y1="16" x2="16" y2="12" />
+</svg>)";
+
 // must match order in enum class TbIcon
 // clang-format off
 static const char* gIcons[] = {
@@ -232,6 +252,8 @@ static const char* gIcons[] = {
     gIconPageNext,
     gIconGoBack,
     gIconGoForward,
+    gIconPageFirst,
+    gIconPageLast,
     gIconLayoutContinuous,
     gIconLayoutSinglePage,
     gIconToggleThumbnails,
