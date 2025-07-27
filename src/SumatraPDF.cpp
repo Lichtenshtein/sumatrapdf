@@ -5894,9 +5894,16 @@ void CopyCurrentPageAsImage(MainWindow* win) {
     RECT rc = {0, 0, outSize.dx, outSize.dy};
     FillRect(hdc, &rc, white);
 
-    bmp1->Blit(hdc, Rect(0, 0, size1.dx, size1.dy));
-    if (idx == 2) {
-        bmp2->Blit(hdc, Rect(size1.dx + spacing, 0, size2.dx, size2.dy));
+    bool r2l = dm->GetDisplayR2L();
+
+    if (idx == 2 && r2l) {
+        bmp2->Blit(hdc, Rect(0, 0, size2.dx, size2.dy));
+        bmp1->Blit(hdc, Rect(size2.dx + spacing, 0, size1.dx, size1.dy));
+    } else {
+        bmp1->Blit(hdc, Rect(0, 0, size1.dx, size1.dy));
+        if (idx == 2) {
+            bmp2->Blit(hdc, Rect(size1.dx + spacing, 0, size2.dx, size2.dy));
+        }
     }
     DeleteDC(hdc);
     delete bmp1;
