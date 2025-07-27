@@ -581,9 +581,33 @@ static inline int WcharsPerRune(int rune) {
     return 1;
 }
 
-static void AddChar(fz_stext_line* line, fz_stext_char* c, str::WStr& s, Vec<Rect>& rects) {
+struct SeenChar {
+    WCHAR wc;
+    Rect r;
+};
+
+static bool IsDuplicate(const Vec<SeenChar>& seen, WCHAR wc, const Rect& r) {
+    for (size_t i = 0; i < seen.size(); i++) {
+        const SeenChar& sc = seen.at(i);
+        if (sc.wc != wc) {
+            continue;
+        }
+        if (abs(sc.r.x - r.x) <= 1 && abs(sc.r.y - r.y) <= 1 &&
+            abs(sc.r.dx - r.dx) <= 1 && abs(sc.r.dy - r.dy) <= 1) {
+            return true;
+        }
+    }
+    return false;
+}
+
+static void AddChar(fz_stext_line* line, fz_stext_char* c, str::WStr& s, Vec<Rect>& rects, Vec<SeenChar>& seen) {
     fz_rect bbox = fz_rect_from_quad(c->quad);
     Rect r = ToRectF(bbox).Round();
+
+    WCHAR wc = c->c;
+    if (IsDuplicate(seen, wc, r)) {
+        return;
+    }
 
     int n = WcharsPerRune(c->c);
     if (n == 2) {
@@ -593,13 +617,14 @@ static void AddChar(fz_stext_line* line, fz_stext_char* c, str::WStr& s, Vec<Rec
         s.Append(tmp, 2);
         rects.Append(r);
         rects.Append(r);
+        seen.Append({wc, r});
         return;
     }
-    WCHAR wc = c->c;
     bool isNonPrintable = (wc <= 32) || str::IsNonCharacter(wc);
     if (!isNonPrintable) {
         s.AppendChar(wc);
         rects.Append(r);
+        seen.Append({wc, r});
         return;
     }
 
@@ -607,6 +632,7 @@ static void AddChar(fz_stext_line* line, fz_stext_char* c, str::WStr& s, Vec<Rec
     if (!str::IsWs(wc)) {
         s.AppendChar(L'?');
         rects.Append(r);
+        seen.Append({wc, r});
         return;
     }
 
@@ -615,6 +641,7 @@ static void AddChar(fz_stext_line* line, fz_stext_char* c, str::WStr& s, Vec<Rec
     if (!str::IsWs(prev)) {
         s.AppendChar(L' ');
         rects.Append(r);
+        seen.Append({wc, r});
     }
 }
 
@@ -642,6 +669,7 @@ static WCHAR* FzTextPageToStr(fz_stext_page* text, Rect** coordsOut) {
     // coordsOut is optional but we ask for it by default so we simplify the code
     // by always calculating it
     Vec<Rect> rects;
+    Vec<SeenChar> seen;
 
     fz_stext_block* block = text->first_block;
     while (block) {
@@ -653,7 +681,7 @@ static WCHAR* FzTextPageToStr(fz_stext_page* text, Rect** coordsOut) {
         while (line) {
             fz_stext_char* c = line->first_char;
             while (c) {
-                AddChar(line, c, content, rects);
+                AddChar(line, c, content, rects, seen);
                 c = c->next;
             }
             AddLineSep(content, rects, lineSep, lineSepLen);
