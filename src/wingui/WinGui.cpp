@@ -13,7 +13,13 @@
 #include "wingui/Layout.h"
 #include "wingui/WinGui.h"
 
+#include "DocController.h"
+#include "Annotation.h"
+#include "EngineBase.h"
+
+#include "Settings.h"
 #include "Theme.h"
+#include "WindowTab.h"
 
 #include "utils/Log.h"
 
@@ -3152,10 +3158,15 @@ void TabsCtrl::Paint(HDC hdc, RECT& rc) {
     Gdiplus::Rect gr = ToGdipRect(rc);
     gfx.FillRectangle(&br, gr);
 
-    StringFormat sf(StringFormat::GenericDefault());
-    sf.SetFormatFlags(Gdiplus::StringFormatFlagsNoWrap);
-    sf.SetLineAlignment(StringAlignmentCenter);
-    sf.SetTrimming(Gdiplus::StringTrimmingEllipsisCharacter);
+    StringFormat sfFile(StringFormat::GenericDefault());
+    sfFile.SetFormatFlags(Gdiplus::StringFormatFlagsNoWrap);
+    sfFile.SetLineAlignment(StringAlignmentCenter);
+    sfFile.SetTrimming(Gdiplus::StringTrimmingEllipsisCharacter);
+
+    StringFormat sfPage(StringFormat::GenericDefault());
+    sfPage.SetFormatFlags(Gdiplus::StringFormatFlagsNoWrap);
+    sfPage.SetLineAlignment(StringAlignmentCenter);
+    sfPage.SetTrimming(Gdiplus::StringTrimmingNone);
 
     TabInfo* ti;
     int n = TabCount();
@@ -3216,14 +3227,43 @@ void TabsCtrl::Paint(HDC hdc, RECT& rc) {
             gfx.DrawLine(&penX, p1, p2);
         }
 
-        // draw text
+        // draw text: filename and page numbers
         gfx.SetCompositingMode(Gdiplus::CompositingModeSourceOver);
         rTxt = ToGdipRectF(ti->r);
         rTxt.X += 8;
         rTxt.Width -= (8 + r.dx + 8);
+
+        // prepare strings
+        const char* fileTitle = ti->text;
+        WindowTab* wt = (WindowTab*)ti->userData;
+        char pageBuf[32] = "";
+        if (wt && wt->IsDocLoaded()) {
+            int curr = wt->ctrl->CurrentPageNo();
+            int count = wt->ctrl->PageCount();
+            if (count > 0) {
+                snprintf(pageBuf, sizeof(pageBuf), " (%d/%d)", curr, count);
+            }
+        }
+
+        // WCHAR* wsPage = ToWStrTemp(pageBuf);
+        Size pageSz{0, 0};
+        if (pageBuf[0]) {
+            pageSz = HwndMeasureText(hwnd, pageBuf, GetFont());
+        }
+
+        Gdiplus::RectF rFile = rTxt;
+        rFile.Width = std::max(0.f, rTxt.Width - (float)pageSz.dx);
+        Gdiplus::RectF rPage = rTxt;
+        rPage.X += rFile.Width;
+        rPage.Width = (float)pageSz.dx;
+
         br.SetColor(GdipCol(textColor));
-        TempWStr ws = ToWStrTemp(ti->text);
-        gfx.DrawString(ws, -1, &f, rTxt, &sf, &br);
+        WCHAR* wsFile = ToWStrTemp(fileTitle);
+        gfx.DrawString(wsFile, -1, &f, rFile, &sfFile, &br);
+        if (pageBuf[0]) {
+            WCHAR* wsPage = ToWStrTemp(pageBuf);
+            gfx.DrawString(wsPage, -1, &f, rPage, &sfPage, &br);
+        }
     }
 }
 
@@ -3241,10 +3281,15 @@ HBITMAP TabsCtrl::RenderForDragging(int idx) {
     gfx->SetTextRenderingHint(TextRenderingHintClearTypeGridFit);
     gfx->SetPageUnit(UnitPixel);
 
-    StringFormat sf(StringFormat::GenericDefault());
-    sf.SetFormatFlags(Gdiplus::StringFormatFlagsNoWrap);
-    sf.SetLineAlignment(StringAlignmentCenter);
-    sf.SetTrimming(Gdiplus::StringTrimmingEllipsisCharacter);
+    StringFormat sfFile(StringFormat::GenericDefault());
+    sfFile.SetFormatFlags(Gdiplus::StringFormatFlagsNoWrap);
+    sfFile.SetLineAlignment(StringAlignmentCenter);
+    sfFile.SetTrimming(Gdiplus::StringTrimmingEllipsisCharacter);
+
+    StringFormat sfPage(StringFormat::GenericDefault());
+    sfPage.SetFormatFlags(Gdiplus::StringFormatFlagsNoWrap);
+    sfPage.SetLineAlignment(StringAlignmentCenter);
+    sfPage.SetTrimming(Gdiplus::StringTrimmingNone);
 
     COLORREF bgCol = tabSelectedBg;
     COLORREF textCol = tabSelectedText;
@@ -3260,9 +3305,37 @@ HBITMAP TabsCtrl::RenderForDragging(int idx) {
     Gdiplus::RectF rTxt(0, 0, ti->r.dx, ti->r.dy);
     rTxt.X += 8;
     rTxt.Width -= (8 + 8);
+
+    const char* fileTitle = ti->text;
+    WindowTab* wt = (WindowTab*)ti->userData;
+    char pageBuf[32] = "";
+    if (wt && wt->IsDocLoaded()) {
+        int curr = wt->ctrl->CurrentPageNo();
+        int count = wt->ctrl->PageCount();
+        if (count > 0) {
+            snprintf(pageBuf, sizeof(pageBuf), " (%d/%d)", curr, count);
+        }
+    }
+
+    // WCHAR* wsPage = ToWStrTemp(pageBuf);
+    Size pageSz{0, 0};
+    if (pageBuf[0]) {
+        pageSz = HwndMeasureText(hwnd, pageBuf, GetFont());
+    }
+
+    Gdiplus::RectF rFile = rTxt;
+    rFile.Width = std::max(0.f, rTxt.Width - (float)pageSz.dx);
+    Gdiplus::RectF rPage = rTxt;
+    rPage.X += rFile.Width;
+    rPage.Width = (float)pageSz.dx;
+
     br.SetColor(GdipCol(textCol));
-    TempWStr ws = ToWStrTemp(ti->text);
-    gfx->DrawString(ws, -1, &f, rTxt, &sf, &br);
+    WCHAR* wsFile = ToWStrTemp(fileTitle);
+    gfx->DrawString(wsFile, -1, &f, rFile, &sfFile, &br);
+    if (pageBuf[0]) {
+        WCHAR* wsPage = ToWStrTemp(pageBuf);
+        gfx->DrawString(wsPage, -1, &f, rPage, &sfPage, &br);
+    }
 
     HBITMAP ret;
     bitmap.GetHBITMAP(Color(255, 255, 255), &ret);

@@ -626,6 +626,7 @@ void TabsOnChangedDoc(MainWindow* win) {
     }
     VerifyWindowTab(win, tab);
     UpdateTabTitle(tab);
+    HwndScheduleRepaint(win->tabsCtrl->hwnd);
 }
 
 // Called when we're closing an entire window (quitting)
