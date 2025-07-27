@@ -1162,6 +1162,10 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int) {
     SetCurrentLang(flags.lang ? flags.lang : gGlobalPrefs->uiLanguage);
     InitializeEngineMupdf();
 
+    if (!flags.inNewWindow && gGlobalPrefs->useTabs && IsShiftPressed()) {
+        flags.inNewWindow = true;
+    }
+
     if (flags.showConsole) {
         RedirectIOToConsole();
     }
