@@ -29,6 +29,7 @@ enum class TbIcon {
     InvertColors,
     ReadMode,
     DefaultMode,
+    CopyPageImage,
     kMax
 };
 

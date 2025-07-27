@@ -54,6 +54,7 @@ Cmd* enum (e.g. CmdOpen) and a human-readable name (not used yet).
     V(CmdDuplicateInNewWindow, "Open Current Document In New Window")              \
     V(CmdDuplicateInNewTab, "Open Current Document In New Tab")          \
     V(CmdCopyImage, "Copy Image")                                                  \
+    V(CmdCopyPageImage, "Copy As Image")                                  \
     V(CmdCopyLinkTarget, "Copy Link Target")                                       \
     V(CmdCopyComment, "Copy Comment")                                              \
     V(CmdCopyFilePath, "Copy File Path")                                           \

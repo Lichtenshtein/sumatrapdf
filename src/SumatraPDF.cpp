@@ -5796,6 +5796,106 @@ void CopyFilePath(WindowTab* tab) {
     CopyTextToClipboard(path);
 }
 
+static int FirstPageInRow(int pageNo, int columns, bool showCover) {
+    if (showCover && columns > 1) {
+        pageNo++;
+    }
+    int first = pageNo - ((pageNo - 1) % columns);
+    if (showCover && columns > 1 && first > 1) {
+        first--;
+    }
+    return first;
+}
+
+static int LastPageInRow(int pageNo, int columns, bool showCover, int pageCount) {
+    int last = FirstPageInRow(pageNo, columns, showCover) + columns - 1;
+    if (showCover && pageNo < columns) {
+        last--;
+    }
+    if (last > pageCount) {
+        last = pageCount;
+    }
+    return last;
+}
+
+void CopyCurrentPageAsImage(MainWindow* win) {
+    if (!win || !win->IsDocLoaded()) {
+        return;
+    }
+    DisplayModel* dm = win->AsFixed();
+    if (!dm) {
+        return;
+    }
+
+    EngineBase* engine = dm->GetEngine();
+    int pageNo = win->ctrl->CurrentPageNo();
+    DisplayMode mode = win->ctrl->GetDisplayMode();
+    int columns = IsSingle(mode) ? 1 : 2;
+    bool showCover = IsBookView(mode);
+
+    int first = pageNo;
+    int last = pageNo;
+    if (columns > 1) {
+        first = FirstPageInRow(pageNo, columns, showCover);
+        last = LastPageInRow(pageNo, columns, showCover, engine->PageCount());
+    }
+
+    RectF boxes[2] = {};
+    int idx = 0;
+    for (int p = first; p <= last; p++) {
+        boxes[idx++] = engine->Transform(engine->PageMediabox(p), p, 1.0f, dm->GetRotation());
+    }
+
+    float widthPts = boxes[0].dx;
+    float heightPts = boxes[0].dy;
+    if (idx == 2) {
+        widthPts = boxes[0].dx + dm->pageSpacing.dx + boxes[1].dx;
+        heightPts = std::max(boxes[0].dy, boxes[1].dy);
+    }
+
+    Rect monitor = GetFullscreenRect(win->hwndFrame);
+    float zoom = std::min((float)monitor.dx / widthPts, (float)monitor.dy / heightPts);
+
+    RenderPageArgs args(first, zoom, dm->GetRotation(), nullptr, RenderTarget::Export);
+    RenderedBitmap* bmp1 = engine->RenderPage(args);
+    RenderedBitmap* bmp2 = nullptr;
+    if (idx == 2) {
+        args.pageNo = last;
+        bmp2 = engine->RenderPage(args);
+    }
+    if (!bmp1 || !bmp1->IsValid() || (idx == 2 && (!bmp2 || !bmp2->IsValid()))) {
+        delete bmp1;
+        delete bmp2;
+        return;
+    }
+
+    Size size1 = bmp1->GetSize();
+    Size size2 = bmp2 ? bmp2->GetSize() : Size();
+    int spacing = (idx == 2) ? (int)(dm->pageSpacing.dx * zoom) : 0;
+    Size outSize(size1.dx + (idx == 2 ? spacing + size2.dx : 0), std::max(size1.dy, size2.dy));
+
+    HANDLE hMap = nullptr;
+    HBITMAP hbmp = CreateMemoryBitmap(outSize, &hMap);
+    HDC hdc = CreateCompatibleDC(nullptr);
+    DeleteObject(SelectObject(hdc, hbmp));
+    HBRUSH white = (HBRUSH)GetStockObject(WHITE_BRUSH);
+    RECT rc = {0, 0, outSize.dx, outSize.dy};
+    FillRect(hdc, &rc, white);
+
+    bmp1->Blit(hdc, Rect(0, 0, size1.dx, size1.dy));
+    if (idx == 2) {
+        bmp2->Blit(hdc, Rect(size1.dx + spacing, 0, size2.dx, size2.dy));
+    }
+    DeleteDC(hdc);
+    delete bmp1;
+    delete bmp2;
+
+    CopyImageToClipboard(hbmp, false);
+    // ownership transferred to clipboard
+    CloseHandle(hMap);
+    DeleteObject(hbmp);
+}
+
 Kind kNotifClearHistory = "clearHistry";
 
 struct ClearHistoryData {
@@ -7127,6 +7227,10 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
 
         case CmdCopyFilePath:
             CopyFilePath(tab);
+            break;
+
+        case CmdCopyPageImage:
+            CopyCurrentPageAsImage(win);
             break;
 
         case CmdCommandPalette: {
