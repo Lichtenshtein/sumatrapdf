@@ -62,6 +62,7 @@ struct Flags {
     bool fastInstall = false;
     char* appdataDir = nullptr;
     char* inverseSearchCmdLine = nullptr;
+    char* cacheDir = nullptr;
     bool invertColors = false;
     bool regress = false;
     bool tester = false;

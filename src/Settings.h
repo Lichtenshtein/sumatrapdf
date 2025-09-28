@@ -358,6 +358,7 @@ struct GlobalPrefs {
     // with DefaultDisplayMode after deserialization and before
     // serialization
     char* defaultDisplayMode;
+    
     // default zoom (in %) or one of those values: fit page, fit width, fit
     // content
     char* defaultZoom;
@@ -370,6 +371,7 @@ struct GlobalPrefs {
     bool fullPathInTitle;
     // pattern used to launch the LaTeX editor when doing inverse search
     char* inverseSearchCmdLine;
+    char* cacheDir;
     // when restoring session, delay loading of documents until their tab
     // is selected
     bool lazyLoading;
@@ -754,6 +756,7 @@ static const FieldInfo gGlobalPrefsFields[] = {
     {offsetof(GlobalPrefs, escToExit), SettingType::Bool, true},
     {offsetof(GlobalPrefs, fullPathInTitle), SettingType::Bool, false},
     {offsetof(GlobalPrefs, inverseSearchCmdLine), SettingType::String, 0},
+    {offsetof(GlobalPrefs, cacheDir), SettingType::String, (intptr_t)"abcd"},
     {offsetof(GlobalPrefs, lazyLoading), SettingType::Bool, true},
     {offsetof(GlobalPrefs, mainWindowBackground), SettingType::Color, (intptr_t)"#80fff200"},
     {offsetof(GlobalPrefs, noHomeTab), SettingType::Bool, false},
@@ -822,7 +825,7 @@ static const FieldInfo gGlobalPrefsFields[] = {
 static const StructInfo gGlobalPrefsInfo = {
     sizeof(GlobalPrefs), 73, gGlobalPrefsFields,
     "\0\0CheckForUpdates\0CustomScreenDPI\0DefaultDisplayMode\0DefaultZoom\0EnableTeXEnhancements\0EscToExit\0FullPathI"
-    "nTitle\0InverseSearchCmdLine\0LazyLoading\0MainWindowBackground\0NoHomeTab\0ReloadModifiedDocuments\0RememberOpene"
+    "nTitle\0InverseSearchCmdLine\0CacheDir\0LazyLoading\0MainWindowBackground\0NoHomeTab\0ReloadModifiedDocuments\0RememberOpene"
     "dFiles\0RememberStatePerDocument\0RestoreSession\0ReuseInstance\0ShowMenubar\0ShowToolbar\0ShowFavorites\0ShowToc"
     "\0ShowLinks\0ShowStartPage\0SidebarDx\0SmoothScroll\0TabWidth\0Theme\0TocDy\0ToolbarSize\0TreeFontName\0TreeFontSi"
     "ze\0UIFontSize\0UseSysColors\0UseTabs\0ZoomLevels\0ZoomIncrement\0\0FixedPageUI\0\0EBookUI\0\0ComicBookUI\0\0ChmUI"

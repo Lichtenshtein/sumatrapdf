@@ -52,6 +52,7 @@
     V(PrintTo, "print-to")                       \
     V(PrintSettings, "print-settings")           \
     V(InverseSearch, "inverse-search")           \
+    V(CacheDir, "cache-dir")                              \
     V(ForwardSearch1, "forward-search")          \
     V(ForwardSearch2, "fwdsearch")               \
     V(NamedDest, "nameddest")                    \
@@ -554,6 +555,10 @@ void ParseFlags(const WCHAR* cmdLine, Flags& i) {
             i.inverseSearchCmdLine = str::Dup(param);
             continue;
         }
+        if (arg == Arg::CacheDir) {
+            i.cacheDir = str::Dup(param);
+            continue;
+        }
         if ((arg == Arg::ForwardSearch1 || arg == Arg::ForwardSearch2) && args.AdditionalParam(1)) {
             // -forward-search is for consistency with -inverse-search
             // -fwdsearch is for consistency with -fwdsearch-*
@@ -737,6 +742,7 @@ Flags::~Flags() {
     str::Free(pluginURL);
     str::Free(appdataDir);
     str::Free(inverseSearchCmdLine);
+    str::Free(cacheDir);
     str::Free(stressTestPath);
     str::Free(stressTestFilter);
     str::Free(stressTestRanges);

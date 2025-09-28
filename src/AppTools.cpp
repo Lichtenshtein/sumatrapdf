@@ -130,6 +130,7 @@ TempStr GetAppDataDirTemp() {
         }
         dir = path::JoinTemp(dir, kAppName);
     }
+    //dir = GetTempDirTemp();
     logf("GetAppDataDirTemp(): '%s'\n", dir);
     SetAppDataDir(dir);
     return gAppDataDir;

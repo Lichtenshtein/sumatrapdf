@@ -558,6 +558,10 @@ static void UpdateGlobalPrefs(const Flags& i) {
         str::ReplacePtr(&gGlobalPrefs->inverseSearchCmdLine, cmdLine);
         gGlobalPrefs->enableTeXEnhancements = true;
     }
+    if (i.cacheDir) {
+        char* cacheDir = path::NormalizeTemp(i.cacheDir);
+        str::ReplacePtr(&gGlobalPrefs->cacheDir, cacheDir);
+    }
     if (i.invertColors) {
         gGlobalPrefs->fixedPageUI.invertColors = true;
     }

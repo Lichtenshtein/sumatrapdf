@@ -292,6 +292,8 @@ var (
 			"if true, we show the full path to a file in the title bar").setExpert().setVersion("3.0"),
 		mkField("InverseSearchCmdLine", String, nil,
 			"pattern used to launch the LaTeX editor when doing inverse search"),
+		mkField("cacheDir", String, nil,
+			"cache directory"),
 		mkField("LazyLoading", Bool, true, "when restoring session, delay loading of documents until their tab is selected").setVersion("3.6"),
 		mkField("MainWindowBackground", Color, mkRGBA(0xFF, 0xF2, 0x00, 0x80),
 			"background color of the non-document windows, traditionally yellow").setExpert(),

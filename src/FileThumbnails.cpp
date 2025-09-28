@@ -12,6 +12,7 @@
 #include "DocController.h"
 #include "FzImgReader.h"
 #include "FileHistory.h"
+#include "GlobalPrefs.h"
 
 #include "AppTools.h"
 #include "FileThumbnails.h"
@@ -46,6 +47,11 @@ char* GetThumbnailPathTemp(const char* filePath) {
 }
 
 TempStr GetThumbnailCacheDirTemp() {
+    if (gGlobalPrefs->cacheDir)
+    {
+        return str::DupTemp(gGlobalPrefs->cacheDir);
+    }
+    logf("cacheDir not set, using default\n");
     TempStr thumbsDir = GetPathInAppDataDirTemp("sumatrapdfcache");
     return thumbsDir;
 }
