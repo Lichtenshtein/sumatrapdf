@@ -4,11 +4,11 @@
 // number of most recently used files that will be shown in the menu
 // (and remembered in the preferences file, if just filenames are
 //  to be remembered and not individual view settings per document)
-#define kFileHistoryMaxRecent 10
+#define kFileHistoryMaxRecent 40
 
 // maximum number of most frequently used files that will be shown on the
 // Frequent Read list (space permitting)
-#define kFileHistoryMaxFrequent 40
+#define kFileHistoryMaxFrequent 60
 
 struct FileHistory {
     // owned by gGlobalPrefs->fileStates

@@ -602,7 +602,7 @@ void DrawAboutPage(MainWindow* win, HDC hdc) {
 
 /* alternate static page to display when no document is loaded */
 
-constexpr int kThumbsMaxCols = 5;
+constexpr int kThumbsMaxCols = 10;
 constexpr int kThumbsSeparatorDy = 2;
 constexpr int kThumbsBorderDx = 1;
 #define kThumbsMarginLeft DpiScale(hdc, 40)
