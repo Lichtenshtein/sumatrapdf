@@ -126,6 +126,7 @@ void ToggleFullScreen(MainWindow* win, bool presentation = false);
 void RelayoutWindow(MainWindow* win);
 void DuplicateTabInNewWindow(WindowTab* tab);
 void CopyFilePath(WindowTab*);
+void CopyFileName(WindowTab*);
 void DuplicateTabInNewTab(WindowTab* tab);
 void CopyCurrentPageAsImage(MainWindow* win);
 

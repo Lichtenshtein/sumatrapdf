@@ -5797,6 +5797,14 @@ void CopyFilePath(WindowTab* tab) {
     CopyTextToClipboard(path);
 }
 
+void CopyFileName(WindowTab* tab) {
+    if (!tab) {
+        return;
+    }
+    const char* path = path::GetBaseNameTemp(tab->filePath);
+    CopyTextToClipboard(path);
+}
+
 static int FirstPageInRow(int pageNo, int columns, bool showCover) {
     if (showCover && columns > 1) {
         pageNo++;
@@ -7247,6 +7255,10 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
 
         case CmdCopyFilePath:
             CopyFilePath(tab);
+            break;
+
+        case CmdCopyFileName:
+            CopyFileName(tab);
             break;
 
         case CmdCopyPageImage:

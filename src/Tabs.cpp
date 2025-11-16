@@ -263,6 +263,10 @@ static MenuDef menuDefContextTab[] = {
         CmdCopyFilePath,
     },
     {
+        _TRN("Copy File Name"),
+        CmdCopyFileName,
+    },
+    {
         _TRN("Copy as Image"),
         CmdCopyPageImage,
     },
@@ -423,6 +427,10 @@ static void TabsContextMenu(ContextMenuEvent* ev) {
         }
         case CmdCopyFilePath: {
             CopyFilePath(tabUnderMouse);
+            break;
+        }
+        case CmdCopyFileName: {
+            CopyFileName(tabUnderMouse);
             break;
         }
         case CmdCopyPageImage: {
