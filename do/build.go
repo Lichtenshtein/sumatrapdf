@@ -125,14 +125,14 @@ func buildSignAndUploadPreRelease() {
 
 		p := fmt.Sprintf(`/p:Configuration=%s;Platform=%s`, config, plat.vsplatform)
 		t := `/t:test_util`
-		runExeLoggedMust(msbuildPath, slnPath, t, p, `/m`)
+		runExeLoggedMust(msbuildPath, slnPath, t, p, `/m`, `/p:CL_MPCount=3`)
 		// can't run arm binaries in x86 CI
 		if plat.vsplatform != kVSPlatformArm64 {
 			runTestUtilMust(buildDir)
 		}
 
 		t = `/t:SumatraPDF;SumatraPDF-dll;PdfFilter;PdfPreview`
-		runExeLoggedMust(msbuildPath, slnPath, t, p, `/m`)
+		runExeLoggedMust(msbuildPath, slnPath, t, p, `/m`, `/p:CL_MPCount=3`)
 		err := createPdbZip(buildDir)
 		must(err)
 		err = createPdbLzsa(buildDir)
@@ -309,7 +309,7 @@ func buildLzsa() {
 	cleanPreserveSettings()
 
 	msbuildPath := detectMsbuildPathMust()
-	runExeLoggedMust(msbuildPath, `vs2022\MakeLZSA.sln`, `/t:MakeLZSA:Rebuild`, `/p:Configuration=Release;Platform=Win32`, `/m`)
+	runExeLoggedMust(msbuildPath, `vs2022\MakeLZSA.sln`, `/t:MakeLZSA:Rebuild`, `/p:Configuration=Release;Platform=x64`, `/m`, `/p:CL_MPCount=3`)
 
 	dir := filepath.Join("out", "rel32")
 	files := []string{"MakeLZSA.exe"}
@@ -506,13 +506,13 @@ func createManifestMust(manifestPath string) {
 // 	dir := getOutDirForPlatform(platform)
 
 // 	p := fmt.Sprintf(`/p:Configuration=%s;Platform=%s`, config, platform)
-// 	runExeLoggedMust(msbuildPath, slnPath, `/t:test_util:Rebuild`, p, `/m`)
+// 	runExeLoggedMust(msbuildPath, slnPath, `/t:test_util:Rebuild`, p, `/m`, `/p:CL_MPCount=3`)
 // 	// can't run arm binaries in x86 CI
 // 	if platform != kPlatformNameArm64 {
 // 		runTestUtilMust(dir)
 // 	}
 
-// 	runExeLoggedMust(msbuildPath, slnPath, `/t:SumatraPDF:Rebuild;SumatraPDF-dll:Rebuild;PdfFilter:Rebuild;PdfPreview:Rebuild`, p, `/m`)
+// 	runExeLoggedMust(msbuildPath, slnPath, `/t:SumatraPDF:Rebuild;SumatraPDF-dll:Rebuild;PdfFilter:Rebuild;PdfPreview:Rebuild`, p, `/m`, `/p:CL_MPCount=3`)
 // 	err := createPdbZip(dir)
 // 	must(err)
 // 	err = createPdbLzsa(dir)
@@ -559,13 +559,13 @@ func buildPreRelease(plat *Platform) {
 		slnPath := filepath.Join("vs2022", "SumatraPDF.sln")
 
 		p := fmt.Sprintf(`/p:Configuration=%s;Platform=%s`, config, vsplatform)
-		runExeLoggedMust(msbuildPath, slnPath, `/t:test_util:Rebuild`, p, `/m`)
+		runExeLoggedMust(msbuildPath, slnPath, `/t:test_util:Rebuild`, p, `/m`, `/p:CL_MPCount=3`)
 		// can't run arm binaries in x86 CI
 		if vsplatform != kVSPlatformArm64 {
 			runTestUtilMust(outDir)
 		}
 
-		runExeLoggedMust(msbuildPath, slnPath, `/t:signfile:Rebuild;sizer:Rebuild;PdfFilter:Rebuild;plugin-test:Rebuild;PdfPreview:Rebuild;PdfPreviewTest:Rebuild;SumatraPDF:Rebuild;SumatraPDF-dll:Rebuild`, p, `/m`)
+		runExeLoggedMust(msbuildPath, slnPath, `/t:signfile:Rebuild;sizer:Rebuild;PdfFilter:Rebuild;plugin-test:Rebuild;PdfPreview:Rebuild;PdfPreviewTest:Rebuild;SumatraPDF:Rebuild;SumatraPDF-dll:Rebuild`, p, `/m`, `/p:CL_MPCount=3`)
 		err := createPdbZip(outDir)
 		must(err)
 		err = createPdbLzsa(outDir)
@@ -632,7 +632,7 @@ func buildCodeQL() {
 	detectVersionsCodeQL()
 	//cleanPreserveSettings()
 	msbuildPath := detectMsbuildPathMust()
-	runExeLoggedMust(msbuildPath, `vs2022\SumatraPDF.sln`, `/t:SumatraPDF:Rebuild`, `/p:Configuration=Release;Platform=x64`, `/m`)
+	runExeLoggedMust(msbuildPath, `vs2022\SumatraPDF.sln`, `/t:SumatraPDF:Rebuild`, `/p:Configuration=Release;Platform=x64`, `/m`, `/p:CL_MPCount=3`)
 	revertBuildConfig()
 }
 
@@ -652,7 +652,7 @@ func buildSmoke(sign bool) {
 	sln := `vs2022\SumatraPDF.sln`
 	t := `/t:SumatraPDF-dll:Rebuild;test_util:Rebuild`
 	p := `/p:Configuration=Release;Platform=x64`
-	runExeLoggedMust(msbuildPath, sln, t, p, `/m`)
+	runExeLoggedMust(msbuildPath, sln, t, p, `/m`, `/p:CL_MPCount=3`)
 	outDir := filepath.Join("out", "rel64")
 	runTestUtilMust(outDir)
 
@@ -672,7 +672,7 @@ func buildTestUtil() {
 	slnPath := filepath.Join("vs2022", "SumatraPDF.sln")
 
 	p := `/p:Configuration=Release;Platform=x64`
-	runExeLoggedMust(msbuildPath, slnPath, `/t:test_util:Rebuild`, p, `/m`)
+	runExeLoggedMust(msbuildPath, slnPath, `/t:test_util:Rebuild`, p, `/m`, `/p:CL_MPCount=3`)
 }
 
 // build pre-release builds for ci sanity check
@@ -708,7 +708,7 @@ func buildCiDaily() {
 		p := `/p:Configuration=Release;Platform=` + platform
 		// t := `/t:SumatraPDF:Rebuild;SumatraPDF-dll:Rebuild`
 		t := `/t:SumatraPDF;SumatraPDF-dll`
-		runExeLoggedMust(msbuildPath, slnPath, t, p, `/m`)
+		runExeLoggedMust(msbuildPath, slnPath, t, p, `/m`, `/p:CL_MPCount=3`)
 		printBBuildDur()
 	}
 	revertBuildConfig() // can do twice

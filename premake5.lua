@@ -109,7 +109,7 @@ function mixed_dbg_rel_conf()
 
   filter "configurations:Release*"
     defines { "NDEBUG" }
-    optimize "Size"
+    optimize "Speed"
 
   -- asan builds:
   -- * no ltcg
@@ -122,7 +122,7 @@ end
 -- config for stable libraries where debug build is done with optimization
 function optimized_conf()
   editandcontinue "Off"
-  optimize "Size"
+  optimize "Speed"
 
   -- we mix Deubg / Release compilation between projects
   -- but all linked modules have to use the same type
@@ -160,7 +160,7 @@ function clang_conf()
   filter "options:with-clang"
     location "vs2022-clang"
     toolset "clang"
-    buildoptions {"-fms-compatibility", "-fms-extensions", "-Wno-microsoft-include", "-march=x86-64-v3", "-maes"}
+    buildoptions {"-fms-compatibility", "-fms-extensions", "-Wno-microsoft-include", "-march=x86-64-v3", "-maes", "-O3"}
 
     warnings "Off"
     exceptionhandling "On"
