@@ -1,0 +1,1 @@
+#define VER_QUALIFIER x64

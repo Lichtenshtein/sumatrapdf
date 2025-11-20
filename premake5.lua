@@ -199,7 +199,8 @@ end
 
 workspace "SumatraPDF"
   configurations { "Debug", "DebugFull", "Release", "ReleaseAnalyze", }
-  platforms { "x32", "x64", "arm64", "x64_asan" }
+  platforms { "x64" }
+  --platforms { "x32", "x64", "arm64", "x64_asan" }
   startproject "SumatraPDF"
 
   filter "platforms:x32"
