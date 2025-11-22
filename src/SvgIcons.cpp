@@ -80,17 +80,24 @@ static const char* gIconLayoutContinuous =
 
 // https://github.com/tabler/tabler-icons/blob/master/icons/layout-rows.svg
 static const char* gIconLayoutContinuous =
-    R"(<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    R"(<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
   <rect x="0" y="0" width="24" height="24" stroke="none"></rect>
-  <rect x="3" y="3" width="18" height="18" rx="2" />
-  <line x1="3" y1="12" x2="21" y2="12" />
+  <path d="M8 12h-6"/>
+  <path d="M5 15l-3 -3l3 -3"/>
+  <path d="M22 12h-6"/>
+  <path d="M19 15l3 -3l-3 -3"/>
+  <path d="M12 4v16"/>
 </svg>)";
 
 // https://github.com/tabler/tabler-icons/blob/master/icons/square.svg
 static const char* gIconLayoutSinglePage =
-    R"(<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    R"(<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
   <rect x="0" y="0" width="24" height="24" stroke="none"></rect>
-  <rect x="4" y="4" width="16" height="16" rx="2" />
+  <path d="M4 12v-6a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v6"/>
+  <path d="M10 18h-7"/>
+  <path d="M21 18h-7"/>
+  <path d="M6 15l-3 3l3 3"/>
+  <path d="M18 15l3 3l-3 3"/>
 </svg>)";
 
 // https://github.com/tabler/tabler-icons/blob/master/icons/chevron-left.svg
@@ -109,12 +116,12 @@ static const char* gIconSearchNext =
 
 // https://github.com/tabler/tabler-icons/blob/master/icons/letter-case.svg
 static const char* gIconMatchCase =
-    R"(<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-  <path stroke="none" d="M0 0h24v24H0z"/>
-  <circle cx="18" cy="16" r="3" />
-  <line x1="21" y1="13" x2="21" y2="19" />
-  <path d="M3 19l5 -13l5 13" />
-  <line x1="5" y1="14" x2="11" y2="14" />
+    R"(<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="0" y="0" width="24" height="24" stroke="none"></rect>
+  <path d="M3 16v-6a2 2 0 1 1 4 0v6"/>
+  <path d="M3 13h4"/>
+  <path d="M10 8v6a2 2 0 1 0 4 0v-1a2 2 0 1 0 -4 0v1"/>
+  <path d="M20.732 12a2 2 0 0 0 -3.732 1v1a2 2 0 0 0 3.726 1.01"/>
 </svg>)";
 
 // https://github.com/tabler/tabler-icons/blob/master/icons/zoom-in.svg
