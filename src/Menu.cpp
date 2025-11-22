@@ -334,10 +334,6 @@ static MenuDef menuDefView[] = {
         CmdToggleScrollbars,
     },
     {
-        _TRN("Toggle Menu Bar"),
-        CmdToggleMenuBar,
-    },
-    {
         _TRN("Show Table Of Contents"),
         CmdToggleTableOfContents,
     },
@@ -348,6 +344,14 @@ static MenuDef menuDefView[] = {
     {
         _TRN("Show Current Page Number"),
         CmdTogglePageInfo,
+    },
+    {
+        _TRN("Toggle Menu Bar"),
+        CmdToggleMenuBar,
+    },
+    {
+        _TRN("Toggle Cursor Position"),
+        CmdToggleCursorPosition,
     },
     {
         kMenuSeparator,
