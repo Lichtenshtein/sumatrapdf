@@ -89,68 +89,10 @@ static_assert(CmdZoomLast - CmdZoomFirst == 17, "zoom ids are not in a continuou
 //[ ACCESSKEY_GROUP File Menu
 static MenuDef menuDefFile[] = {
     {
-        _TRN("New &window"),
-        CmdNewWindow,
-    },
-    {
         _TRN("&Open..."),
         CmdOpenFile,
     },
-    {
-        _TRN("&Close"),
-        CmdClose,
-    },
-    {
-        _TRN("Show in &folder"),
-        CmdShowInFolder,
-    },
-    {
-        _TRN("Open Next File In Folder"),
-        CmdOpenNextFileInFolder,
-    },
-    {
-        _TRN("Open Previous File In Folder"),
-        CmdOpenPrevFileInFolder,
-    },
-    {
-        _TRN("&Save As..."),
-        CmdSaveAs,
-    },
-    {
-        _TRN("Save Annotations to existing PDF"),
-        CmdSaveAnnotations,
-    },
-//[ ACCESSKEY_ALTERNATIVE // only one of these two will be shown
-#ifdef ENABLE_SAVE_SHORTCUT
-    {
-        _TRN("Save S&hortcut..."),
-        CmdCreateShortcutToFile,
-    },
-//| ACCESSKEY_ALTERNATIVE
-#else
-    {
-        _TRN("Re&name..."),
-        CmdRenameFile,
-    },
-    #endif
-    //] ACCESSKEY_ALTERNATIVE
-    {
-        _TRN("Delete"),
-        CmdDeleteFile,
-    },
-    {
-        _TRN("&Print..."),
-        CmdPrint,
-    },
-    {
-        kMenuSeparator,
-        0,
-    },
     //[ ACCESSKEY_ALTERNATIVE // PDF/XPS/CHM specific items are dynamically removed in RebuildFileMenu
-    {
-        _TRN("Open Directory in &Explorer"),
-        CmdOpenWithExplorer,
-    },
     {
         _TRN("Open Directory in Directory &Opus"),
         CmdOpenWithDirectoryOpus,
@@ -185,6 +127,96 @@ static MenuDef menuDefFile[] = {
         _TRN("Open in Microsoft &HTML Help"),
         CmdOpenWithHtmlHelp,
     },
+    {
+        _TRN("Open Previous File In Folder"),
+        CmdOpenPrevFileInFolder,
+    },
+    {
+        _TRN("Open Next File In Folder"),
+        CmdOpenNextFileInFolder,
+    },
+    // {
+        // _TRN("Open Directory in &Explorer"),
+        // CmdOpenWithExplorer,
+    // },
+    {
+        _TRN("Open Document's &Folder"),
+        CmdShowInFolder,
+    },
+    {
+        kMenuSeparator,
+        0,
+    },
+    {
+        _TRN("Close Current Document"),
+        CmdCloseCurrentDocument,
+    },
+    {
+        _TRN("Reopen Last Closed Document"),
+        CmdReopenLastClosedFile,
+    },
+    {
+        _TRN("Reload Document"),
+        CmdReloadDocument,
+    },
+    {
+        _TRN("Copy Document's Path"),
+        CmdCopyFilePath,
+    },
+    {
+        _TRN("Remove Document From History"),
+        CmdForgetSelectedDocument,
+    },
+    {
+        _TRN("Clear History"),
+        CmdClearHistory,
+    },
+    {
+        kMenuSeparator,
+        0,
+    },
+    {
+        _TRN("&Save As..."),
+        CmdSaveAs,
+    },
+    {
+        _TRN("Save Annotations to existing PDF"),
+        CmdSaveAnnotations,
+    },
+    {
+        _TRN("Save Annotations to new PDF"),
+        CmdSaveAnnotationsNewFile,
+    },
+    {
+        _TRN("&Extract Pages..."),
+        CmdExtractPages,
+    },
+    {
+        kMenuSeparator,
+        0,
+    },
+    {
+        _TRN("P&roperties"),
+        CmdProperties,
+    },
+//[ ACCESSKEY_ALTERNATIVE // only one of these two will be shown
+#ifdef ENABLE_SAVE_SHORTCUT
+    {
+        _TRN("Save S&hortcut..."),
+        CmdCreateShortcutToFile,
+    },
+//| ACCESSKEY_ALTERNATIVE
+#else
+    {
+        _TRN("Re&name..."),
+        CmdRenameFile,
+    },
+    #endif
+    //] ACCESSKEY_ALTERNATIVE
+    {
+        _TRN("&Print..."),
+        CmdPrint,
+    },
     //] ACCESSKEY_ALTERNATIVE
     // further entries are added if specified in gGlobalPrefs.vecCommandLine
     {
@@ -196,8 +228,8 @@ static MenuDef menuDefFile[] = {
         0,
     },
     {
-        _TRN("P&roperties"),
-        CmdProperties,
+        _TRN("Delete Opened File"),
+        CmdDeleteFile,
     },
     {
         kMenuSeparator,
@@ -214,32 +246,19 @@ static MenuDef menuDefFile[] = {
 };
 //] ACCESSKEY_GROUP File Menu
 
+// TODO: replace with CmdetTheme
+MenuDef menuDefThemes[] = {
+    {
+        nullptr,
+        0,
+    },
+};
+
 //[ ACCESSKEY_GROUP View Menu
 static MenuDef menuDefView[] = {
     {
-        _TRN("Command Palette"),
-        CmdCommandPalette,
-    },
-    {
-        _TRN("&Single Page"),
-        CmdSinglePageView,
-    },
-    {
-        _TRN("&Facing"),
-        CmdFacingView,
-    },
-    {
-        _TRN("&Book View"),
-        CmdBookView,
-    },
-    {
-        _TRN("Show &Pages Continuously"),
-        CmdToggleContinuousView,
-    },
-    // TODO: "&Inverse Reading Direction" (since some Mangas might be read left-to-right)?
-    {
-        _TRN("Man&ga Mode"),
-        CmdToggleMangaMode,
+        _TRN("F&ullscreen"),
+        CmdToggleFullscreen,
     },
     {
         kMenuSeparator,
@@ -254,6 +273,31 @@ static MenuDef menuDefView[] = {
         CmdRotateRight,
     },
     {
+        _TRN("Show &Pages Continuously"),
+        CmdToggleContinuousView,
+    },
+    {
+        kMenuSeparator,
+        0,
+    },
+    {
+        _TRN("&Single Page"),
+        CmdSinglePageView,
+    },
+    {
+        _TRN("&Facing"),
+        CmdFacingView,
+    },
+    {
+        _TRN("&Book View"),
+        CmdBookView,
+    },
+    // TODO: "&Inverse Reading Direction" (since some Mangas might be read left-to-right)?
+    {
+        _TRN("Man&ga Mode"),
+        CmdToggleMangaMode,
+    },
+    {
         kMenuSeparator,
         0,
     },
@@ -262,12 +306,20 @@ static MenuDef menuDefView[] = {
         CmdTogglePresentationMode,
     },
     {
-        _TRN("F&ullscreen"),
-        CmdToggleFullscreen,
+        _TRN("Presentation Black Background"),
+        CmdPresentationBlackBackground,
+    },
+    {
+        _TRN("Presentation White Background"),
+        CmdPresentationWhiteBackground,
     },
     {
         kMenuSeparator,
         0,
+    },
+    {
+        _TRN("Command Palette"),
+        CmdCommandPalette,
     },
     {
         _TRN("Show Book&marks"),
@@ -282,6 +334,38 @@ static MenuDef menuDefView[] = {
         CmdToggleScrollbars,
     },
     {
+        _TRN("Toggle Menu Bar"),
+        CmdToggleMenuBar,
+    },
+    {
+        _TRN("Show Table Of Contents"),
+        CmdToggleTableOfContents,
+    },
+    {
+        _TRN("Show Frequently Read"),
+        CmdToggleFrequentlyRead,
+    },
+    {
+        _TRN("Show Current Page Number"),
+        CmdTogglePageInfo,
+    },
+    {
+        kMenuSeparator,
+        0,
+    },
+    {
+        _TRN("&Theme"),
+        (UINT_PTR)menuDefThemes,
+    },
+    {
+        _TRN("Select Next Theme"),
+        CmdSelectNextTheme,
+    },
+    {
+        _TRN("Invert Colors"),
+        CmdInvertColors,
+    },
+    {
         nullptr,
         0,
     },
@@ -290,6 +374,18 @@ static MenuDef menuDefView[] = {
 
 //[ ACCESSKEY_GROUP GoTo Menu
 static MenuDef menuDefGoTo[] = {
+    {
+        _TRN("&Back"),
+        CmdNavigateBack,
+    },
+    {
+        _TRN("F&orward"),
+        CmdNavigateForward,
+    },
+    {
+        kMenuSeparator,
+        0,
+    },
     {
         _TRN("&Next Page"),
         CmdGoToNextPage,
@@ -315,27 +411,129 @@ static MenuDef menuDefGoTo[] = {
         0,
     },
     {
-        _TRN("&Back"),
-        CmdNavigateBack,
+        _TRN("Scroll Up"),
+        CmdScrollUp,
     },
     {
-        _TRN("F&orward"),
-        CmdNavigateForward,
+        _TRN("Scroll Down"),
+        CmdScrollDown,
     },
     {
-        kMenuSeparator,
-        0,
+        _TRN("Scroll Left"),
+        CmdScrollLeft,
     },
     {
-        _TRN("Fin&d..."),
-        CmdFindFirst,
+        _TRN("Scroll Right"),
+        CmdScrollRight,
     },
+    {
+        _TRN("Scroll Up By Half Page"),
+        CmdScrollUpHalfPage,
+    },
+    {
+        _TRN("Scroll Down By Half Page"),
+        CmdScrollDownHalfPage,
+    },
+    {
+        _TRN("Scroll Up By Page"),
+        CmdScrollUpPage,
+    },
+    {
+        _TRN("Scroll Down By Page"),
+        CmdScrollDownPage,
+    },
+    {
+        _TRN("Scroll Left By Page"),
+        CmdScrollLeftPage,
+    },
+    {
+        _TRN("Scroll Right By Page"),
+        CmdScrollRightPage,
+    },
+    // {
+        // kMenuSeparator,
+        // 0,
+    // },
+    // {
+        // _TRN("Move Frame Focus"),
+        // CmdMoveFrameFocus,
+    // },
     {
         nullptr,
         0,
     },
 };
 //] ACCESSKEY_GROUP GoTo Menu
+
+//[ ACCESSKEY_GROUP Tabs Menu
+static MenuDef menuDefTabs[] = {
+    {
+        _TRN("New &window"),
+        CmdNewWindow,
+    },
+    {
+        _TRN("Duplicate In New Window"),
+        CmdDuplicateInNewWindow,
+    },
+    {
+        kMenuSeparator,
+        0,
+    },
+    {
+        _TRN("Next Tab"),
+        CmdNextTab,
+    },
+    {
+        _TRN("Previous Tab"),
+        CmdPrevTab,
+    },
+    {
+        _TRN("Move Tab Right"),
+        CmdMoveTabRight,
+    },
+    {
+        _TRN("Move Tab Left"),
+        CmdMoveTabLeft,
+    },
+    {
+        _TRN("Smart Next Tab Switch"),
+        CmdNextTabSmart,
+    },
+    {
+        _TRN("Smart Prev Tab Switch"),
+        CmdPrevTabSmart,
+    },
+    {
+        kMenuSeparator,
+        0,
+    },
+    {
+        _TRN("&Close"),
+        CmdClose,
+    },
+    {
+        _TRN("Close Other Tabs"),
+        CmdCloseOtherTabs,
+    },
+    {
+        _TRN("Close Tabs To The Left"),
+        CmdCloseTabsToTheLeft,
+    },
+    {
+        _TRN("Close Tabs To The Right"),
+        CmdCloseTabsToTheRight,
+    },
+    {
+        _TRN("Close All &Tabs"),
+        CmdCloseAllTabs,
+    },
+    {
+        nullptr,
+        0,
+    },
+};
+//] ACCESSKEY_GROUP Tabs Menu
+
 
 static MenuDef menuDefZoomShort[] = {
     {
@@ -371,8 +569,20 @@ static MenuDef menuDefZoomShort[] = {
 //[ ACCESSKEY_GROUP Zoom Menu
 static MenuDef menuDefZoom[] = {
     {
+        _TRN("Toggle Zoom"),
+        CmdToggleZoom,
+    },
+    {
+        kMenuSeparator,
+        0,
+    },
+    {
         _TRN("Fit &Page"),
         CmdZoomFitPage,
+    },
+    {
+        _TRN("Fit Page and Single Page"),
+        CmdZoomFitPageAndSinglePage,
     },
     {
         _TRN("&Actual Size"),
@@ -381,6 +591,10 @@ static MenuDef menuDefZoom[] = {
     {
         _TRN("Fit &Width"),
         CmdZoomFitWidth,
+    },
+    {
+        _TRN("Fit Width And Continuous"),
+        CmdZoomFitWidthAndContinuous,
     },
     {
         _TRN("Fit &Content"),
@@ -453,24 +667,57 @@ static MenuDef menuDefZoom[] = {
 };
 //] ACCESSKEY_GROUP Zoom Menu
 
-// TODO: replace with CmdetTheme
-MenuDef menuDefThemes[] = {
+//[ ACCESSKEY_GROUP Search Menu
+static MenuDef menuDefSearch[] = {
+    {
+        _TRN("Fin&d..."),
+        CmdFindFirst,
+    },
+    {
+        _TRN("Find Next"),
+        CmdFindNext,
+    },
+    {
+        _TRN("Find Previous"),
+        CmdFindPrev,
+    },
+    {
+        _TRN("Find Next Selection"),
+        CmdFindNextSel,
+    },
+    {
+        _TRN("Find Previous Selection"),
+        CmdFindPrevSel,
+    },
+    {
+        _TRN("Find Match Case"),
+        CmdFindMatch,
+    },
+    {
+        _TRN("Inverse Search"),
+        CmdInvokeInverseSearch,
+    },
+    {
+        kMenuSeparator,
+        0,
+    },
+    {
+        _TRN("&Highlight Key Terms"),
+        CmdHighlightKeyTerms,
+    },
+    {
+        _TRN("&Reload Search Terms"),
+        CmdReloadSearchTerms, 
+    },
     {
         nullptr,
         0,
     },
 };
+//] ACCESSKEY_GROUP Search Menu
 
 //[ ACCESSKEY_GROUP Settings Menu
 static MenuDef menuDefSettings[] = {
-    {
-        _TRN("Change Language"),
-        CmdChangeLanguage,
-    },
-#if 0
-    { _TRN("Contribute Translation"),       CmdContributeTranslation },
-    { kMenuSeparator,                             0                  },
-#endif
     {
         _TRN("&Options..."),
         CmdOptions,
@@ -480,9 +727,13 @@ static MenuDef menuDefSettings[] = {
         CmdAdvancedOptions,
     },
     {
-        _TRN("&Theme"),
-        (UINT_PTR)menuDefThemes,
+        _TRN("Change Language"),
+        CmdChangeLanguage,
     },
+#if 0
+    { _TRN("Contribute Translation"),       CmdContributeTranslation },
+    { kMenuSeparator,                             0                  },
+#endif
     {
         nullptr,
         0,
@@ -503,6 +754,18 @@ MenuDef menuDefFavorites[] = {
     {
         _TRN("Show Favorites"),
         CmdFavoriteToggle,
+    },
+    {
+        kMenuSeparator,
+        0,
+    },
+    {
+        _TRN("&Delete All Bookmarks"),
+        CmdDeleteAllBookmarks,
+    },
+    {
+        _TRN("Delete All &Highlights"),
+        CmdDeleteAllHighlights,
     },
     {
         nullptr,
@@ -614,6 +877,14 @@ static MenuDef menuDefDebug[] = {
 //[ ACCESSKEY_GROUP Context Menu (Selection)
 static MenuDef menuDefSelection[] = {
     {
+        _TRN("Select &All"),
+        CmdSelectAll,
+    },
+    {
+        kMenuSeparator,
+        0,
+    },
+    {
         _TRN("&Translate With Google"),
         CmdTranslateSelectionWithGoogle,
     },
@@ -638,10 +909,6 @@ static MenuDef menuDefSelection[] = {
         CmdSearchSelectionWithGoogleScholar,
     },
     {
-        _TRN("Select &All"),
-        CmdSelectAll,
-    },
-    {
         nullptr,
         0,
     },
@@ -651,8 +918,44 @@ static MenuDef menuDefSelection[] = {
 //[ ACCESSKEY_GROUP Menu (Selection)
 static MenuDef menuDefMainSelection[] = {
     {
+        _TRN("Select &All"),
+        CmdSelectAll,
+    },
+    {
+        kMenuSeparator,
+        0,
+    },
+    {
         _TRN("&Copy To Clipboard"),
         CmdCopySelection,
+    },
+    {
+        _TRN("Copy Comment"),
+        CmdCopyComment,
+    },
+    {
+        _TRN("Copy Image"),
+        CmdCopyImage,
+    },
+    {
+        _TRN("Copy Link Target"),
+        CmdCopyLinkTarget,
+    },
+    {
+        kMenuSeparator,
+        0,
+    },
+    {
+        _TRN("Open Selected Document"),
+        CmdOpenSelectedDocument,
+    },
+    {
+        _TRN("Pin Selected Document"),
+        CmdPinSelectedDocument,
+    },
+    {
+        kMenuSeparator,
+        0,
     },
     {
         _TRN("&Translate With Google"),
@@ -679,10 +982,6 @@ static MenuDef menuDefMainSelection[] = {
         CmdSearchSelectionWithGoogleScholar,
     },
     {
-        _TRN("Select &All"),
-        CmdSelectAll,
-    },
-    {
         nullptr,
         0,
     },
@@ -704,8 +1003,16 @@ static MenuDef menuDefMenubar[] = {
         (UINT_PTR)menuDefGoTo,
     },
     {
+        _TRN("Ta&bs"),
+        (UINT_PTR)menuDefTabs,
+    },
+    {
         _TRN("&Zoom"),
         (UINT_PTR)menuDefZoom,
+    },
+    {
+        _TRN("Se&arch"),
+        (UINT_PTR)menuDefSearch,
     },
     {
         _TRN("S&election"),
@@ -756,6 +1063,11 @@ static MenuDef menuDefCreateAnnotFromSelection[] = {
         _TRN("S&quiggly"),
         CmdCreateAnnotSquiggly,
     },
+    { _TRN("Ink"), CmdCreateAnnotInk, },
+    { _TRN("Square"), CmdCreateAnnotSquare, },
+    { _TRN("Circle"), CmdCreateAnnotCircle, },
+    { _TRN("Line"), CmdCreateAnnotLine, },
+    { _TRN("Poly Line"), CmdCreateAnnotLine, },
     //{ _TRN("Redact"), CmdCreateAnnotRedact, },
     {
         nullptr,
@@ -782,13 +1094,15 @@ static MenuDef menuDefCreateAnnotUnderCursor[] = {
         _TRN("&Caret"),
         CmdCreateAnnotCaret,
     },
-    //{ _TRN("Ink"), CmdCreateAnnotInk, },
-    //{ _TRN("Square"), CmdCreateAnnotSquare, },
-    //{ _TRN("Circle"), CmdCreateAnnotCircle, },
-    //{ _TRN("Line"), CmdCreateAnnotLine, },
-    //{ _TRN("Polygon"), CmdCreateAnnotPolygon, },
-    //{ _TRN("Poly Line"), CmdCreateAnnotPolyLine, },
-    //{ _TRN("File Attachment"), CmdCreateAnnotFileAttachment, },
+    { _TRN("Ink"), CmdCreateAnnotInk, },
+    { _TRN("Square"), CmdCreateAnnotSquare, },
+    { _TRN("Circle"), CmdCreateAnnotCircle, },
+    { _TRN("Line"), CmdCreateAnnotLine, },
+    { _TRN("Poly Line"), CmdCreateAnnotLine, },
+    { _TRN("Highlight"), CmdCreateAnnotHighlight, },
+    { _TRN("Squiggly"), CmdCreateAnnotSquiggly, },
+    { _TRN("Strike Out"), CmdCreateAnnotStrikeOut, },
+    { _TRN("Underline"), CmdCreateAnnotUnderline, },
     {
         nullptr,
         0,
@@ -965,7 +1279,7 @@ UINT_PTR disableIfNoSelection[] = {
     CmdCreateAnnotSquiggly,
     CmdCreateAnnotStrikeOut,
     CmdCreateAnnotUnderline,
-    0,
+    // 0,
 };
 
 static UINT_PTR menusNoTranslate[] = {
@@ -996,13 +1310,13 @@ UINT_PTR removeIfNoInternetPerms[] = {
     CmdHelpOpenManualOnWebsite,
     CmdHelpOpenKeyboardShortcuts,
     CmdContributeTranslation,
-    0,
+    // 0,
 };
 
 UINT_PTR removeIfNoFullscreenPerms[] = {
     CmdTogglePresentationMode,
     CmdToggleFullscreen,
-    0,
+    // 0,
 };
 
 UINT_PTR removeIfNoPrefsPerms[] = {
@@ -1013,7 +1327,7 @@ UINT_PTR removeIfNoPrefsPerms[] = {
     CmdFavoriteAdd,
     CmdFavoriteDel,
     CmdFavoriteToggle,
-    0,
+    // 0,
 };
 
 UINT_PTR removeIfNoCopyPerms[] = {
@@ -1032,7 +1346,7 @@ UINT_PTR removeIfNoCopyPerms[] = {
     CmdCopyImage,
     (UINT_PTR)menuDefSelection,
     (UINT_PTR)menuDefMainSelection,
-    0,
+    // 0,
 };
 
 // TODO: all prefs params also fall under disk access
@@ -1061,7 +1375,7 @@ UINT_PTR removeIfNoDiskAccessPerm[] = {
     CmdCreateShortcutToFile,
     CmdSaveEmbeddedFile,
     CmdShowLog,
-    0,
+    // 0,
 };
 
 UINT_PTR removeIfAnnotsNotSupported[] = {
@@ -1072,7 +1386,7 @@ UINT_PTR removeIfAnnotsNotSupported[] = {
     CmdDeleteAnnotation,
     (UINT_PTR)menuDefCreateAnnotFromSelection,
     (UINT_PTR)menuDefCreateAnnotUnderCursor,
-    0,
+    // 0,
 };
 
 UINT_PTR removeIfChm[] = {
@@ -1096,7 +1410,7 @@ UINT_PTR removeIfChm[] = {
     CmdZoom8_33,
     CmdInvokeInverseSearch,
     (UINT_PTR)menuDefContext,
-    0,
+    // 0,
 };
 // clang-format on
 
