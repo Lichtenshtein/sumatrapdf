@@ -6012,7 +6012,7 @@ pa:ਭਾਸ਼ਾ ਬਦਲੋ
 pl:Zmień język (Change Language)
 pt:Mudar Idioma
 ro:Schimbare limbă (Change Language)
-ru:Изменить &язык (Change Language)
+ru:Изменить &язык
 sat:ᱯᱟᱹᱨᱥᱤ ᱵᱚᱫᱚᱞ ᱢᱮ
 si:භාෂාව වෙනස්කරන්න (Change Language)
 sk:Zmeniť jazyk (Change Language)
@@ -6448,7 +6448,7 @@ no:Lukk andre faner
 pl:Zamknij inne karty
 pt:Fechar as Outras Abas
 ro:Închide alte file
-ru:Закрыть другие вкладки
+ru:Закрыть др&угие вкладки
 sat:ᱮᱴᱟᱜ ᱴᱮᱵᱽᱠᱚ ᱵᱚᱸᱫᱚᱭ ᱢᱮ
 sk:Zatvoriť ostatné karty
 sl:Zapri druge zavihke
@@ -6490,7 +6490,7 @@ nl:Sluit Tabbladen aan de Linkerkant
 pl:Zamknij karty po lewej stronie
 pt:Fechar as Abas a Esquerda
 ro:Închide filele la stânga
-ru:Закрыть вкладки слева
+ru:Закрыть вкладки с&лева
 sat:ᱞᱮᱝᱜᱟᱛᱤ ᱯᱟᱦᱴᱟ ᱴᱮᱵᱽᱠᱚ ᱵᱚᱸᱫᱚᱭ ᱢᱮ
 sk:Zatvoriť karty vľavo
 sl:Zapri zavihke na levi
@@ -6535,7 +6535,7 @@ no:Lukk faner til høyre
 pl:Zamknij karty po prawej stronie
 pt:Fechar as Abas a Direita
 ro:Închide filele la dreapta
-ru:Закрыть вкладки справа
+ru:Закрыть вкладки с&права
 sat:ᱡᱚᱡᱚᱢᱛᱤ ᱯᱟᱦᱴᱟ ᱴᱮᱵᱽᱠᱚ ᱵᱚᱸᱫᱚᱭ ᱢᱮ
 sk:Zatvoriť karty vpravo
 sl:Zapri zavihke na desni
@@ -6775,7 +6775,7 @@ no:Kommandopalett
 pl:Paleta poleceń
 pt:Paleta de Comandos
 ro:Paleta de comenzi
-ru:Панель команд
+ru:Панел&ь команд
 sat:ᱟᱫᱮᱥ ᱛᱮᱞᱮᱴ
 sk:Paleta príkazov
 sl:Ukazna paleta
@@ -11264,7 +11264,7 @@ bg:Намиране на следващото съвпадение
 bn:পরবর্তী অনুসন্ধান
 br:Achar o Próximo
 bs:Nađi sljedeće
-by:Найти следующее
+by:Найти с&ледующее
 ca-xv:Cerca següent
 ca:Cerca següent
 cn:向后查找
@@ -11383,7 +11383,7 @@ pa:ਪਿਛਲਾ ਲੱਭੋ
 pl:Znajdź poprzedni
 pt:Localizar anterior
 ro:Caută înapoi
-ru:Найти предыдущее
+ru:Найти п&редыдущее
 sat:ᱢᱟᱲᱟᱝᱟᱜ ᱯᱟᱱᱛᱮ
 si:පසුපසට සොයන්න
 sk:Hľadať predchádzajúce
@@ -19234,7 +19234,7 @@ nl:Zoek met Google Scholar
 pl:Szukaj za pomocą &Google Scholar
 pt:Procurar com o &Google Scholar
 ro: Caută cu &Google Academic
-ru:  Найти в &Google Scholar
+ru:Найти в &Google Scholar
 sat:&Google Scholar ᱥᱟᱶᱛᱮ ᱥᱮᱸᱫᱽᱨᱟᱭ ᱢᱮ
 sk:Vyhľadať na &Google Scholar
 sl:Išči z &Google Učenjak (Scholar)
@@ -19912,7 +19912,7 @@ no:Vis sider kontinuerlig
 pl:Wyświetlaj strony w układzie &ciągłym
 pt:M&ostrar páginas contínuas
 ro:Arată &paginile continuu
-ru:Отключить постраничную &прокрутку
+ru:Отключить постраничную прокру&тку
 sat:ᱥ&ᱟᱦᱴᱟ ᱞᱮᱛᱟᱲ ᱥᱟᱹᱦᱤᱡ ᱫᱮᱠᱷᱟᱣ ᱢᱮ
 si:අඛණ්ඩව &පිටු පෙන්වන්න
 sk:Zobraziť strany priebe&žne
@@ -19972,7 +19972,7 @@ no:Vis &rullefelt
 pl:Pokaż &paski przewijania
 pt:Mo&strar barra de deslocação
 ro:Arată bare de &derulare
-ru:Показывать по&лосы прокрутки
+ru:Показы&вать полосы прокрутки
 sat:&ᱠᱷᱚᱥᱨᱚᱫᱵᱟᱨᱠᱚ ᱫᱮᱠᱷᱟᱣᱢᱮ
 sk:Zobraziť po&suvníky
 sl:Pokaži dr&sne trakove
@@ -23643,3 +23643,153 @@ tw:正在列印文件
 uk:друк документа
 uz:hujjatni chop etish
 vn:đang in tập tin
+:Open Document's &Folder
+ru:Отк&рыть папку с файлом
+:Close Current Document
+ru:Закрыть текущий ф&айл
+:Reopen Last Closed Document
+ru:Пер&еоткрыть закрытый файл
+:Reload Document
+ru:Перезагрузить фа&йл
+:Copy Document's Path
+ru:Скопировать путь к &файлу
+:Remove Document From History
+ru:Удалит&ь файл из истории
+:Clear History
+ru:Очисти&ть историю
+:Save Annotations to existing PDF
+ru:Сохранить аннотации в т&екущем PDF
+:Save Annotations to new PDF
+ru:Сохранить аннота&ции в новом PDF
+:Extra&ct Pages as PDF...
+ru:&Извлечь страницы как PDF...
+:Convert to &Images...
+ru:Ко&нвертировать в изображения...
+:Open the ML Model...
+ru:Загрузить ML-&модель...
+:Send b&y E-mail...
+ru:Отправить по &электронной почте...
+:Ta&bs
+ru:В&кладки
+:Se&arch
+ru:&Поиск
+:Delete Opened File
+ru:&Удалить открытый файл
+:Presentation Black Background
+ru:Презентация на &черном фоне
+:Presentation White Background
+ru:Презентация на &белом фоне
+:Show Table Of Contents
+ru:Показать о&главление
+:Show Frequently Read
+ru:Показать ча&сто читаемое
+:Show Current Page Number
+ru:Показать но&мер текущей страницы
+:Toggle Menu Bar
+ru:Переключить па&нель меню
+:Toggle Cursor Position
+ru:Показат&ь координаты курсора
+:Select Next Theme
+ru:Следу&ющая тема
+:Invert Colors
+ru:Инвертировать цвет&а
+:Switch to Dark Mode
+ru:Переключить в ночно&й режим
+:Switch to Reading Mode
+ru:Переключить в режим &чтения
+:Switch to Default Mode
+ru:Переключить в режим по-&умолчанию
+:Scroll Up
+ru:Прокрутить вверх
+:Scroll Down
+ru:Прокрутить вниз
+:Scroll Left
+ru:Прокрутить влево
+:Scroll Right
+ru:Прокрутить вправо
+:Scroll Up By Half Page
+ru:Прокрутить вверх на полстраницы
+:Scroll Down By Half Page
+ru:Прокрутить вниз на полстраницы
+:Scroll Up By Page
+ru:Прокрутить вверх по странице
+:Scroll Down By Page
+ru:Прокрутить вниз по странице
+:Scroll Left By Page
+ru:Прокрутить влево по странице
+:Scroll Right By Page
+ru:Прокрутить вправо по странице
+:New &Window
+ru:Новое ок&но
+:Duplicate Tab
+ru:Дублир&овать вкладку
+:Duplicate in New Window
+ru:Ду&блировать в новом окне
+:Next Tab
+ru:Сле&дующая вкладка
+:Previous Tab
+ru:Пред&ыдущая вкладка
+:Move Tab Right
+ru:Переместить вкладку в&право
+:Move Tab Left
+ru:Переместить вкладку вле&во
+:Smart Next Tab Switch
+ru:Умная с&ледующая вкладка
+:Smart Prev Tab Switch
+ru:Умная п&редыдущая вкладка
+:Close All &Tabs
+ru:Закрыть в&се вкладки
+:Toggle Zoom
+ru:Переключ&ение масштаба
+:Fit Page and Single Page
+ru:Вписать страницу &отдельно
+:Fit Width And Continuous
+ru:Вписать по ширине &непрерывно
+:Find Next Selection
+ru:Найти следующее &выделение
+:Find Previous Selection
+ru:Найти &предыдущее выделение
+:Find Match Case
+ru:Учитывать &регистр
+:Inverse Search
+ru:&Обратный поиск
+:&Highlight Key Terms
+ru:Выделение &ключевых слов
+:&Reload Search Terms
+ru:Перезагрузить &условия поиска
+:Copy Comment
+ru:Копировать &комментарий
+:Copy Image
+ru:Копировать &изображение
+:Copy Link Target
+ru:Копировать &целевую ссылку
+:Open Selected Document
+ru:&Открыть выбранный документ
+:Pin Selected Document
+ru:&Закрепить выбранный документ
+:&Delete All Bookmarks
+ru:Удалить все &закладки
+:Delete All &Highlights
+ru:Удалить все &пометки
+:&Ink
+ru:&Чернила
+:Squ&are
+ru:&Квадрат
+:C&ircle
+ru:К&руг
+:&Line
+ru:&Линия
+:Duplicate tab
+ru:Дублировать вкладку
+:Save As...
+ru:Сохранить как...
+:Go Back
+ru:Вернуться назад
+:Go Forward
+ru:Вернуться вперед
+:Dark Mode
+ru:Ночной режим
+:Reading Mode
+ru:Режим чтения
+:Default Mode
+ru:Режим по-умолчанию
