@@ -201,6 +201,10 @@ Cmd* enum (e.g. CmdOpen) and a human-readable name (not used yet).
     V(CmdDeleteAllBookmarks, "Delete All Bookmarks")                             \
     V(CmdDeleteAllHighlights, "Delete All Highlights")                           \
     V(CmdExtractPages, "Extract Pages...")                                       \
+    V(CmdDeletePages, "Delete Pages...")                                         \
+    V(CmdCombinePDFs, "Combine PDFs...")                                         \
+    V(CmdInsertTemplate, "Insert Template PDF...")                               \
+    V(CmdSendToLLM, "Analyze with AI...")                                        \
     V(CmdToggleThumbnails, "Toggle Page Thumbnails")                             \
     V(CmdNone, "Do nothing")
 

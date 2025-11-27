@@ -85,6 +85,15 @@ bool ExtractPagesToNewPDF(EngineBase* engine, Vec<int>& pageNumbers, const char*
 struct PageRangeData;
 bool ExtractPageRangeToNewPDF(EngineBase* engine, const PageRangeData* data, const char* outputPath);
 
+// Page manipulation functions
+bool DeletePagesFromPDF(EngineBase* engine, const PageRangeData* pagesToDelete, const char* outputPath);
+bool CombinePDFs(const char* outputPath, const char** inputPaths, int numInputs);
+bool InsertPDFPages(EngineBase* engine, const char* insertPath, int insertAfterPage, const char* outputPath);
+
+// Text extraction for LLM analysis
+char* ExtractAllText(EngineBase* engine);
+char* ExtractPageText(EngineBase* engine, int pageNo);
+
 /* EnginePs.cpp */
 
 bool IsEnginePsAvailable();

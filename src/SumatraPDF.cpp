@@ -5825,29 +5825,25 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
             logf("EXTRACT_PAGES: Successfully parsed %d pages from input '%s'", rangeData.count, rangeInput);
             str::Free(rangeInput);
             
-            // Generate output filename using proper temp path
+            // Generate output filename in same folder as source PDF
             const char* srcPath = engine->FilePath();
+            TempStr srcDir = path::GetDirTemp(srcPath);
             TempStr baseName = path::GetBaseNameTemp(srcPath);
             // Remove extension manually since GetBaseNameNoExtTemp doesn't exist
             char* dot = str::FindCharLast(baseName, '.');
             if (dot) {
                 *dot = '\0';
             }
-            
-            // Get system temp path (fixing hardcoded C:\temp issue from code review)
-            WCHAR tempPathW[MAX_PATH];
-            GetTempPath(MAX_PATH, tempPathW);
-            TempStr tempPath = ToUtf8Temp(tempPathW);
-            
+
             TempStr outputPath;
             if (rangeData.count == 1) {
                 // Single page
                 int pageNum = rangeData.pages[0];
-                outputPath = str::FormatTemp("%s\\%s_page_%d.pdf", tempPath, baseName, pageNum);
+                outputPath = str::FormatTemp("%s\\%s_page_%d.pdf", srcDir, baseName, pageNum);
                 logf("EXTRACT_PAGES: Single page extraction to: %s", outputPath);
             } else {
                 // Multiple pages
-                outputPath = str::FormatTemp("%s\\%s_pages_%dto%d.pdf", tempPath, baseName, 
+                outputPath = str::FormatTemp("%s\\%s_pages_%dto%d.pdf", srcDir, baseName,
                                            rangeData.pages[0], rangeData.pages[rangeData.count - 1]);
                 logf("EXTRACT_PAGES: Multiple page extraction (%d pages) to: %s", rangeData.count, outputPath);
             }
@@ -5878,6 +5874,341 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
             }
             
             logf("EXTRACT_PAGES: Command completed (Memory-Safe Version)");
+            break;
+        }
+
+        case CmdDeletePages: {
+            logf("=== DELETE_PAGES: Command started ===");
+
+            if (!win->IsDocLoaded()) {
+                logf("DELETE_PAGES: ERROR - No document loaded");
+                break;
+            }
+
+            WindowTab* currentTab = win->CurrentTab();
+            if (!currentTab) {
+                logf("DELETE_PAGES: ERROR - No current tab");
+                break;
+            }
+
+            EngineBase* engine = currentTab->GetEngine();
+            if (!engine || engine->kind != kindEngineMupdf) {
+                logf("DELETE_PAGES: ERROR - Not a PDF document");
+                MessageBoxA(win->hwndFrame,
+                           "Page deletion is currently only supported for PDF documents.",
+                           "Delete Pages", MB_OK | MB_ICONINFORMATION);
+                break;
+            }
+
+            int pageCount = engine->PageCount();
+            int currentPage = win->currPageNo;
+
+            // Get pages to delete from user
+            char* rangeInput = GetPageRangeFromUser(win->hwndFrame, pageCount, currentPage);
+            if (!rangeInput) {
+                logf("DELETE_PAGES: User cancelled");
+                break;
+            }
+
+            // Parse page range
+            PageRangeData rangeData = {};
+            if (!ParsePageRangesSafe(rangeInput, pageCount, &rangeData)) {
+                MessageBoxA(win->hwndFrame,
+                           "Invalid page range. Please enter valid page numbers or ranges.",
+                           "Delete Pages", MB_OK | MB_ICONWARNING);
+                str::Free(rangeInput);
+                break;
+            }
+            str::Free(rangeInput);
+
+            // Confirm deletion
+            TempStr confirmMsg = str::FormatTemp(
+                "Are you sure you want to delete %d page(s)?\n\n"
+                "This will create a new PDF file without the deleted pages.\n"
+                "The original file will NOT be modified.",
+                rangeData.count);
+            int result = MessageBoxA(win->hwndFrame, confirmMsg, "Confirm Delete Pages",
+                                    MB_YESNO | MB_ICONWARNING);
+            if (result != IDYES) {
+                break;
+            }
+
+            // Generate output path in same folder as source
+            const char* srcPath = engine->FilePath();
+            TempStr srcDir = path::GetDirTemp(srcPath);
+            TempStr baseName = path::GetBaseNameTemp(srcPath);
+            char* dot = str::FindCharLast(baseName, '.');
+            if (dot) *dot = '\0';
+
+            TempStr outputPath = str::FormatTemp("%s\\%s_pages_deleted.pdf", srcDir, baseName);
+
+            bool success = DeletePagesFromPDF(engine, &rangeData, outputPath);
+
+            if (success) {
+                TempStr successMsg = str::FormatTemp(
+                    "Successfully created new PDF with %d pages deleted:\n%s",
+                    rangeData.count, outputPath);
+                MessageBoxA(win->hwndFrame, successMsg, "Delete Pages", MB_OK | MB_ICONINFORMATION);
+            } else {
+                MessageBoxA(win->hwndFrame, "Failed to delete pages.", "Delete Pages", MB_OK | MB_ICONERROR);
+            }
+
+            logf("DELETE_PAGES: Command completed");
+            break;
+        }
+
+        case CmdCombinePDFs: {
+            logf("=== COMBINE_PDFS: Command started ===");
+
+            // Get files to combine using Open File dialog
+            OPENFILENAMEA ofn = {};
+            char szFile[MAX_PATH * 10] = {}; // Space for multiple files
+
+            ofn.lStructSize = sizeof(ofn);
+            ofn.hwndOwner = win->hwndFrame;
+            ofn.lpstrFile = szFile;
+            ofn.nMaxFile = sizeof(szFile);
+            ofn.lpstrFilter = "PDF Files (*.pdf)\0*.pdf\0All Files (*.*)\0*.*\0";
+            ofn.nFilterIndex = 1;
+            ofn.lpstrTitle = "Select PDF files to combine (Ctrl+Click for multiple)";
+            ofn.Flags = OFN_ALLOWMULTISELECT | OFN_EXPLORER | OFN_FILEMUSTEXIST;
+
+            if (!GetOpenFileNameA(&ofn)) {
+                logf("COMBINE_PDFS: User cancelled");
+                break;
+            }
+
+            // Parse selected files - multi-select uses null-separated list
+            Vec<char*> filePaths;
+            char* dirPath = szFile;
+            char* fileName = szFile + strlen(szFile) + 1;
+
+            if (*fileName == '\0') {
+                // Single file selected
+                filePaths.Append(str::Dup(szFile));
+            } else {
+                // Multiple files selected - first string is directory
+                while (*fileName) {
+                    TempStr fullPath = path::JoinTemp(dirPath, fileName);
+                    filePaths.Append(str::Dup(fullPath));
+                    fileName += strlen(fileName) + 1;
+                }
+            }
+
+            if (filePaths.Size() < 2) {
+                MessageBoxA(win->hwndFrame,
+                           "Please select at least 2 PDF files to combine.",
+                           "Combine PDFs", MB_OK | MB_ICONINFORMATION);
+                for (char* p : filePaths) str::Free(p);
+                break;
+            }
+
+            logf("COMBINE_PDFS: Selected %d files to combine", (int)filePaths.Size());
+
+            // Ask where to save combined PDF
+            char szOutput[MAX_PATH] = "combined.pdf";
+            OPENFILENAMEA ofnSave = {};
+            ofnSave.lStructSize = sizeof(ofnSave);
+            ofnSave.hwndOwner = win->hwndFrame;
+            ofnSave.lpstrFile = szOutput;
+            ofnSave.nMaxFile = sizeof(szOutput);
+            ofnSave.lpstrFilter = "PDF Files (*.pdf)\0*.pdf\0";
+            ofnSave.lpstrDefExt = "pdf";
+            ofnSave.lpstrTitle = "Save Combined PDF As";
+            ofnSave.Flags = OFN_OVERWRITEPROMPT;
+
+            if (!GetSaveFileNameA(&ofnSave)) {
+                logf("COMBINE_PDFS: User cancelled save dialog");
+                for (char* p : filePaths) str::Free(p);
+                break;
+            }
+
+            // Combine the PDFs
+            const char** paths = (const char**)filePaths.LendData();
+            bool success = CombinePDFs(szOutput, paths, (int)filePaths.Size());
+
+            // Cleanup
+            for (char* p : filePaths) str::Free(p);
+
+            if (success) {
+                TempStr successMsg = str::FormatTemp(
+                    "Successfully combined PDFs into:\n%s\n\nWould you like to open it?",
+                    szOutput);
+                int openIt = MessageBoxA(win->hwndFrame, successMsg, "Combine PDFs",
+                                        MB_YESNO | MB_ICONINFORMATION);
+                if (openIt == IDYES) {
+                    LoadArgs args(szOutput, win);
+                    LoadDocument(&args);
+                }
+            } else {
+                MessageBoxA(win->hwndFrame, "Failed to combine PDFs.", "Combine PDFs", MB_OK | MB_ICONERROR);
+            }
+
+            logf("COMBINE_PDFS: Command completed");
+            break;
+        }
+
+        case CmdInsertTemplate: {
+            logf("=== INSERT_TEMPLATE: Command started ===");
+
+            if (!win->IsDocLoaded()) {
+                MessageBoxA(win->hwndFrame, "Please open a PDF document first.",
+                           "Insert Template", MB_OK | MB_ICONINFORMATION);
+                break;
+            }
+
+            WindowTab* currentTab = win->CurrentTab();
+            EngineBase* engine = currentTab ? currentTab->GetEngine() : nullptr;
+            if (!engine || engine->kind != kindEngineMupdf) {
+                MessageBoxA(win->hwndFrame, "Template insertion requires a PDF document.",
+                           "Insert Template", MB_OK | MB_ICONINFORMATION);
+                break;
+            }
+
+            // Select PDF to insert
+            OPENFILENAMEA ofn = {};
+            char szFile[MAX_PATH] = {};
+
+            ofn.lStructSize = sizeof(ofn);
+            ofn.hwndOwner = win->hwndFrame;
+            ofn.lpstrFile = szFile;
+            ofn.nMaxFile = sizeof(szFile);
+            ofn.lpstrFilter = "PDF Files (*.pdf)\0*.pdf\0";
+            ofn.lpstrTitle = "Select PDF to Insert";
+            ofn.Flags = OFN_FILEMUSTEXIST;
+
+            if (!GetOpenFileNameA(&ofn)) {
+                logf("INSERT_TEMPLATE: User cancelled");
+                break;
+            }
+
+            // Ask where to insert (after which page)
+            int pageCount = engine->PageCount();
+            int currentPage = win->currPageNo;
+
+            TempStr prompt = str::FormatTemp(
+                "Insert after which page? (0 = beginning, %d = end)\nCurrent page: %d",
+                pageCount, currentPage);
+
+            // Simple input - reuse page range dialog
+            char* pageInput = GetPageRangeFromUser(win->hwndFrame, pageCount, currentPage);
+            if (!pageInput) {
+                break;
+            }
+
+            int insertAfter = atoi(pageInput);
+            str::Free(pageInput);
+
+            if (insertAfter < 0) insertAfter = 0;
+            if (insertAfter > pageCount) insertAfter = pageCount;
+
+            // Generate output path
+            const char* srcPath = engine->FilePath();
+            TempStr srcDir = path::GetDirTemp(srcPath);
+            TempStr baseName = path::GetBaseNameTemp(srcPath);
+            char* dot = str::FindCharLast(baseName, '.');
+            if (dot) *dot = '\0';
+
+            TempStr outputPath = str::FormatTemp("%s\\%s_with_insert.pdf", srcDir, baseName);
+
+            bool success = InsertPDFPages(engine, szFile, insertAfter, outputPath);
+
+            if (success) {
+                TempStr successMsg = str::FormatTemp(
+                    "Successfully inserted PDF after page %d:\n%s\n\nWould you like to open it?",
+                    insertAfter, outputPath);
+                int openIt = MessageBoxA(win->hwndFrame, successMsg, "Insert Template",
+                                        MB_YESNO | MB_ICONINFORMATION);
+                if (openIt == IDYES) {
+                    LoadArgs args(outputPath, win);
+                    LoadDocument(&args);
+                }
+            } else {
+                MessageBoxA(win->hwndFrame, "Failed to insert PDF.", "Insert Template", MB_OK | MB_ICONERROR);
+            }
+
+            logf("INSERT_TEMPLATE: Command completed");
+            break;
+        }
+
+        case CmdSendToLLM: {
+            logf("=== SEND_TO_LLM: Command started ===");
+
+            if (!win->IsDocLoaded()) {
+                MessageBoxA(win->hwndFrame, "Please open a PDF document first.",
+                           "Analyze with AI", MB_OK | MB_ICONINFORMATION);
+                break;
+            }
+
+            WindowTab* currentTab = win->CurrentTab();
+            EngineBase* engine = currentTab ? currentTab->GetEngine() : nullptr;
+            if (!engine) {
+                break;
+            }
+
+            // Extract all text from document
+            char* allText = ExtractAllText(engine);
+            if (!allText || str::Len(allText) == 0) {
+                MessageBoxA(win->hwndFrame,
+                           "Could not extract text from this document.\n"
+                           "The PDF may be image-based or have no extractable text.",
+                           "Analyze with AI", MB_OK | MB_ICONWARNING);
+                str::Free(allText);
+                break;
+            }
+
+            int textLen = (int)str::Len(allText);
+            logf("SEND_TO_LLM: Extracted %d characters", textLen);
+
+            // For now, copy to clipboard and show instructions
+            // Future: Direct API integration
+            if (OpenClipboard(win->hwndFrame)) {
+                EmptyClipboard();
+                HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, textLen + 1);
+                if (hMem) {
+                    char* clipData = (char*)GlobalLock(hMem);
+                    memcpy(clipData, allText, textLen + 1);
+                    GlobalUnlock(hMem);
+                    SetClipboardData(CF_TEXT, hMem);
+                }
+                CloseClipboard();
+
+                TempStr infoMsg = str::FormatTemp(
+                    "Extracted %d characters of text and copied to clipboard!\n\n"
+                    "You can now paste this into Claude, ChatGPT, or any other AI assistant.\n\n"
+                    "Tip: Ask the AI to:\n"
+                    "- Summarize the document\n"
+                    "- Extract key points\n"
+                    "- Answer questions about the content\n"
+                    "- Translate to another language",
+                    textLen);
+                MessageBoxA(win->hwndFrame, infoMsg, "Analyze with AI", MB_OK | MB_ICONINFORMATION);
+            } else {
+                // Clipboard failed - save to file instead
+                const char* srcPath = engine->FilePath();
+                TempStr srcDir = path::GetDirTemp(srcPath);
+                TempStr baseName = path::GetBaseNameTemp(srcPath);
+                char* dot = str::FindCharLast(baseName, '.');
+                if (dot) *dot = '\0';
+
+                TempStr txtPath = str::FormatTemp("%s\\%s_text.txt", srcDir, baseName);
+
+                FILE* f = fopen(txtPath, "wb");
+                if (f) {
+                    fwrite(allText, 1, textLen, f);
+                    fclose(f);
+
+                    TempStr savedMsg = str::FormatTemp(
+                        "Extracted %d characters of text.\n"
+                        "Saved to: %s\n\n"
+                        "Open this file and copy the content to use with an AI assistant.",
+                        textLen, txtPath);
+                    MessageBoxA(win->hwndFrame, savedMsg, "Analyze with AI", MB_OK | MB_ICONINFORMATION);
+                }
+            }
+
+            str::Free(allText);
+            logf("SEND_TO_LLM: Command completed");
             break;
         }
 

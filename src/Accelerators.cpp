@@ -221,6 +221,11 @@ ACCEL gBuiltInAccelerators[] = {
     {0, '.', CmdPresentationBlackBackground},
     {0, 'c', CmdToggleContinuousView},
 
+    // Custom SumatraPDF enhancement hotkeys
+    {FSHIFT | FCONTROL | FVIRTKEY, 'H', CmdHighlightKeyTerms},     // Ctrl+Shift+H = Highlight Key Terms
+    {FCONTROL | FVIRTKEY, 'E', CmdExtractPages},                    // Ctrl+E = Extract Pages
+    {FALT | FVIRTKEY, 'P', CmdToggleThumbnails},                    // Alt+P = Toggle Page Thumbnails
+
     {0, '1', CmdGoToFirstPage},
     {0, '2', CmdZoomFitPageAndSinglePage},
     {0, '3', CmdZoomFitWidthAndContinuous},

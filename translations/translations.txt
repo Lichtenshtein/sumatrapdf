@@ -23793,3 +23793,23 @@ ru:Ночной режим
 ru:Режим чтения
 :Default Mode
 ru:Режим по-умолчанию
+:&Edit
+ru:Прав&ка
+:Show Page Thu&mbnails
+ru:&Показать миниатюры страниц
+:Test Bitmap Render
+ru:Тестовый &рендеринг изображений
+:&Analyze with AI...
+ru:Копировать в буфер как текст
+:Convert to I&mages...
+ru:&Извлечь страницы как изображения
+:&Insert Template PDF...
+ru:&Вставить шаблон PDF
+:Combi&ne PDFs...
+ru:Объе&динить PDF-файлы
+:De&lete Pages...
+ru:&Удалить выбранные страницы
+:&Save Changes
+ru:&Сохранить изменения
+:&Discard Changes
+ru:&Отменить изменения

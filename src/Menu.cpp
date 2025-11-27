@@ -179,34 +179,6 @@ static MenuDef menuDefFile[] = {
         _TRN("&Save As..."),
         CmdSaveAs,
     },
-    {
-        _TRN("Save Annotations to existing PDF"),
-        CmdSaveAnnotations,
-    },
-    {
-        _TRN("Save Annotations to new PDF"),
-        CmdSaveAnnotationsNewFile,
-    },
-    {
-        _TRN("Extra&ct Pages as PDF..."),
-        CmdExtractPages,
-    },
-    {
-        _TRN("Convert to &Images..."),
-        CmdConvertPdfToImages,
-    },
-    {
-        _TRN("Open the ML Model"),
-        CmdMLModel,
-    },
-    {
-        kMenuSeparator,
-        0,
-    },
-    {
-        _TRN("P&roperties"),
-        CmdProperties,
-    },
 //[ ACCESSKEY_ALTERNATIVE // only one of these two will be shown
 #ifdef ENABLE_SAVE_SHORTCUT
     {
@@ -215,6 +187,14 @@ static MenuDef menuDefFile[] = {
     },
 //| ACCESSKEY_ALTERNATIVE
 #else
+    {
+        kMenuSeparator,
+        0,
+    },
+    {
+        _TRN("P&roperties"),
+        CmdProperties,
+    },
     {
         _TRN("Re&name..."),
         CmdRenameFile,
@@ -261,6 +241,71 @@ MenuDef menuDefThemes[] = {
         0,
     },
 };
+
+//[ ACCESSKEY_GROUP Edit Menu
+static MenuDef menuDefEdit[] = {
+    {
+        _TRN("&Save Changes"),
+        CmdSaveChanges,
+    },
+    {
+        _TRN("&Discard Changes"),
+        CmdDiscardChanges,
+    },
+    {
+        kMenuSeparator,
+        0,
+    },
+    {
+        _TRN("Save Annotations to existing PDF"),
+        CmdSaveAnnotations,
+    },
+    {
+        _TRN("Save Annotations to new PDF"),
+        CmdSaveAnnotationsNewFile,
+    },
+    {
+        kMenuSeparator,
+        0,
+    },
+    {
+        _TRN("Extra&ct Pages as PDF..."),
+        CmdExtractPages,
+    },
+    {
+        _TRN("De&lete Pages..."),
+        CmdDeletePages,
+    },
+    {
+        _TRN("Combi&ne PDFs..."),
+        CmdCombinePDFs,
+    },
+    {
+        _TRN("&Insert Template PDF..."),
+        CmdInsertTemplate,
+    },
+    {
+        _TRN("Convert to I&mages..."),
+        CmdConvertPdfToImages,
+    },
+    {
+        kMenuSeparator,
+        0,
+    },
+    {
+        _TRN("&Analyze with AI..."),
+        CmdSendToLLM,
+    },
+    {
+        _TRN("Open the ML Model"),
+        CmdMLModel,
+    },
+    {
+        nullptr,
+        0,
+    },
+};
+//] ACCESSKEY_GROUP Edit Menu
 
 //[ ACCESSKEY_GROUP View Menu
 static MenuDef menuDefView[] = {
@@ -747,7 +792,7 @@ static MenuDef menuDefSearch[] = {
     },
     {
         _TRN("&Reload Search Terms"),
-        CmdReloadSearchTerms, 
+        CmdReloadSearchTerms,
     },
     {
         nullptr,
@@ -1000,6 +1045,10 @@ static MenuDef menuDefMenubar[] = {
     {
         _TRN("&File"),
         (UINT_PTR)menuDefFile,
+    },
+    {
+        _TRN("&Edit"),
+        (UINT_PTR)menuDefEdit,
     },
     {
         _TRN("&View"),

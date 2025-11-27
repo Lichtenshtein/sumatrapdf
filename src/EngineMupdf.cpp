@@ -5140,4 +5140,287 @@ static int CopyRelevantOutlines(fz_context* ctx, pdf_document* srcDoc, pdf_docum
     logf("CopyRelevantOutlines: Final result: %d bookmarks copied", bookmarksCopied);
     return bookmarksCopied;
 }
+
+// Delete specified pages from PDF and save to new file
+// Creates a new PDF without the specified pages (does NOT modify original)
+bool DeletePagesFromPDF(EngineBase* engine, const PageRangeData* pagesToDelete, const char* outputPath) {
+    logf("=== DeletePagesFromPDF: ENTRY ===");
+
+    if (!engine || !pagesToDelete || !outputPath || !pagesToDelete->isValid || pagesToDelete->count <= 0) {
+        logf("DeletePagesFromPDF: ERROR - Invalid parameters");
+        return false;
+    }
+
+    EngineMupdf* epdf = AsEngineMupdf(engine);
+    if (!epdf || !epdf->pdfdoc) {
+        logf("DeletePagesFromPDF: ERROR - Not a PDF engine");
+        return false;
+    }
+
+    int totalPages = engine->PageCount();
+
+    // Build list of pages to KEEP (inverse of pages to delete)
+    PageRangeData pagesToKeep = {};
+    pagesToKeep.count = 0;
+
+    for (int p = 1; p <= totalPages; p++) {
+        bool shouldDelete = false;
+        for (int d = 0; d < pagesToDelete->count; d++) {
+            if (pagesToDelete->pages[d] == p) {
+                shouldDelete = true;
+                break;
+            }
+        }
+        if (!shouldDelete) {
+            if (pagesToKeep.count < 1000) {
+                pagesToKeep.pages[pagesToKeep.count++] = p;
+            }
+        }
+    }
+    pagesToKeep.isValid = true;
+
+    if (pagesToKeep.count == 0) {
+        logf("DeletePagesFromPDF: ERROR - Cannot delete all pages");
+        return false;
+    }
+
+    logf("DeletePagesFromPDF: Keeping %d pages, deleting %d pages", pagesToKeep.count, pagesToDelete->count);
+
+    // Use existing extraction function to create new PDF with kept pages
+    bool success = ExtractPageRangeToNewPDF(engine, &pagesToKeep, outputPath);
+
+    logf("DeletePagesFromPDF: Result: %s", success ? "SUCCESS" : "FAILED");
+    return success;
+}
+
+// Combine multiple PDF files into one
+bool CombinePDFs(const char* outputPath, const char** inputPaths, int numInputs) {
+    logf("=== CombinePDFs: ENTRY ===");
+
+    if (!outputPath || !inputPaths || numInputs <= 0) {
+        logf("CombinePDFs: ERROR - Invalid parameters");
+        return false;
+    }
+
+    logf("CombinePDFs: Combining %d PDFs into '%s'", numInputs, outputPath);
+
+    fz_context* ctx = fz_new_context(nullptr, nullptr, FZ_STORE_DEFAULT);
+    if (!ctx) {
+        logf("CombinePDFs: ERROR - Failed to create context");
+        return false;
+    }
+
+    pdf_document* newDoc = nullptr;
+    pdf_graft_map* graftMap = nullptr;
+    bool success = false;
+
+    fz_try(ctx) {
+        // Create new empty PDF document
+        newDoc = pdf_create_document(ctx);
+
+        int totalPagesAdded = 0;
+
+        for (int i = 0; i < numInputs; i++) {
+            if (!inputPaths[i]) continue;
+
+            logf("CombinePDFs: Processing input %d: '%s'", i, inputPaths[i]);
+
+            // Open source PDF
+            pdf_document* srcDoc = pdf_open_document(ctx, inputPaths[i]);
+            if (!srcDoc) {
+                logf("CombinePDFs: WARNING - Could not open '%s', skipping", inputPaths[i]);
+                continue;
+            }
+
+            int srcPageCount = pdf_count_pages(ctx, srcDoc);
+            logf("CombinePDFs: Source has %d pages", srcPageCount);
+
+            // Create graft map for this source document
+            graftMap = pdf_new_graft_map(ctx, newDoc);
+
+            // Copy all pages from source to destination
+            for (int p = 0; p < srcPageCount; p++) {
+                pdf_graft_mapped_page(ctx, graftMap, -1, srcDoc, p);
+                totalPagesAdded++;
+            }
+
+            // Clean up graft map and source doc for this input
+            pdf_drop_graft_map(ctx, graftMap);
+            graftMap = nullptr;
+            pdf_drop_document(ctx, srcDoc);
+
+            logf("CombinePDFs: Added %d pages from input %d", srcPageCount, i);
+        }
+
+        if (totalPagesAdded == 0) {
+            logf("CombinePDFs: ERROR - No pages were added");
+            fz_throw(ctx, FZ_ERROR_ARGUMENT, "No pages to combine");
+        }
+
+        // Save combined document
+        pdf_save_document(ctx, newDoc, outputPath, nullptr);
+        success = true;
+
+        logf("CombinePDFs: Successfully combined %d pages into output", totalPagesAdded);
+    }
+    fz_catch(ctx) {
+        success = false;
+        logf("CombinePDFs: ERROR - Exception: %s", fz_caught_message(ctx));
+    }
+
+    // Cleanup
+    if (graftMap) pdf_drop_graft_map(ctx, graftMap);
+    if (newDoc) pdf_drop_document(ctx, newDoc);
+    fz_drop_context(ctx);
+
+    return success;
+}
+
+// Insert pages from another PDF into current document at specified position
+bool InsertPDFPages(EngineBase* engine, const char* insertPath, int insertAfterPage, const char* outputPath) {
+    logf("=== InsertPDFPages: ENTRY ===");
+
+    if (!engine || !insertPath || !outputPath) {
+        logf("InsertPDFPages: ERROR - Invalid parameters");
+        return false;
+    }
+
+    EngineMupdf* epdf = AsEngineMupdf(engine);
+    if (!epdf || !epdf->pdfdoc) {
+        logf("InsertPDFPages: ERROR - Not a PDF engine");
+        return false;
+    }
+
+    ScopedCritSec cs(epdf->ctxAccess);
+    fz_context* ctx = epdf->Ctx();
+    int totalPages = engine->PageCount();
+
+    // Validate insert position
+    if (insertAfterPage < 0) insertAfterPage = 0;
+    if (insertAfterPage > totalPages) insertAfterPage = totalPages;
+
+    logf("InsertPDFPages: Inserting '%s' after page %d of %d", insertPath, insertAfterPage, totalPages);
+
+    pdf_document* newDoc = nullptr;
+    pdf_document* insertDoc = nullptr;
+    pdf_graft_map* graftMap = nullptr;
+    bool success = false;
+
+    fz_try(ctx) {
+        // Create new document
+        newDoc = pdf_create_document(ctx);
+        graftMap = pdf_new_graft_map(ctx, newDoc);
+
+        // Open document to insert
+        insertDoc = pdf_open_document(ctx, insertPath);
+        if (!insertDoc) {
+            fz_throw(ctx, FZ_ERROR_ARGUMENT, "Could not open insert document");
+        }
+        int insertPageCount = pdf_count_pages(ctx, insertDoc);
+        logf("InsertPDFPages: Insert document has %d pages", insertPageCount);
+
+        // Copy pages before insertion point from original
+        for (int p = 0; p < insertAfterPage; p++) {
+            pdf_graft_mapped_page(ctx, graftMap, -1, epdf->pdfdoc, p);
+        }
+        logf("InsertPDFPages: Copied %d pages before insertion point", insertAfterPage);
+
+        // Insert all pages from insert document
+        pdf_graft_map* insertGraftMap = pdf_new_graft_map(ctx, newDoc);
+        for (int p = 0; p < insertPageCount; p++) {
+            pdf_graft_mapped_page(ctx, insertGraftMap, -1, insertDoc, p);
+        }
+        pdf_drop_graft_map(ctx, insertGraftMap);
+        logf("InsertPDFPages: Inserted %d pages", insertPageCount);
+
+        // Copy pages after insertion point from original
+        for (int p = insertAfterPage; p < totalPages; p++) {
+            pdf_graft_mapped_page(ctx, graftMap, -1, epdf->pdfdoc, p);
+        }
+        logf("InsertPDFPages: Copied %d pages after insertion point", totalPages - insertAfterPage);
+
+        // Save result
+        pdf_save_document(ctx, newDoc, outputPath, nullptr);
+        success = true;
+
+        logf("InsertPDFPages: Successfully created document with %d total pages",
+             insertAfterPage + insertPageCount + (totalPages - insertAfterPage));
+    }
+    fz_catch(ctx) {
+        success = false;
+        logf("InsertPDFPages: ERROR - Exception: %s", fz_caught_message(ctx));
+    }
+
+    // Cleanup
+    if (insertDoc) pdf_drop_document(ctx, insertDoc);
+    if (graftMap) pdf_drop_graft_map(ctx, graftMap);
+    if (newDoc) pdf_drop_document(ctx, newDoc);
+
+    return success;
+}
+
+// Extract all text from PDF document (for LLM analysis)
+// Returns allocated string - caller must free with str::Free()
+char* ExtractAllText(EngineBase* engine) {
+    logf("=== ExtractAllText: ENTRY ===");
+
+    if (!engine) {
+        logf("ExtractAllText: ERROR - No engine");
+        return nullptr;
+    }
+
+    int pageCount = engine->PageCount();
+    logf("ExtractAllText: Extracting text from %d pages", pageCount);
+
+    str::Str result;
+
+    for (int pageNo = 1; pageNo <= pageCount; pageNo++) {
+        PageText pageText = engine->ExtractPageText(pageNo);
+        if (pageText.text) {
+            // Add page header
+            result.AppendFmt("\n=== Page %d ===\n", pageNo);
+
+            // Convert to UTF-8 and append
+            TempStr utf8Text = ToUtf8Temp(pageText.text);
+            if (utf8Text) {
+                result.Append(utf8Text);
+            }
+            result.Append("\n");
+
+            // Free page text
+            FreePageText(&pageText);
+        }
+    }
+
+    logf("ExtractAllText: Extracted %d characters from %d pages", (int)result.Size(), pageCount);
+
+    return result.StealData();
+}
+
+// Extract text from a single page
+// Returns allocated string - caller must free with str::Free()
+char* ExtractPageTextStr(EngineBase* engine, int pageNo) {
+    logf("=== ExtractPageTextStr: ENTRY (page %d) ===", pageNo);
+
+    if (!engine || pageNo < 1 || pageNo > engine->PageCount()) {
+        logf("ExtractPageTextStr: ERROR - Invalid parameters");
+        return nullptr;
+    }
+
+    PageText pageText = engine->ExtractPageText(pageNo);
+    if (!pageText.text) {
+        logf("ExtractPageTextStr: No text found on page %d", pageNo);
+        return nullptr;
+    }
+
+    TempStr utf8Text = ToUtf8Temp(pageText.text);
+    char* result = str::Dup(utf8Text);
+
+    FreePageText(&pageText);
+
+    logf("ExtractPageTextStr: Extracted %d characters from page %d",
+         result ? (int)str::Len(result) : 0, pageNo);
+
+    return result;
+}
 #pragma warning(pop) // Restore warning settings
