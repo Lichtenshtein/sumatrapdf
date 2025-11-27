@@ -261,6 +261,9 @@
     <ClInclude Include="..\src\Theme.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\ThumbnailPanel.h">
+      <Filter>src</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\Toolbar.h">
       <Filter>src</Filter>
     </ClInclude>
@@ -556,6 +559,9 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Theme.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ThumbnailPanel.cpp">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Toolbar.cpp">

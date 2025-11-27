@@ -12,6 +12,7 @@ struct Tooltip;
 struct TreeView;
 struct CaptionInfo;
 struct TabsCtrl;
+struct ThumbnailPanel;
 
 struct IPageElement;
 struct PageDestination;
@@ -127,6 +128,13 @@ struct MainWindow {
     LabelWithCloseWnd* favLabelWithClose = nullptr;
     TreeView* favTreeView = nullptr;
     Vec<FileState*> expandedFavorites;
+
+    // state related to page thumbnails panel
+    HWND hwndThumbnailBox = nullptr;
+    UINT_PTR thumbnailBoxSubclassId = 0;
+    LabelWithCloseWnd* thumbnailLabelWithClose = nullptr;
+    ThumbnailPanel* thumbnailPanel = nullptr;
+    bool thumbnailsVisible = false;
 
     // vertical splitter for resizing left side panel
     Splitter* sidebarSplitter = nullptr;

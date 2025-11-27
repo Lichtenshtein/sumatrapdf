@@ -679,6 +679,7 @@ function sumatrapdf_files()
     "Tabs.*",
     "Tester.*",
     "TextSearch.*",
+    "ThumbnailPanel.*",
     "TextSelection.*",
     "Theme.*",
     "Toolbar.*",

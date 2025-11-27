@@ -195,11 +195,13 @@ Cmd* enum (e.g. CmdOpen) and a human-readable name (not used yet).
     V(CmdDebugTogglePredictiveRender, "Debug: Toggle Predictive Rendering")        \
     V(CmdDebugToggleRtl, "Debug: Toggle Rtl")                                      \
     V(CmdDebugDelayCloseWindow, "Debug: Delay Close Window")                       \
+    V(CmdDebugTestBitmapRender, "Debug: Test Bitmap Render")                       \
     V(CmdHighlightKeyTerms, "Highlight Key Terms")                               \
     V(CmdReloadSearchTerms, "Reload Search Terms")                               \
     V(CmdDeleteAllBookmarks, "Delete All Bookmarks")                             \
     V(CmdDeleteAllHighlights, "Delete All Highlights")                           \
     V(CmdExtractPages, "Extract Pages...")                                       \
+    V(CmdToggleThumbnails, "Toggle Page Thumbnails")                             \
     V(CmdNone, "Do nothing")
 
 // order of CreateAnnot* must be the same as enum AnnotationType

@@ -58,7 +58,7 @@ public:
                     currentTerm = KeySearchTerm{}; // Reset
                 }
                 
-                // Check if this is term or color field
+                // Check if this is term, color, or category field
                 const char* field = indexEnd + 2; // Skip "]/"
                 if (str::Eq(field, "term")) {
                     free(currentTerm.text); // Free any existing
@@ -66,6 +66,10 @@ public:
                 }
                 else if (str::Eq(field, "color")) {
                     currentTerm.color = ParseHexColor(value);
+                }
+                else if (str::Eq(field, "category")) {
+                    free(currentTerm.category); // Free any existing
+                    currentTerm.category = str::Dup(value);
                 }
             }
         }
@@ -81,13 +85,13 @@ public:
 };
 
 // Ultra-simple static terms for now - avoid all dynamic allocation
-static const struct { const char* text; COLORREF color; } gStaticTerms[] = {
-    {"SCHWAB", RGB(255, 255, 0)},    // yellow
-    {"Chiller", RGB(255, 165, 0)},   // orange
-    {"Warranty", RGB(255, 0, 0)},    // red
-    {"Safety", RGB(0, 255, 0)},      // green
-    {"Service", RGB(0, 0, 255)},     // blue
-    {"Motor", RGB(128, 0, 128)}      // purple
+static const struct { const char* text; COLORREF color; const char* category; } gStaticTerms[] = {
+    {"SCHWAB", RGB(255, 255, 0), "MANUFACTURERS"},    // yellow
+    {"Chiller", RGB(255, 165, 0), "EQUIPMENT"},       // orange
+    {"Warranty", RGB(255, 0, 0), "TERMS"},            // red
+    {"Safety", RGB(0, 255, 0), "COMPLIANCE"},         // green
+    {"Service", RGB(0, 0, 255), "MAINTENANCE"},       // blue
+    {"Motor", RGB(128, 0, 128), "EQUIPMENT"}          // purple
 };
 
 // Load search terms from JSON file
@@ -95,6 +99,7 @@ void ReloadSearchTermsFromFile() {
     // Clear any existing loaded terms
     for (KeySearchTerm& term : gLoadedTerms) {
         free(term.text);
+        free(term.category);
     }
     gLoadedTerms.Reset();
     gJsonLoaded = false;
@@ -132,8 +137,9 @@ void ReloadSearchTermsFromFile() {
             int r = GetRValue(term.color);
             int g = GetGValue(term.color);  
             int b = GetBValue(term.color);
-            char termInfo[128];
-            sprintf_s(termInfo, sizeof(termInfo), "\n- %s (RGB %d,%d,%d)", term.text, r, g, b);
+            char termInfo[256];
+            const char* category = term.category ? term.category : "DEFAULT";
+            sprintf_s(termInfo, sizeof(termInfo), "\n- %s [%s] (RGB %d,%d,%d)", term.text, category, r, g, b);
             strcat_s(debugMsg, sizeof(debugMsg), termInfo);
         }
         if (gLoadedTerms.Size() > maxShow) {
@@ -162,6 +168,7 @@ const KeySearchTerm* GetKeySearchTerms() {
         for (size_t i = 0; i < dimof(gStaticTerms); i++) {
             staticKeyTerms[i].text = (char*)gStaticTerms[i].text; // Cast away const for compatibility
             staticKeyTerms[i].color = gStaticTerms[i].color;
+            staticKeyTerms[i].category = (char*)gStaticTerms[i].category; // Cast away const for compatibility
         }
         initialized = true;
     }
@@ -195,8 +202,9 @@ void ShowLoadSearchTermsDialog(void* tabPtr) {
             int r = GetRValue(term.color);
             int g = GetGValue(term.color);  
             int b = GetBValue(term.color);
-            char termInfo[128];
-            sprintf_s(termInfo, sizeof(termInfo), "- %s (RGB %d,%d,%d)\n", term.text, r, g, b);
+            char termInfo[256];
+            const char* category = term.category ? term.category : "DEFAULT";
+            sprintf_s(termInfo, sizeof(termInfo), "- %s [%s] (RGB %d,%d,%d)\n", term.text, category, r, g, b);
             strcat_s(message, sizeof(message), termInfo);
         }
         if (gLoadedTerms.Size() > maxShow) {

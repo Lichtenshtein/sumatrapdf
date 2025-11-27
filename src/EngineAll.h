@@ -61,9 +61,16 @@ ByteSlice EngineMupdfLoadAttachment(EngineBase*, int attachmentNo);
 bool AddSearchTermBookmark(EngineBase* engine, int pageNo, const char* searchTerm);
 
 // Structure for hierarchical bookmark creation
+// Note: This struct uses manual memory management - caller is responsible for
+// freeing termName and category. No destructor to avoid double-free issues
+// when struct is copied (e.g., when appended to Vec).
 struct TermPageData {
-    char* termName;
-    Vec<int> pages;
+    char* termName;      // Name of the search term (caller must free)
+    char* category;      // Category for hierarchical organization (caller must free)
+    Vec<int> pages;      // Pages where this term was found
+
+    TermPageData() : termName(nullptr), category(nullptr) {}
+    // No destructor - manual cleanup required to avoid double-free on copy
 };
 
 bool CreateHierarchicalSearchBookmarks(EngineBase* engine, Vec<TermPageData>& termData);

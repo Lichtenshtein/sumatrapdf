@@ -79,6 +79,7 @@
 #include "SumatraDialogs.h"
 #include "SumatraProperties.h"
 #include "TableOfContents.h"
+#include "ThumbnailPanel.h"
 #include "Tabs.h"
 #include "Toolbar.h"
 #include "Translations.h"
@@ -272,6 +273,103 @@ std::wstring GetExecutableDirectory() {
     wchar_t exePath[MAX_PATH];
     GetModuleFileName(NULL, exePath, MAX_PATH);
     return std::filesystem::path(exePath).parent_path().wstring();
+}
+
+// ========== Debug Bitmap Render Test ==========
+static RenderedBitmap* gTestBitmap = nullptr;
+static const WCHAR* kTestWndClassName = L"SUMATRA_BITMAP_TEST";
+
+static LRESULT CALLBACK TestBitmapWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
+    if (msg == WM_PAINT) {
+        PAINTSTRUCT ps;
+        HDC hdc = BeginPaint(hwnd, &ps);
+
+        // Fill white background
+        RECT rc;
+        GetClientRect(hwnd, &rc);
+        FillRect(hdc, &rc, (HBRUSH)GetStockObject(WHITE_BRUSH));
+
+        // Try to blit the bitmap
+        if (gTestBitmap && gTestBitmap->IsValid()) {
+            Size sz = gTestBitmap->GetSize();
+            Rect target(10, 10, sz.dx, sz.dy);
+            bool ok = gTestBitmap->Blit(hdc, target);
+
+            // Draw result text
+            char statusMsg[128];
+            sprintf_s(statusMsg, "Blit result: %s, size: %dx%d", ok ? "SUCCESS" : "FAILED", sz.dx, sz.dy);
+            SetBkMode(hdc, TRANSPARENT);
+            TextOutA(hdc, 10, sz.dy + 20, statusMsg, (int)strlen(statusMsg));
+        } else {
+            TextOutA(hdc, 10, 10, "No bitmap or invalid!", 21);
+        }
+
+        EndPaint(hwnd, &ps);
+        return 0;
+    }
+    if (msg == WM_DESTROY) {
+        delete gTestBitmap;
+        gTestBitmap = nullptr;
+        return 0;
+    }
+    if (msg == WM_KEYDOWN && wp == VK_ESCAPE) {
+        DestroyWindow(hwnd);
+        return 0;
+    }
+    return DefWindowProc(hwnd, msg, wp, lp);
+}
+
+static void ShowBitmapTestWindow(MainWindow* win) {
+    if (!win || !win->CurrentTab() || !win->CurrentTab()->ctrl) {
+        MessageBoxA(win ? win->hwndFrame : nullptr, "No document loaded!", "Error", MB_OK);
+        return;
+    }
+
+    DisplayModel* dm = win->CurrentTab()->ctrl->AsFixed();
+    if (!dm) {
+        MessageBoxA(win->hwndFrame, "Not a PDF/fixed layout document!", "Error", MB_OK);
+        return;
+    }
+
+    EngineBase* engine = dm->GetEngine();
+    if (!engine) {
+        MessageBoxA(win->hwndFrame, "No engine!", "Error", MB_OK);
+        return;
+    }
+
+    // Render page 1 at 30% zoom
+    RenderPageArgs args(1, 0.3f, 0);
+    delete gTestBitmap;
+    gTestBitmap = engine->RenderPage(args);
+
+    if (!gTestBitmap) {
+        MessageBoxA(win->hwndFrame, "RenderPage returned null!", "Error", MB_OK);
+        return;
+    }
+
+    // Register window class
+    WNDCLASSEXW wc = {};
+    wc.cbSize = sizeof(wc);
+    wc.lpfnWndProc = TestBitmapWndProc;
+    wc.hInstance = GetModuleHandle(nullptr);
+    wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
+    wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+    wc.lpszClassName = kTestWndClassName;
+    RegisterClassExW(&wc);
+
+    // Create and show popup window
+    Size sz = gTestBitmap->GetSize();
+    int width = sz.dx + 40;
+    int height = sz.dy + 80;
+
+    HWND popup = CreateWindowExW(0, kTestWndClassName, L"Bitmap Test (Press ESC to close)",
+                                  WS_OVERLAPPEDWINDOW | WS_VISIBLE,
+                                  CW_USEDEFAULT, CW_USEDEFAULT, width, height,
+                                  nullptr, nullptr, GetModuleHandle(nullptr), nullptr);
+
+    if (!popup) {
+        MessageBoxA(win->hwndFrame, "Failed to create test window!", "Error", MB_OK);
+    }
 }
 
 EBookUI* GetEBookUI() {
@@ -1569,6 +1667,7 @@ static void CreateSidebar(MainWindow* win) {
     }
 
     CreateToc(win);
+    CreateThumbnailPanel(win);
 
     {
         Splitter::CreateArgs args;
@@ -3653,10 +3752,11 @@ static void RelayoutFrame(MainWindow* win, bool updateToolbars = true, int sideb
         rc.dy -= rcRebar.dy;
     }
 
-    // ToC and Favorites sidebars at the left
+    // ToC, Favorites, and Thumbnails sidebars at the left
     bool showFavorites = gGlobalPrefs->showFavorites && !gPluginMode && CanAccessDisk();
     bool tocVisible = win->tocVisible;
-    if (tocVisible || showFavorites) {
+    bool thumbnailsVisible = win->thumbnailsVisible;
+    if (tocVisible || showFavorites || thumbnailsVisible) {
         Size toc = ClientRect(win->hwndTocBox).Size();
         if (sidebarDx > 0) {
             toc = Size(sidebarDx, rc.y);
@@ -3696,6 +3796,11 @@ static void RelayoutFrame(MainWindow* win, bool updateToolbars = true, int sideb
                 dh.MoveWindow(win->favSplitter->hwnd, rSplitV);
                 toc.dy += kSplitterDy;
             }
+        }
+        // Thumbnails use the same sidebar space as ToC (mutually exclusive)
+        if (thumbnailsVisible && win->hwndThumbnailBox) {
+            Rect rThumb(rc.TL(), Size(toc.dx, rc.dy));
+            dh.MoveWindow(win->hwndThumbnailBox, rThumb);
         }
         if (showFavorites) {
             Rect rFav(rc.x, rc.y + toc.dy, toc.dx, rc.dy - toc.dy);
@@ -4736,10 +4841,11 @@ void CreateHighlightAnnotationsForKeyTerms(void* tabPtr) {
     char resultMsg[200];
     sprintf_s(resultMsg, sizeof(resultMsg), "Created %d highlight annotations for key terms", totalAnnotations);
     MessageBoxA(nullptr, resultMsg, "Highlight Key Terms", MB_OK);
-    
-    // Cleanup term page data
+
+    // Manual cleanup - TermPageData has no destructor to avoid double-free on copy
     for (size_t i = 0; i < termPageData.Size(); i++) {
         free(termPageData[i].termName);
+        free(termPageData[i].category);
     }
 }
 
@@ -5951,6 +6057,10 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
             RunAsync(fn, "DelayedCloseWindow");
         } break;
 
+        case CmdDebugTestBitmapRender:
+            ShowBitmapTestWindow(win);
+            break;
+
         case CmdExit:
             OnMenuExit();
             break;
@@ -6074,6 +6184,10 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
         case CmdToggleBookmarks:
         case CmdToggleTableOfContents:
             ToggleTocBox(win);
+            break;
+
+        case CmdToggleThumbnails:
+            ToggleThumbnails(win);
             break;
 
         case CmdScrollUpHalfPage: {

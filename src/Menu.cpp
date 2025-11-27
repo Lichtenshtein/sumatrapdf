@@ -334,6 +334,10 @@ static MenuDef menuDefView[] = {
         CmdToggleBookmarks,
     },
     {
+        _TRN("Show Page Thu&mbnails"),
+        CmdToggleThumbnails,
+    },
+    {
         _TRN("Show &Toolbar"),
         CmdToggleToolbar,
     },
@@ -865,6 +869,10 @@ static MenuDef menuDefDebug[] = {
     {
         "Show notification",
         CmdDebugShowNotif,
+    },
+    {
+        _TRN("Test Bitmap Render"),
+        CmdDebugTestBitmapRender,
     },
     {
         nullptr,

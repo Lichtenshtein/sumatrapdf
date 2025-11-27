@@ -10,8 +10,9 @@
 struct KeySearchTerm {
     char* text;        // Simple pointer - no dynamic management for now
     COLORREF color;
+    char* category;    // Category for hierarchical organization (e.g., "MANUFACTURERS")
     
-    KeySearchTerm() : text(nullptr), color(0) {}
+    KeySearchTerm() : text(nullptr), color(0), category(nullptr) {}
     // No destructor - avoiding dynamic memory management for debugging
 };
 

@@ -774,3 +774,130 @@ With proven patterns established, the codebase is ready for:
 - **Pattern Documentation**: Document successful memory patterns for team use
 - **Build System Enhancement**: Improve MuPDF integration reliability
 - **Testing Framework**: Establish patterns for feature testing and validation
+
+## Thumbnail Panel Implementation (2025-11-26)
+
+### Overview
+
+Successfully implemented a page thumbnail panel that displays rendered PDF page previews in a scrollable sidebar, similar to Adobe Reader's page navigation panel.
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| src/ThumbnailPanel.cpp | Main panel implementation |
+| src/ThumbnailPanel.h | Header with ThumbnailItem and ThumbnailPanel structs |
+| src/MainWindow.h | Added hwndThumbnailBox, hwndThumbnailPanel, thumbnailPanel members |
+| src/SumatraPDF.cpp | Integration functions and menu handlers |
+| src/Menu.cpp | Added View > Show Thumbnails menu item |
+| src/Commands.h | Added CmdToggleThumbnails command |
+
+### Technical Implementation
+
+**Rendering Pipeline**:
+1. On-demand rendering during WM_PAINT for visible thumbnails only
+2. Uses `engine->RenderPage()` with calculated zoom factor
+3. Double-buffered painting to prevent flicker
+4. Aspect ratio preservation with centered positioning
+
+**Key Pattern - Simple Blit()**:
+```cpp
+// Working pattern from HomePage.cpp and RenderCache.cpp
+if (item->thumbnail && item->thumbnail->IsValid()) {
+    item->thumbnail->Blit(hdc, target);  // Direct, simple call
+}
+```
+
+**Aspect Ratio Calculation**:
+```cpp
+float scaleX = (float)availW / (float)bmpSize.dx;
+float scaleY = (float)availH / (float)bmpSize.dy;
+float scale = (scaleX < scaleY) ? scaleX : scaleY;  // Fit within bounds
+int targetW = (int)(bmpSize.dx * scale);
+int targetH = (int)(bmpSize.dy * scale);
+// Center in available space
+int offsetX = (availW - targetW) / 2;
+int offsetY = (availH - targetH) / 2;
+```
+
+### Debugging Approach That Worked
+
+When bitmap rendering wasn't displaying despite all validations passing:
+
+1. **Phase 1: Solid Color Test** - Drew red rectangles to verify GDI/paint cycle works
+2. **Phase 2: Popup Window Test** - Isolated bitmap rendering in simple window
+3. **Phase 3: Apply Working Pattern** - Used simple `Blit()` call pattern from working code
+
+**Key Insight**: The problem was that thumbnails were never being rendered - the rendering code existed but was stubbed out. The paint cycle and bitmap APIs were fine.
+
+### Lessons Learned
+
+1. **Isolate to Identify**: When rendering fails, test each component in isolation
+2. **Follow Working Patterns**: Copy patterns from working code (HomePage.cpp, RenderCache.cpp)
+3. **On-Demand Rendering**: Render visible items during paint, not pre-cached
+4. **Double-Buffer Everything**: Always use memory DC for flicker-free painting
+
+## Memory Management Critical Lessons (2025-11-26)
+
+### The Vec<T> Copy Problem with Destructors
+
+**CRITICAL BUG PATTERN**:
+```cpp
+struct MyData {
+    char* name;
+    ~MyData() { free(name); }  // DANGER with Vec<>
+};
+
+Vec<MyData> items;
+MyData temp;
+temp.name = str::Dup("hello");
+items.Append(temp);  // COPIES temp into vector
+// temp destructor runs here -> frees name
+// items[0].name now points to freed memory!
+```
+
+**The Problem**: When a struct with a destructor is appended to `Vec<>`, it's copied. The original's destructor then frees memory that the copy still references.
+
+**Solutions**:
+
+1. **Remove Destructor** (chosen approach):
+```cpp
+struct TermPageData {
+    char* termName;
+    // NO destructor - manual cleanup required
+};
+// Cleanup manually at end of function:
+for (size_t i = 0; i < items.Size(); i++) {
+    free(items[i].termName);
+}
+```
+
+2. **Use Pointers in Vec**:
+```cpp
+Vec<MyData*> items;  // Store pointers, not values
+MyData* item = new MyData();
+items.Append(item);
+// Cleanup: delete each pointer
+```
+
+3. **Implement Copy Constructor** (complex, avoid if possible):
+```cpp
+MyData(const MyData& other) {
+    name = str::Dup(other.name);  // Deep copy
+}
+```
+
+### Safe Memory Patterns Summary
+
+| Pattern | When to Use | Example |
+|---------|-------------|---------|
+| Stack allocation | Fixed-size data, dialogs | `char buffer[256];` |
+| Manual cleanup | Structs in Vec<> | Remove destructor, free manually |
+| str::Dup() | String ownership transfer | `return str::Dup(result);` |
+| No destructor | Copyable structs | Avoid destructors with Vec<> |
+
+### DeleteAllHighlights Fix
+
+**Bug**: Function returned `success && (deletedCount > 0)` which showed error when no highlights existed.
+
+**Fix**: Return `success` alone - having no highlights to delete is not an error.

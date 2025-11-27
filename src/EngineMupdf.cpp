@@ -4146,8 +4146,9 @@ bool DeleteAllHighlights(EngineBase* engine) {
     fz_catch(ctx) {
         success = false;
     }
-    
-    return success && (deletedCount > 0);
+
+    // Return success even if no highlights were found - that's not an error
+    return success;
 }
 
 bool CreateHierarchicalSearchBookmarks(EngineBase* engine, Vec<TermPageData>& termData) {
