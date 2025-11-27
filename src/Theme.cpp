@@ -84,6 +84,14 @@ static const char* themesTxt = R"(Themes [
         LinkColor = #9999a0
         ColorizeControls = true
     ]
+    [
+        Name = Eye-care eBook Theme
+        TextColor = #000000
+        BackgroundColor = #FBF0D9
+        ControlBackgroundColor = #FBF0D9
+        LinkColor = #8aa3b0
+        ColorizeControls = true
+    ]
 ]
 )";
 
@@ -128,7 +136,7 @@ void CreateThemeCommands() {
         const char* themeName = theme->name;
         auto args = NewStringArg(kCmdArgTheme, themeName);
         cmd = CreateCustomCommand(themeName, CmdSetTheme, args);
-        cmd->name = str::Format("Set theme '%s'", themeName);
+        cmd->name = str::Format("%s", themeName);
         if (i == 0) {
             gFirstSetThemeCmdId = cmd->id;
         } else if (i == gThemeCount - 1) {

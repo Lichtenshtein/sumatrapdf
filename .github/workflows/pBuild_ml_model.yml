@@ -1,6 +1,6 @@
 name: Private Build with ML Model
 on:
-  workflow_dispatch
+  workflow_dispatch:
 jobs:
   build:
     name: Build
@@ -29,9 +29,10 @@ jobs:
       - name: Copy files to root
         shell: bash
         run: |
-        cp "./out/rel64/SumatraPDF.exe" "SumatraPDFx64.exe"
-        mv "${{ github.workspace }}/src/mutool.exe" "mutool.exe"
-        mv "${{ github.workspace }}/src/ml_model/Final_app.py" "Final_app.py"
+          mkdir -p "${{ github.workspace }}/artifacts"
+          cp "./out/rel64/SumatraPDF.exe" "${{ github.workspace }}/artifacts/SumatraPDFx64.exe"
+          cp "${{ github.workspace }}/src/mutool.exe" "${{ github.workspace }}/artifacts/mutool.exe"
+          cp "${{ github.workspace }}/src/ml_model/Final_app.py" "${{ github.workspace }}/artifacts/Final_app.py"
 
       - name: Clean out
         shell: bash
@@ -48,8 +49,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: "SumatraPDF-pre-${{ steps.getdate.outputs.last_commit_date }}"
-          path: |
-          ./*.exe
-          ./Final_app.py
+          path: "${{ github.workspace }}/artifacts/*.*"
           compression-level: 9
           retention-days: 30
