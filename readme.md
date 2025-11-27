@@ -1,3 +1,8 @@
+.git folder was too big. Modifications start from commit 
+(866c44cf3f69db3d77b6679eef2e7d639de90945)](https://github.com/sumatrapdfreader/sumatrapdf/commit/866c44cf3f69db3d77b6679eef2e7d639de90945)
+
+---
+
 [![Build](https://github.com/sumatrapdfreader/sumatrapdf/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/sumatrapdfreader/sumatrapdf/actions/workflows/build.yml)
 ## SumatraPDF Reader
 
