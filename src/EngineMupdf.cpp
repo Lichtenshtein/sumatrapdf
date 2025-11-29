@@ -4797,28 +4797,27 @@ static int CopyPageAnnotations(fz_context* ctx, pdf_document* srcDoc, pdf_docume
         // Load source and destination pages
         pdf_page* srcPage = pdf_load_page(ctx, srcDoc, srcPageNo);
         pdf_page* dstPage = pdf_load_page(ctx, dstDoc, dstPageNo);
-        
+
         if (!srcPage || !dstPage) {
             logf("CopyPageAnnotations: ERROR - Could not load pages (src=%p, dst=%p)", srcPage, dstPage);
-            logf("CopyPageAnnotations: Source doc page count: %d, Dest doc page count: %d", 
+            logf("CopyPageAnnotations: Source doc page count: %d, Dest doc page count: %d",
                  pdf_count_pages(ctx, srcDoc), pdf_count_pages(ctx, dstDoc));
             fz_throw(ctx, FZ_ERROR_ARGUMENT, "Failed to load pages");
         }
-        
+
         logf("CopyPageAnnotations: Successfully loaded source and destination pages");
-        
+
         // First, check if source page has any annotations at all
         pdf_annot* firstAnnot = pdf_first_annot(ctx, srcPage);
         if (!firstAnnot) {
             logf("CopyPageAnnotations: No annotations found on source page %d", srcPageNo);
-            return 0;  // Not an error, just no annotations to copy
-        }
-        
-        logf("CopyPageAnnotations: Found annotations on source page, proceeding with copy");
-        
-        // Enumerate annotations on source page
-        pdf_annot* srcAnnot = pdf_first_annot(ctx, srcPage);
-        while (srcAnnot) {
+            // No annotations to copy - annotationsCopied stays 0, fall through to return
+        } else {
+            logf("CopyPageAnnotations: Found annotations on source page, proceeding with copy");
+
+            // Enumerate annotations on source page
+            pdf_annot* srcAnnot = pdf_first_annot(ctx, srcPage);
+            while (srcAnnot) {
             logf("CopyPageAnnotations: Processing annotation type %d", pdf_annot_type(ctx, srcAnnot));
             
             // Get annotation properties from source
@@ -4883,19 +4882,20 @@ static int CopyPageAnnotations(fz_context* ctx, pdf_document* srcDoc, pdf_docume
                 logf("CopyPageAnnotations: ERROR - Failed to create destination annotation");
             }
             
-            // Move to next annotation
-            srcAnnot = pdf_next_annot(ctx, srcAnnot);
-        }
-        
-        logf("CopyPageAnnotations: Completed copying %d annotations", annotationsCopied);
-        
-        // If we copied any annotations, make sure the destination page is updated
-        if (annotationsCopied > 0) {
-            logf("CopyPageAnnotations: Updating destination page to finalize annotations");
-            // Note: pdf_update_annot is called for each annotation, but we may need
-            // to ensure the page itself is marked as modified
-        }
-        
+                // Move to next annotation
+                srcAnnot = pdf_next_annot(ctx, srcAnnot);
+            }
+
+            logf("CopyPageAnnotations: Completed copying %d annotations", annotationsCopied);
+
+            // If we copied any annotations, make sure the destination page is updated
+            if (annotationsCopied > 0) {
+                logf("CopyPageAnnotations: Updating destination page to finalize annotations");
+                // Note: pdf_update_annot is called for each annotation, but we may need
+                // to ensure the page itself is marked as modified
+            }
+        }  // end of else block (has annotations)
+
     }
     fz_catch(ctx) {
         logf("CopyPageAnnotations: ERROR - Exception during annotation copying: %s", fz_caught_message(ctx));

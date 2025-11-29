@@ -267,6 +267,7 @@ static StrVec gNextPrevDirCache; // cached files in gNextPrevDir
 static void CloseDocumentInCurrentTab(MainWindow*, bool keepUIEnabled, bool deleteModel);
 static void OnSidebarSplitterMove(Splitter::MoveEvent*);
 static void OnFavSplitterMove(Splitter::MoveEvent*);
+static bool CreateTempCopyForEditMode(LoadArgs* args);
 
 // Function to get the directory of the current executable
 std::wstring GetExecutableDirectory() {
@@ -393,6 +394,9 @@ LoadArgs::LoadArgs(const char* origPath, MainWindow* win) {
 
 LoadArgs::~LoadArgs() {
     delete fileArgs;
+    // Note: Don't free editModeOriginalPath and editModeTempPath here
+    // as they are transferred to WindowTab on successful load
+    // They are only freed if loading fails (handled in LoadDocument)
 }
 
 const char* LoadArgs::FilePath() const {
@@ -406,6 +410,13 @@ void LoadArgs::SetFilePath(const char* path) {
 LoadArgs* LoadArgs::Clone() {
     LoadArgs* res = new LoadArgs(fileName, win);
     res->tabState = this->tabState;
+    // Copy edit mode paths (caller takes ownership)
+    if (this->editModeOriginalPath) {
+        res->editModeOriginalPath = str::Dup(this->editModeOriginalPath);
+    }
+    if (this->editModeTempPath) {
+        res->editModeTempPath = str::Dup(this->editModeTempPath);
+    }
     return res;
 }
 
@@ -1268,7 +1279,8 @@ DocController* CreateControllerForEngineOrFile(EngineBase* engine, const char* p
 }
 
 static void SetFrameTitleForTab(WindowTab* tab, bool needRefresh) {
-    const char* titlePath = tab->filePath;
+    // For edit mode, show original file path, not temp path
+    const char* titlePath = tab->originalFilePath ? tab->originalFilePath : tab->filePath;
     if (!gGlobalPrefs->fullPathInTitle) {
         titlePath = path::GetBaseNameTemp(titlePath);
     }
@@ -1285,18 +1297,34 @@ static void SetFrameTitleForTab(WindowTab* tab, bool needRefresh) {
         }
     }
 
+    // Add [Unsaved] indicator for edit mode with changes
+    TempStr unsavedIndicator = (TempStr) "";
+    if (tab->hasUnsavedChanges) {
+        unsavedIndicator = (TempStr) "[Unsaved] ";
+    }
+
     TempStr s = nullptr;
     if (!IsUIRtl()) {
-        s = str::FormatTemp("%s %s- %s", titlePath, docTitle, kSumatraWindowTitle);
+        s = str::FormatTemp("%s%s %s- %s", unsavedIndicator, titlePath, docTitle, kSumatraWindowTitle);
     } else {
         // explicitly revert the title, so that filenames aren't garbled
-        s = str::FormatTemp("%s %s- %s", kSumatraWindowTitle, docTitle, titlePath);
+        s = str::FormatTemp("%s %s- %s %s", kSumatraWindowTitle, docTitle, titlePath, unsavedIndicator);
     }
     if (needRefresh && tab->ctrl) {
         // TODO: this isn't visible when tabs are used
         s = str::FormatTemp(_TRA("[Changes detected; refreshing] %s"), tab->frameTitle);
     }
     str::ReplaceWithCopy(&tab->frameTitle, s);
+}
+
+// Update window title for current tab (useful after changing hasUnsavedChanges)
+static void UpdateWindowTitle(MainWindow* win) {
+    WindowTab* tab = win->CurrentTab();
+    if (!tab) {
+        return;
+    }
+    SetFrameTitleForTab(tab, false);
+    HwndSetText(win->hwndFrame, tab->frameTitle);
 }
 
 static void UpdateUiForCurrentTab(MainWindow* win) {
@@ -2031,6 +2059,19 @@ MainWindow* LoadDocumentFinish(LoadArgs* args) {
 #endif
     }
 
+    // Transfer edit mode paths to the tab
+    WindowTab* currTab = win->CurrentTab();
+    if (args->editModeOriginalPath && args->editModeTempPath) {
+        currTab->originalFilePath = args->editModeOriginalPath;
+        currTab->editModeTempPath = args->editModeTempPath;
+        currTab->hasUnsavedChanges = false;
+        // Clear from args so they aren't freed
+        args->editModeOriginalPath = nullptr;
+        args->editModeTempPath = nullptr;
+        logf("LoadDocumentFinish: set up edit mode for '%s' (temp: '%s')\n",
+             currTab->originalFilePath, currTab->editModeTempPath);
+    }
+
     // TODO: stop remembering/restoring window positions when using tabs?
     args->placeWindow = !gGlobalPrefs->useTabs;
     bool lazyLoad = args->lazyLoad;
@@ -2044,15 +2085,16 @@ MainWindow* LoadDocumentFinish(LoadArgs* args) {
         return win;
     }
 
-    auto currTab = win->CurrentTab();
-    const char* path = currTab->filePath;
+    // Use original path for history/file watching, not temp path
+    const char* displayPath = currTab->originalFilePath ? currTab->originalFilePath : currTab->filePath;
+    const char* path = currTab->filePath;  // Temp path for internal use
 #if 0
     int nPages = 0;
     if (currTab->ctrl) {
         nPages = currTab->ctrl->PageCount();
     }
     logf("LoadDocument: after ReplaceDocumentInCurrentTab win->CurrentTab() is 0x%p, path: '%s', %d pages\n", currTab,
-         path.Get(), nPages);
+         path, nPages);
 #endif
     // when lazy loading: first time remember tab state, second time is
     // real loading so restore tab state
@@ -2068,14 +2110,16 @@ MainWindow* LoadDocumentFinish(LoadArgs* args) {
     // via DDE Open command.
     ReportIf(currTab->watcher);
 
-    if (gGlobalPrefs->reloadModifiedDocuments) {
+    if (gGlobalPrefs->reloadModifiedDocuments && !currTab->originalFilePath) {
+        // Only set up file watcher for non-edit-mode files
+        // In edit mode, we don't auto-reload from original
         auto fn = MkFunc0(ScheduleReloadTab, currTab);
         currTab->watcher = FileWatcherSubscribe(path, fn);
     }
 
     if (gGlobalPrefs->rememberOpenedFiles) {
-        ReportIf(!str::Eq(fullPath, path));
-        FileState* ds = gFileHistory.MarkFileLoaded(fullPath);
+        // Use original path for file history
+        FileState* ds = gFileHistory.MarkFileLoaded(displayPath);
         if (!lazyLoad && gGlobalPrefs->showStartPage) {
             CreateThumbnailForFile(win, ds);
         }
@@ -2089,7 +2133,7 @@ MainWindow* LoadDocumentFinish(LoadArgs* args) {
     // Add the file also to Windows' recently used documents (this doesn't
     // happen automatically on drag&drop, reopening from history, etc.)
     if (CanAccessDisk() && !gPluginMode && !IsStressTesting()) {
-        AddPathToRecentDocs(fullPath);
+        AddPathToRecentDocs(displayPath);
     }
 
     return win;
@@ -2184,17 +2228,35 @@ void StartLoadDocument(LoadArgs* argsIn) {
         CrashMe();
     }
 
+    // For PDFs, create temp copy for edit mode (before checking path)
+    const char* originalPath = argsIn->FilePath();
+    CreateTempCopyForEditMode(argsIn);
+
     MainWindow* win = argsIn->win;
     bool failEarly = AdjustPathForMaybeMovedFile(argsIn);
     const char* path = argsIn->FilePath();
     if (failEarly) {
-        ShowFileNotFound(win, path, argsIn->noSavePrefs);
+        // Clean up temp copy
+        if (argsIn->editModeTempPath) {
+            file::Delete(argsIn->editModeTempPath);
+            str::FreePtr(&argsIn->editModeTempPath);
+            str::FreePtr(&argsIn->editModeOriginalPath);
+        }
+        ShowFileNotFound(win, originalPath, argsIn->noSavePrefs);
         return;
     }
 
     if (argsIn->activateExisting) {
-        MainWindow* existing = FindMainWindowByFile(path, true);
+        // Check for existing window using ORIGINAL path, not temp path
+        const char* checkPath = argsIn->editModeOriginalPath ? argsIn->editModeOriginalPath : path;
+        MainWindow* existing = FindMainWindowByFile(checkPath, true);
         if (existing) {
+            // Clean up temp copy we created
+            if (argsIn->editModeTempPath) {
+                file::Delete(argsIn->editModeTempPath);
+                str::FreePtr(&argsIn->editModeTempPath);
+                str::FreePtr(&argsIn->editModeOriginalPath);
+            }
             existing->Focus();
             return;
         }
@@ -2202,6 +2264,12 @@ void StartLoadDocument(LoadArgs* argsIn) {
 
     win = MaybeCreateWindowForFileLoad(argsIn);
     if (!win) {
+        // Clean up temp copy
+        if (argsIn->editModeTempPath) {
+            file::Delete(argsIn->editModeTempPath);
+            str::FreePtr(&argsIn->editModeTempPath);
+            str::FreePtr(&argsIn->editModeOriginalPath);
+        }
         return;
     }
 
@@ -2245,16 +2313,155 @@ void StartLoadDocument(LoadArgs* argsIn) {
 // open a file doesn't block next/prev file in
 static StrVec gFilesFailedToOpen;
 
+// Create a temp copy of a PDF file for editing mode
+// Returns true if temp copy was created, false otherwise
+// On success, args->editModeOriginalPath and args->editModeTempPath are set
+static bool CreateTempCopyForEditMode(LoadArgs* args) {
+    const char* path = args->FilePath();
+
+    // Only create temp copy for PDF files
+    if (!str::EndsWithI(path, ".pdf")) {
+        return false;
+    }
+
+    // Don't create temp copy if already set (e.g., Clone() was called)
+    if (args->editModeTempPath) {
+        return true;
+    }
+
+    // Generate unique temp file path
+    TempStr tempFile = GetTempFilePathTemp("SumatraPDF_edit");
+    if (!tempFile) {
+        logf("CreateTempCopyForEditMode: failed to get temp path\n");
+        return false;
+    }
+
+    // Copy original to temp
+    bool ok = file::Copy(tempFile, path, false);
+    if (!ok) {
+        logf("CreateTempCopyForEditMode: failed to copy '%s' to '%s'\n", path, tempFile);
+        return false;
+    }
+
+    // Store paths - transfer ownership
+    args->editModeOriginalPath = str::Dup(path);
+    args->editModeTempPath = str::Dup(tempFile);
+
+    // Update the file path to load from temp
+    args->SetFilePath(tempFile);
+
+    logf("CreateTempCopyForEditMode: created temp copy '%s' for '%s'\n", tempFile, path);
+    return true;
+}
+
+// Save changes from temp copy to original file
+void SaveChanges(MainWindow* win) {
+    WindowTab* tab = win->CurrentTab();
+    if (!tab || !tab->editModeTempPath || !tab->originalFilePath) {
+        return;
+    }
+
+    // Copy temp file over original
+    bool ok = file::Copy(tab->originalFilePath, tab->editModeTempPath, false);
+    if (!ok) {
+        MessageBoxA(win->hwndFrame, "Failed to save changes to the original file.",
+                   "Save Error", MB_OK | MB_ICONERROR);
+        return;
+    }
+
+    // Mark as saved
+    tab->hasUnsavedChanges = false;
+
+    // Update UI (remove "[Unsaved]" from title)
+    UpdateWindowTitle(win);
+
+    logf("SaveChanges: saved changes to '%s'\n", tab->originalFilePath);
+}
+
+// Discard changes and reload from original file
+void DiscardChanges(MainWindow* win) {
+    WindowTab* tab = win->CurrentTab();
+    if (!tab || !tab->editModeTempPath || !tab->originalFilePath) {
+        return;
+    }
+
+    // Confirm discard if there are unsaved changes
+    if (tab->hasUnsavedChanges) {
+        int result = MessageBoxA(win->hwndFrame,
+            "Discard all changes and reload original file?",
+            "Discard Changes", MB_YESNO | MB_ICONWARNING);
+        if (result != IDYES) {
+            return;
+        }
+    }
+
+    // Save display state before reload
+    DisplayModel* dm = tab->AsFixed();
+    int currentPage = 1;
+    float zoom = kZoomFitPage;
+    if (dm) {
+        currentPage = dm->CurrentPageNo();
+        zoom = dm->GetZoomVirtual();
+    }
+
+    // Delete current temp file
+    file::Delete(tab->editModeTempPath);
+
+    // Create fresh temp copy from original
+    TempStr newTempFile = GetTempFilePathTemp("SumatraPDF_edit");
+    if (!newTempFile) {
+        MessageBoxA(win->hwndFrame, "Failed to create new temp file.",
+                   "Error", MB_OK | MB_ICONERROR);
+        return;
+    }
+
+    bool ok = file::Copy(newTempFile, tab->originalFilePath, false);
+    if (!ok) {
+        MessageBoxA(win->hwndFrame, "Failed to reload from original file.",
+                   "Error", MB_OK | MB_ICONERROR);
+        return;
+    }
+
+    // Update temp path
+    str::FreePtr(&tab->editModeTempPath);
+    tab->editModeTempPath = str::Dup(newTempFile);
+
+    // Reload the document
+    tab->reloadOnFocus = false;  // Don't trigger auto-reload
+    ReloadDocument(win, false);
+
+    // Mark as no unsaved changes
+    tab->hasUnsavedChanges = false;
+
+    // Update UI
+    UpdateWindowTitle(win);
+
+    logf("DiscardChanges: reloaded from '%s'\n", tab->originalFilePath);
+}
+
 MainWindow* LoadDocument(LoadArgs* args) {
     if (gCrashOnOpen) {
         log("LoadDocument: about to call CrashMe()\n");
         CrashMe();
     }
 
-    const char* path = args->FilePath();
+    // For PDFs, create temp copy for edit mode (before checking path)
+    // Store original path for activateExisting check
+    const char* originalPath = args->FilePath();
+    CreateTempCopyForEditMode(args);
+
+    const char* path = args->FilePath();  // Now points to temp copy if PDF
     if (args->activateExisting) {
-        MainWindow* existing = FindMainWindowByFile(path, true);
+        // Check for existing window using ORIGINAL path, not temp path
+        const char* checkPath = args->editModeOriginalPath ? args->editModeOriginalPath : path;
+        MainWindow* existing = FindMainWindowByFile(checkPath, true);
         if (existing) {
+            // Clean up temp copy we created
+            if (args->editModeTempPath) {
+                file::Delete(args->editModeTempPath);
+                str::FreePtr(&args->editModeTempPath);
+                str::FreePtr(&args->editModeOriginalPath);
+            }
             existing->Focus();
             return existing;
         }
@@ -2266,12 +2473,24 @@ MainWindow* LoadDocument(LoadArgs* args) {
     // fail fast if the file doesn't exist and there is a window the user
     // has just been interacting with
     if (failEarly) {
-        ShowFileNotFound(win, path, args->noSavePrefs);
+        // Clean up temp copy
+        if (args->editModeTempPath) {
+            file::Delete(args->editModeTempPath);
+            str::FreePtr(&args->editModeTempPath);
+            str::FreePtr(&args->editModeOriginalPath);
+        }
+        ShowFileNotFound(win, originalPath, args->noSavePrefs);
         return nullptr;
     }
 
     win = MaybeCreateWindowForFileLoad(args);
     if (!win) {
+        // Clean up temp copy
+        if (args->editModeTempPath) {
+            file::Delete(args->editModeTempPath);
+            str::FreePtr(&args->editModeTempPath);
+            str::FreePtr(&args->editModeOriginalPath);
+        }
         return nullptr;
     }
 
@@ -2292,6 +2511,12 @@ MainWindow* LoadDocument(LoadArgs* args) {
         }
 
         if (!ctrl) {
+            // Clean up temp copy on load failure
+            if (args->editModeTempPath) {
+                file::Delete(args->editModeTempPath);
+                str::FreePtr(&args->editModeTempPath);
+                str::FreePtr(&args->editModeOriginalPath);
+            }
             ShowErrorLoadingNotification(win, path, args->noSavePrefs);
             return win;
         }
@@ -2648,6 +2873,12 @@ bool SaveAnnotationsToExistingFile(WindowTab* tab) {
     }
     ShowSavedAnnotationsNotification(tab->win->hwndCanvas, path);
 
+    // In edit mode, saving annotations to temp file means original has unsaved changes
+    if (tab->editModeTempPath && tab->originalFilePath) {
+        tab->hasUnsavedChanges = true;
+        UpdateWindowTitle(tab->win);
+    }
+
     // have to re-open edit annotations window because the current has
     // a reference to deleted Engine
     bool hadEditAnnotations = CloseAndDeleteEditAnnotationsWindow(tab);
@@ -2820,6 +3051,41 @@ SaveChoice ShouldSaveAnnotationsDialog(HWND hwndParent, const char* filePath) {
 
 // if returns true, can proceed with closing
 // if returns false, should cancel closing
+static bool MaybeSaveEditModeChanges(WindowTab* tab) {
+    if (!tab) {
+        return true;
+    }
+    // Only check if in edit mode with unsaved changes
+    if (!tab->editModeTempPath || !tab->originalFilePath || !tab->hasUnsavedChanges) {
+        return true;
+    }
+
+    // Ask user what to do
+    int result = MessageBoxA(tab->win->hwndFrame,
+        "You have unsaved changes. Save before closing?",
+        "Unsaved Changes", MB_YESNOCANCEL | MB_ICONWARNING);
+
+    if (result == IDYES) {
+        // Save changes
+        bool ok = file::Copy(tab->originalFilePath, tab->editModeTempPath, false);
+        if (!ok) {
+            MessageBoxA(tab->win->hwndFrame, "Failed to save changes.",
+                       "Save Error", MB_OK | MB_ICONERROR);
+            return false;  // Don't close if save failed
+        }
+        tab->hasUnsavedChanges = false;
+        return true;
+    } else if (result == IDNO) {
+        // Discard changes (temp file will be deleted by destructor)
+        return true;
+    } else {
+        // Cancel - don't close
+        return false;
+    }
+}
+
+// if returns true, can proceed with closing
+// if returns false, should cancel closing
 static bool MaybeSaveAnnotations(WindowTab* tab) {
     if (!tab) {
         return true;
@@ -2884,8 +3150,14 @@ void CloseTab(WindowTab* tab, bool quitIfLast) {
 
     RememberRecentlyClosedDocument(tab->filePath);
 
+    // Check for unsaved edit mode changes first
+    bool canClose = MaybeSaveEditModeChanges(tab);
+    if (!canClose) {
+        return;
+    }
+
     // TODO: maybe should have a way to over-ride this for unconditional close?
-    bool canClose = MaybeSaveAnnotations(tab);
+    canClose = MaybeSaveAnnotations(tab);
     if (!canClose) {
         return;
     }
@@ -2987,7 +3259,13 @@ void CloseWindow(MainWindow* win, bool quitIfLast, bool forceClose) {
 
     bool canCloseWindow = true;
     for (auto& tab : win->Tabs()) {
-        bool canCloseTab = MaybeSaveAnnotations(tab);
+        // Check edit mode unsaved changes first
+        bool canCloseTab = MaybeSaveEditModeChanges(tab);
+        if (!canCloseTab) {
+            canCloseWindow = false;
+            continue;  // Still check other tabs
+        }
+        canCloseTab = MaybeSaveAnnotations(tab);
         if (!canCloseTab) {
             canCloseWindow = false;
         }
@@ -4837,6 +5115,12 @@ void CreateHighlightAnnotationsForKeyTerms(void* tabPtr) {
         }
     }
     
+    // In edit mode, mark as unsaved if any annotations were created
+    if (totalAnnotations > 0 && tab->editModeTempPath && tab->originalFilePath) {
+        tab->hasUnsavedChanges = true;
+        UpdateWindowTitle(tab->win);
+    }
+
     // Show results
     char resultMsg[200];
     sprintf_s(resultMsg, sizeof(resultMsg), "Created %d highlight annotations for key terms", totalAnnotations);
@@ -5722,21 +6006,27 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
                     // Update UI
                     MainWindowRerender(win);
                     ToolbarUpdateStateForWindow(win, true);
-                    
+
                     // Refresh TOC display if visible (bookmarks were deleted)
                     if (win->tocVisible) {
                         ClearTocBox(win);
                         LoadTocTree(win);
                         logf("DeleteAllBookmarks: Refreshed TOC display\n");
                     }
-                    
+
+                    // In edit mode, mark as unsaved
+                    if (tab->editModeTempPath && tab->originalFilePath) {
+                        tab->hasUnsavedChanges = true;
+                        UpdateWindowTitle(win);
+                    }
+
                     // Show success message
-                    MessageBoxA(win->hwndFrame, 
-                               "All bookmarks have been deleted from the document.", 
+                    MessageBoxA(win->hwndFrame,
+                               "All bookmarks have been deleted from the document.",
                                "Bookmarks Deleted", MB_OK | MB_ICONINFORMATION);
                 } else {
-                    MessageBoxA(win->hwndFrame, 
-                               "Failed to delete bookmarks. The document may not support this operation.", 
+                    MessageBoxA(win->hwndFrame,
+                               "Failed to delete bookmarks. The document may not support this operation.",
                                "Error", MB_OK | MB_ICONERROR);
                 }
             }
@@ -5747,28 +6037,34 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
             if (!win->IsDocLoaded()) {
                 break;
             }
-            
+
             // Show confirmation dialog
-            int result = MessageBoxA(win->hwndFrame, 
+            int result = MessageBoxA(win->hwndFrame,
                 "Are you sure you want to delete all highlights from this document?\n\n"
                 "This action cannot be undone and will remove all existing highlight annotations.",
-                "Delete All Highlights", 
+                "Delete All Highlights",
                 MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON2);
-            
+
             if (result == IDYES) {
                 EngineBase* engine = tab->GetEngine();
                 if (DeleteAllHighlights(engine)) {
                     // Update UI
                     MainWindowRerender(win);
                     ToolbarUpdateStateForWindow(win, true);
-                    
+
+                    // In edit mode, mark as unsaved
+                    if (tab->editModeTempPath && tab->originalFilePath) {
+                        tab->hasUnsavedChanges = true;
+                        UpdateWindowTitle(win);
+                    }
+
                     // Show success message
-                    MessageBoxA(win->hwndFrame, 
-                               "All highlights have been deleted from the document.", 
+                    MessageBoxA(win->hwndFrame,
+                               "All highlights have been deleted from the document.",
                                "Highlights Deleted", MB_OK | MB_ICONINFORMATION);
                 } else {
-                    MessageBoxA(win->hwndFrame, 
-                               "Failed to delete highlights. The document may not support this operation.", 
+                    MessageBoxA(win->hwndFrame,
+                               "Failed to delete highlights. The document may not support this operation.",
                                "Error", MB_OK | MB_ICONERROR);
                 }
             }
@@ -6212,6 +6508,217 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
             break;
         }
 
+        case CmdDeleteSelectedPages: {
+            logf("=== DELETE_SELECTED_PAGES: Command started ===");
+
+            if (!win->IsDocLoaded()) {
+                break;
+            }
+
+            ThumbnailPanel* thumbPanel = win->thumbnailPanel;
+            if (!thumbPanel) {
+                logf("DELETE_SELECTED_PAGES: No thumbnail panel");
+                break;
+            }
+
+            Vec<int> selected = thumbPanel->GetSelectedPages();
+            if (selected.Size() == 0) {
+                MessageBoxA(win->hwndFrame,
+                           "No pages selected. Use Ctrl+Click or Shift+Click to select pages in the thumbnail panel.",
+                           "Delete Selected Pages", MB_OK | MB_ICONINFORMATION);
+                break;
+            }
+
+            WindowTab* currentTab = win->CurrentTab();
+            EngineBase* engine = currentTab ? currentTab->GetEngine() : nullptr;
+            if (!engine || engine->kind != kindEngineMupdf) {
+                MessageBoxA(win->hwndFrame,
+                           "Page deletion is only supported for PDF documents.",
+                           "Delete Selected Pages", MB_OK | MB_ICONINFORMATION);
+                break;
+            }
+
+            // Build PageRangeData from selection
+            PageRangeData rangeData = {};
+            for (int i = 0; i < (int)selected.Size() && i < 1000; i++) {
+                rangeData.pages[rangeData.count++] = selected[i];
+            }
+            rangeData.isValid = true;
+
+            // Check if in edit mode
+            bool inEditMode = currentTab->editModeTempPath && currentTab->originalFilePath;
+
+            // Confirm deletion with appropriate message
+            TempStr confirmMsg;
+            if (inEditMode) {
+                confirmMsg = str::FormatTemp(
+                    "Are you sure you want to delete %d page(s)?\n\n"
+                    "Use Edit > Save Changes to save to the original file.",
+                    rangeData.count);
+            } else {
+                confirmMsg = str::FormatTemp(
+                    "Are you sure you want to delete %d page(s)?\n\n"
+                    "This will create a new PDF file without the deleted pages.\n"
+                    "The original file will NOT be modified.",
+                    rangeData.count);
+            }
+            int result = MessageBoxA(win->hwndFrame, confirmMsg, "Confirm Delete Pages",
+                                    MB_YESNO | MB_ICONWARNING);
+            if (result != IDYES) {
+                break;
+            }
+
+            bool success = false;
+            if (inEditMode) {
+                // Edit mode: delete pages to a new temp file, then swap temp files
+                TempStr newTempPath = GetTempFilePathTemp("SumatraPDF_edit");
+
+                if (newTempPath) {
+                    success = DeletePagesFromPDF(engine, &rangeData, newTempPath);
+
+                    if (success) {
+                        // Save old path for deletion AFTER reload (engine still using it)
+                        char* oldTempPath = currentTab->editModeTempPath;
+
+                        // Update paths BEFORE reloading
+                        currentTab->editModeTempPath = str::Dup(newTempPath);
+                        currentTab->SetFilePath(newTempPath);
+                        currentTab->hasUnsavedChanges = true;
+
+                        // Reload document - this destroys old controller and releases file handles
+                        ReloadDocument(win, false);
+                        UpdateWindowTitle(win);
+
+                        // NOW safe to delete old temp file (old controller is destroyed)
+                        file::Delete(oldTempPath);
+                        str::Free(oldTempPath);
+
+                        // Refresh thumbnail panel with new document (fixes dangling pointer crash)
+                        if (win->thumbnailPanel && win->thumbnailsVisible) {
+                            LoadThumbnailPanel(win);
+                        }
+                        logf("DELETE_SELECTED_PAGES: Edit mode - deleted %d pages", rangeData.count);
+                    }
+                }
+            } else {
+                // Non-edit mode: create new file in same folder as source
+                const char* srcPath = engine->FilePath();
+                TempStr srcDir = path::GetDirTemp(srcPath);
+                TempStr baseName = path::GetBaseNameTemp(srcPath);
+                char* dot = str::FindCharLast(baseName, '.');
+                if (dot) *dot = '\0';
+
+                TempStr outputPath = str::FormatTemp("%s\\%s_pages_deleted.pdf", srcDir, baseName);
+
+                success = DeletePagesFromPDF(engine, &rangeData, outputPath);
+
+                if (success) {
+                    TempStr successMsg = str::FormatTemp(
+                        "Successfully created new PDF with %d pages deleted:\n%s",
+                        rangeData.count, outputPath);
+                    MessageBoxA(win->hwndFrame, successMsg, "Delete Selected Pages", MB_OK | MB_ICONINFORMATION);
+                    // Clear selection after successful operation
+                    thumbPanel->ClearSelection();
+                    InvalidateRect(thumbPanel->hwnd, nullptr, FALSE);
+                }
+            }
+
+            if (!success) {
+                MessageBoxA(win->hwndFrame, "Failed to delete pages.", "Delete Selected Pages", MB_OK | MB_ICONERROR);
+            }
+
+            logf("DELETE_SELECTED_PAGES: Command completed");
+            break;
+        }
+
+        case CmdExtractSelectedPages: {
+            logf("=== EXTRACT_SELECTED_PAGES: Command started ===");
+
+            if (!win->IsDocLoaded()) {
+                break;
+            }
+
+            ThumbnailPanel* thumbPanel = win->thumbnailPanel;
+            if (!thumbPanel) {
+                logf("EXTRACT_SELECTED_PAGES: No thumbnail panel");
+                break;
+            }
+
+            Vec<int> selected = thumbPanel->GetSelectedPages();
+            if (selected.Size() == 0) {
+                MessageBoxA(win->hwndFrame,
+                           "No pages selected. Use Ctrl+Click or Shift+Click to select pages in the thumbnail panel.",
+                           "Extract Selected Pages", MB_OK | MB_ICONINFORMATION);
+                break;
+            }
+
+            WindowTab* currentTab = win->CurrentTab();
+            EngineBase* engine = currentTab ? currentTab->GetEngine() : nullptr;
+            if (!engine || engine->kind != kindEngineMupdf) {
+                MessageBoxA(win->hwndFrame,
+                           "Page extraction is only supported for PDF documents.",
+                           "Extract Selected Pages", MB_OK | MB_ICONINFORMATION);
+                break;
+            }
+
+            // Build PageRangeData from selection
+            PageRangeData rangeData = {};
+            for (int i = 0; i < (int)selected.Size() && i < 1000; i++) {
+                rangeData.pages[rangeData.count++] = selected[i];
+            }
+            rangeData.isValid = true;
+
+            // Generate output path in same folder as source
+            const char* srcPath = engine->FilePath();
+            TempStr srcDir = path::GetDirTemp(srcPath);
+            TempStr baseName = path::GetBaseNameTemp(srcPath);
+            char* dot = str::FindCharLast(baseName, '.');
+            if (dot) *dot = '\0';
+
+            TempStr outputPath;
+            if (rangeData.count == 1) {
+                outputPath = str::FormatTemp("%s\\%s_page_%d.pdf", srcDir, baseName, rangeData.pages[0]);
+            } else {
+                outputPath = str::FormatTemp("%s\\%s_pages_%dto%d.pdf", srcDir, baseName,
+                                           rangeData.pages[0], rangeData.pages[rangeData.count - 1]);
+            }
+
+            bool success = ExtractPageRangeToNewPDF(engine, &rangeData, outputPath);
+
+            if (success) {
+                TempStr successMsg = str::FormatTemp(
+                    "Successfully extracted %d page(s) to:\n%s",
+                    rangeData.count, outputPath);
+                MessageBoxA(win->hwndFrame, successMsg, "Extract Selected Pages", MB_OK | MB_ICONINFORMATION);
+                // Clear selection after successful operation
+                thumbPanel->ClearSelection();
+                InvalidateRect(thumbPanel->hwnd, nullptr, FALSE);
+            } else {
+                MessageBoxA(win->hwndFrame, "Failed to extract pages.", "Extract Selected Pages", MB_OK | MB_ICONERROR);
+            }
+
+            logf("EXTRACT_SELECTED_PAGES: Command completed");
+            break;
+        }
+
+        case CmdSelectAllThumbnails: {
+            ThumbnailPanel* thumbPanel = win->thumbnailPanel;
+            if (thumbPanel) {
+                thumbPanel->SelectAll();
+                InvalidateRect(thumbPanel->hwnd, nullptr, FALSE);
+            }
+            break;
+        }
+
+        case CmdDeselectAllThumbnails: {
+            ThumbnailPanel* thumbPanel = win->thumbnailPanel;
+            if (thumbPanel) {
+                thumbPanel->ClearSelection();
+                InvalidateRect(thumbPanel->hwnd, nullptr, FALSE);
+            }
+            break;
+        }
+
         case CmdOpenPrevFileInFolder:
         case CmdOpenNextFileInFolder:
             if (!win->IsCurrentTabAbout()) {
@@ -6309,6 +6816,14 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
                 }
             }
         break;
+
+        case CmdSaveChanges:
+            SaveChanges(win);
+            break;
+
+        case CmdDiscardChanges:
+            DiscardChanges(win);
+            break;
 
         case CmdPrint:
             PrintCurrentFile(win);
