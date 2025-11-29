@@ -901,3 +901,131 @@ MyData(const MyData& other) {
 **Bug**: Function returned `success && (deletedCount > 0)` which showed error when no highlights existed.
 
 **Fix**: Return `success` alone - having no highlights to delete is not an error.
+
+## MuPDF Error Handling Critical Lesson (2025-11-29)
+
+### NEVER Return From Inside fz_try Blocks
+
+**CRITICAL BUG PATTERN**:
+```cpp
+fz_try(ctx) {
+    // ... some code ...
+    if (someCondition) {
+        return 0;  // CRASH! This corrupts the stack!
+    }
+    // ... more code ...
+}
+fz_catch(ctx) {
+    // error handling
+}
+```
+
+**Why This Crashes**: MuPDF uses `setjmp`/`longjmp` for error handling. The `fz_try` macro sets up a jump buffer on the stack. When you `return` from inside the `fz_try` block:
+1. The function's stack frame is destroyed
+2. But the jump buffer still exists and points to invalid memory
+3. If any MuPDF function later throws an error, `longjmp` jumps to corrupted memory
+4. Result: Immediate crash or memory corruption
+
+**Correct Pattern - Use Flow Control**:
+```cpp
+int result = 0;
+fz_try(ctx) {
+    // ... some code ...
+    if (someCondition) {
+        // Don't return - use if/else flow control
+        result = 0;
+    } else {
+        // ... more code ...
+        result = someValue;
+    }
+}
+fz_catch(ctx) {
+    // error handling
+    result = -1;
+}
+return result;  // Return OUTSIDE fz_try/fz_catch
+```
+
+**Real Example - CopyPageAnnotations Fix**:
+```cpp
+// BEFORE (buggy):
+fz_try(ctx) {
+    pdf_annot* firstAnnot = pdf_first_annot(ctx, srcPage);
+    if (!firstAnnot) {
+        return 0;  // BUG: return inside fz_try!
+    }
+    // ... annotation copying ...
+}
+
+// AFTER (fixed):
+fz_try(ctx) {
+    pdf_annot* firstAnnot = pdf_first_annot(ctx, srcPage);
+    if (!firstAnnot) {
+        // No annotations - fall through, annotationsCopied stays 0
+    } else {
+        // ... annotation copying ...
+    }
+}
+fz_catch(ctx) {
+    return -1;
+}
+return annotationsCopied;  // Return OUTSIDE the blocks
+```
+
+### Rules for MuPDF fz_try/fz_catch
+
+1. **NEVER use `return` inside `fz_try` block**
+2. **NEVER use `goto` to jump out of `fz_try` block**
+3. **Use if/else flow control** to handle early-exit conditions
+4. **Set result variables** inside the block, return after `fz_catch`
+5. **`fz_catch` CAN use return** - it's safe after the try block completes
+
+## Page Deletion Feature Fix (2025-11-29)
+
+### Thumbnail Panel Dangling Pointer Issue
+
+**Problem**: After deleting pages in Edit Mode, clicking ANY thumbnail crashed the application.
+
+**Root Cause**:
+1. `ThumbnailPanel` stores a `dm` (DisplayModel*) pointer
+2. `ReloadDocument()` destroys the old DisplayModel and creates a new one
+3. The thumbnail panel's `dm` pointer becomes a dangling pointer to freed memory
+4. Clicking any thumbnail calls `dm->GoToPage()` which dereferences freed memory
+
+**Code Path**:
+```cpp
+// ThumbnailPanel::OnLButtonDown:
+if (win && dm) {
+    dm->GoToPage(pageNo, true);  // CRASH: dm points to freed memory!
+}
+```
+
+**Fix**: Call `LoadThumbnailPanel(win)` after `ReloadDocument()` instead of just clearing selection:
+
+```cpp
+// BEFORE (buggy):
+if (win->thumbnailPanel) {
+    win->thumbnailPanel->ClearSelection();
+    InvalidateRect(win->thumbnailPanel->hwnd, nullptr, FALSE);
+}
+
+// AFTER (fixed):
+if (win->thumbnailPanel && win->thumbnailsVisible) {
+    LoadThumbnailPanel(win);  // Refreshes dm pointer and rebuilds items
+}
+```
+
+**Why LoadThumbnailPanel Works**:
+1. Calls `SetDisplayModel(dm)` with the NEW DisplayModel from reloaded document
+2. Which calls `Clear()` to delete old thumbnail items
+3. Then rebuilds items list with correct page count from new document
+4. The `dm` pointer is now valid and points to the current DisplayModel
+
+### General Principle: After ReloadDocument()
+
+When `ReloadDocument()` is called, any component that stores a pointer to:
+- `DisplayModel*`
+- `EngineBase*`
+- `DocController*`
+
+Must be refreshed to get the new pointer. The old pointers are invalid after reload.
