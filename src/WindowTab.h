@@ -53,6 +53,11 @@ struct WindowTab {
     // TODO: arguably a hack
     bool ignoreNextAutoReload = false;
 
+    // Edit mode state (always editing for PDFs)
+    char* originalFilePath = nullptr;  // Original file path (when working on temp copy)
+    char* editModeTempPath = nullptr;  // Temp working copy path
+    bool hasUnsavedChanges = false;    // Track if changes were made
+
     WindowTab(MainWindow* win);
     ~WindowTab();
 

@@ -173,6 +173,10 @@ struct LoadArgs {
 
     TabState* tabState = nullptr;
 
+    // Edit mode: when loading a PDF, we load from temp copy
+    char* editModeOriginalPath = nullptr;  // Original file path (we own this)
+    char* editModeTempPath = nullptr;      // Temp copy path (we own this)
+
   private:
     AutoFreeStr fileName;
 };

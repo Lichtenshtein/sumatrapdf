@@ -206,6 +206,12 @@ Cmd* enum (e.g. CmdOpen) and a human-readable name (not used yet).
     V(CmdInsertTemplate, "Insert Template PDF...")                               \
     V(CmdSendToLLM, "Analyze with AI...")                                        \
     V(CmdToggleThumbnails, "Toggle Page Thumbnails")                             \
+    V(CmdDeleteSelectedPages, "Delete Selected Pages")                           \
+    V(CmdExtractSelectedPages, "Extract Selected Pages")                         \
+    V(CmdSelectAllThumbnails, "Select All Thumbnails")                           \
+    V(CmdDeselectAllThumbnails, "Deselect All Thumbnails")                       \
+    V(CmdSaveChanges, "Save Changes")                                            \
+    V(CmdDiscardChanges, "Discard Changes")                                      \
     V(CmdNone, "Do nothing")
 
 // order of CreateAnnot* must be the same as enum AnnotationType

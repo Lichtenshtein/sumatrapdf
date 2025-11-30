@@ -13,6 +13,7 @@ struct ThumbnailItem {
     RenderedBitmap* thumbnail = nullptr; // Rendered thumbnail bitmap (owned)
     bool isLoading = false;             // Currently being rendered
     Rect bounds;                        // Position in grid (client coords)
+    bool isSelected = false;            // Selected by user for multi-select operations
 
     ThumbnailItem() = default;
     ~ThumbnailItem();
@@ -38,6 +39,9 @@ struct ThumbnailPanel {
 
     // Current page highlight
     int currentPage = 0;                // Page currently highlighted (synced with doc view)
+
+    // Selection state for multi-select operations
+    int lastClickedPage = 0;            // For Shift+Click range selection
 
     // Rendering state
     CRITICAL_SECTION renderLock;
@@ -71,6 +75,19 @@ struct ThumbnailPanel {
     void OnLButtonDown(int x, int y);
     void OnVScroll(WPARAM wp);
     void OnMouseWheel(int delta);
+
+    // Selection management
+    void SelectPage(int pageNo, bool addToSelection);
+    void SelectRange(int startPage, int endPage);
+    void ToggleSelection(int pageNo);
+    void ClearSelection();
+    void SelectAll();
+    bool IsPageSelected(int pageNo);
+    Vec<int> GetSelectedPages();
+    int GetSelectionCount();
+
+    // Context menu
+    void ShowContextMenu(int screenX, int screenY);
 
     // Drawing helpers
     void DrawThumbnail(HDC hdc, ThumbnailItem* item, bool isCurrentPage);

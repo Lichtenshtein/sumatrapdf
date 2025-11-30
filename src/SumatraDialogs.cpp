@@ -1354,6 +1354,117 @@ char* GetPageRangeFromUser(HWND hwnd, int pageCount, int currentPage) {
     return returnResult;
 }
 
+// Dialog state for insert page position input (stack-only, no complex ownership)
+struct InsertPageInputData {
+    char userInput[32];
+    bool userClickedOK;
+    int pageCount;
+};
+
+// Dialog procedure for Insert Page After dialog
+static INT_PTR CALLBACK InsertPageInputProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
+    InsertPageInputData* data = (InsertPageInputData*)GetWindowLongPtr(hDlg, GWLP_USERDATA);
+
+    switch (msg) {
+        case WM_INITDIALOG: {
+            // Set up dialog data (simple stack struct)
+            data = (InsertPageInputData*)lp;
+            SetWindowLongPtr(hDlg, GWLP_USERDATA, (LONG_PTR)data);
+
+            // Set window title for insert operation
+            SetWindowTextA(hDlg, "Insert Page After");
+
+            // Change the label from "Pages to extract:" to "Insert after page:"
+            SetDlgItemTextA(hDlg, IDC_EXTRACT_PAGES_LABEL, "Insert after page:");
+
+            // Set up the range hint text (0 = beginning, pageCount = end)
+            char rangeHint[128];
+            sprintf_s(rangeHint, sizeof(rangeHint), "(0-%d)", data->pageCount);
+            SetDlgItemTextA(hDlg, IDC_EXTRACT_PAGES_TOTAL, rangeHint);
+
+            // Change the examples text to explain the valid range
+            char helpText[256];
+            sprintf_s(helpText, sizeof(helpText), "0 = insert at beginning, %d = insert at end", data->pageCount);
+            SetDlgItemTextA(hDlg, IDC_EXTRACT_PAGES_HELP, helpText);
+
+            // Pre-fill with current page value
+            SetDlgItemTextA(hDlg, IDC_EXTRACT_PAGES_EDIT, data->userInput);
+
+            // Focus on edit control
+            HWND editCtrl = GetDlgItem(hDlg, IDC_EXTRACT_PAGES_EDIT);
+            SetFocus(editCtrl);
+            return FALSE; // Don't set focus automatically
+        }
+
+        case WM_COMMAND: {
+            if (!data) return FALSE;
+
+            switch (LOWORD(wp)) {
+                case IDOK: {
+                    // Get text from edit control (fixed buffer - JSON pattern)
+                    GetDlgItemTextA(hDlg, IDC_EXTRACT_PAGES_EDIT, data->userInput, sizeof(data->userInput));
+                    data->userClickedOK = true;
+                    EndDialog(hDlg, IDOK);
+                    return TRUE;
+                }
+
+                case IDCANCEL:
+                    data->userClickedOK = false;
+                    EndDialog(hDlg, IDCANCEL);
+                    return TRUE;
+            }
+            break;
+        }
+
+        case WM_CLOSE:
+            if (data) data->userClickedOK = false;
+            EndDialog(hDlg, IDCANCEL);
+            return TRUE;
+    }
+
+    return FALSE;
+}
+
+// Get insert position from user - returns page number to insert after (0 = beginning), or -1 if cancelled
+int GetInsertPositionFromUser(HWND hwnd, int pageCount, int currentPage) {
+    logf("=== GetInsertPositionFromUser: ENTRY ===");
+    logf("GetInsertPositionFromUser: pageCount=%d, currentPage=%d", pageCount, currentPage);
+
+    // Simple stack-allocated state (JSON pattern)
+    InsertPageInputData data = {};
+    data.pageCount = pageCount;
+    data.userClickedOK = false;
+
+    // Set default text to current page
+    sprintf_s(data.userInput, sizeof(data.userInput), "%d", currentPage);
+
+    logf("GetInsertPositionFromUser: Showing dialog with default='%s'", data.userInput);
+
+    // Show dialog using insert page procedure
+    INT_PTR result = DialogBoxParam(GetModuleHandle(nullptr),
+                                   MAKEINTRESOURCE(IDD_DIALOG_EXTRACT_PAGES),
+                                   hwnd,
+                                   InsertPageInputProc,
+                                   (LPARAM)&data);
+
+    if (result != IDOK || !data.userClickedOK) {
+        logf("GetInsertPositionFromUser: User cancelled (result=%d, clickedOK=%d)", (int)result, data.userClickedOK);
+        return -1;  // Cancelled
+    }
+
+    logf("GetInsertPositionFromUser: User entered='%s'", data.userInput);
+
+    // Parse and validate - 0 is valid (insert at beginning), pageCount is max (insert at end)
+    int insertAfter = atoi(data.userInput);
+    if (insertAfter < 0 || insertAfter > pageCount) {
+        logf("GetInsertPositionFromUser: Invalid position %d (valid range: 0-%d)", insertAfter, pageCount);
+        return -1;  // Invalid
+    }
+
+    logf("GetInsertPositionFromUser: SUCCESS - Returning position %d", insertAfter);
+    return insertAfter;
+}
+
 static int IntCmp(const void* a, const void* b) {
     int val1 = *(const int*)a;
     int val2 = *(const int*)b;

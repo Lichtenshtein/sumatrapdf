@@ -20,6 +20,7 @@
 #include "MainWindow.h"
 #include "WindowTab.h"
 #include "resource.h"
+#include "Commands.h"
 #include "ThumbnailPanel.h"
 #include "Translations.h"
 
@@ -289,11 +290,36 @@ int ThumbnailPanel::PageAtPoint(int x, int y) {
 
 void ThumbnailPanel::OnLButtonDown(int x, int y) {
     int pageNo = PageAtPoint(x, y);
-    if (pageNo > 0 && win && dm) {
+    if (pageNo <= 0) {
+        return;
+    }
+
+    // Check keyboard modifiers for multi-select
+    bool ctrlDown = (GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0;
+    bool shiftDown = (GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0;
+
+    if (ctrlDown) {
+        // Ctrl+Click: Toggle selection of this page
+        ToggleSelection(pageNo);
+    } else if (shiftDown && lastClickedPage > 0) {
+        // Shift+Click: Select range from last clicked to this page
+        SelectRange(lastClickedPage, pageNo);
+    } else {
+        // Normal click: Clear selection and select only this page
+        ClearSelection();
+        SelectPage(pageNo, false);
+    }
+
+    lastClickedPage = pageNo;
+
+    // Still navigate to the clicked page
+    if (win && dm) {
         logf("ThumbnailPanel: Navigating to page %d\n", pageNo);
         dm->GoToPage(pageNo, true);
         SetCurrentPage(pageNo);
     }
+
+    InvalidateRect(hwnd, nullptr, FALSE);
 }
 
 void ThumbnailPanel::OnVScroll(WPARAM wp) {
@@ -354,6 +380,147 @@ void ThumbnailPanel::OnMouseWheel(int delta) {
         UpdateScrollInfo();
         RenderVisibleThumbnails();
         InvalidateRect(hwnd, nullptr, TRUE);
+    }
+}
+
+// ========== Selection Management ==========
+
+void ThumbnailPanel::SelectPage(int pageNo, bool addToSelection) {
+    if (pageNo < 1 || pageNo > (int)items.Size()) {
+        return;
+    }
+
+    if (!addToSelection) {
+        ClearSelection();
+    }
+
+    ThumbnailItem* item = items[pageNo - 1];
+    item->isSelected = true;
+}
+
+void ThumbnailPanel::SelectRange(int startPage, int endPage) {
+    if (startPage < 1 || endPage < 1) {
+        return;
+    }
+
+    // Ensure start <= end
+    int minPage = std::min(startPage, endPage);
+    int maxPage = std::max(startPage, endPage);
+
+    // Clamp to valid range
+    minPage = std::max(1, minPage);
+    maxPage = std::min((int)items.Size(), maxPage);
+
+    // Clear existing selection and select the range
+    ClearSelection();
+
+    for (int p = minPage; p <= maxPage; p++) {
+        ThumbnailItem* item = items[p - 1];
+        item->isSelected = true;
+    }
+}
+
+void ThumbnailPanel::ToggleSelection(int pageNo) {
+    if (pageNo < 1 || pageNo > (int)items.Size()) {
+        return;
+    }
+
+    ThumbnailItem* item = items[pageNo - 1];
+    item->isSelected = !item->isSelected;
+}
+
+void ThumbnailPanel::ClearSelection() {
+    for (ThumbnailItem* item : items) {
+        item->isSelected = false;
+    }
+}
+
+void ThumbnailPanel::SelectAll() {
+    for (ThumbnailItem* item : items) {
+        item->isSelected = true;
+    }
+}
+
+bool ThumbnailPanel::IsPageSelected(int pageNo) {
+    if (pageNo < 1 || pageNo > (int)items.Size()) {
+        return false;
+    }
+    return items[pageNo - 1]->isSelected;
+}
+
+Vec<int> ThumbnailPanel::GetSelectedPages() {
+    Vec<int> selected;
+    for (ThumbnailItem* item : items) {
+        if (item->isSelected) {
+            selected.Append(item->pageNo);
+        }
+    }
+    return selected;
+}
+
+int ThumbnailPanel::GetSelectionCount() {
+    int count = 0;
+    for (ThumbnailItem* item : items) {
+        if (item->isSelected) {
+            count++;
+        }
+    }
+    return count;
+}
+
+// ========== Context Menu ==========
+
+void ThumbnailPanel::ShowContextMenu(int screenX, int screenY) {
+    // Convert screen coords to client coords to find clicked page
+    POINT pt = {screenX, screenY};
+    ScreenToClient(hwnd, &pt);
+    int clickedPage = PageAtPoint(pt.x, pt.y);
+
+    // If right-clicked on a page that's not selected, select only that page
+    if (clickedPage > 0 && !IsPageSelected(clickedPage)) {
+        ClearSelection();
+        SelectPage(clickedPage, false);
+        lastClickedPage = clickedPage;
+        InvalidateRect(hwnd, nullptr, FALSE);
+    }
+
+    int selCount = GetSelectionCount();
+    if (selCount == 0) {
+        return;  // No selection, no menu
+    }
+
+    logf("ThumbnailPanel::ShowContextMenu: %d pages selected\n", selCount);
+
+    // Build context menu
+    HMENU popup = CreatePopupMenu();
+
+    // Dynamic labels showing selection count
+    char deleteLabel[64];
+    char extractLabel[64];
+    sprintf_s(deleteLabel, sizeof(deleteLabel), "Delete %d Page(s)...", selCount);
+    sprintf_s(extractLabel, sizeof(extractLabel), "Extract %d Page(s)...", selCount);
+
+    AppendMenuA(popup, MF_STRING, CmdDeleteSelectedPages, deleteLabel);
+    AppendMenuA(popup, MF_STRING, CmdExtractSelectedPages, extractLabel);
+    AppendMenuA(popup, MF_SEPARATOR, 0, nullptr);
+    AppendMenuA(popup, MF_STRING, CmdSelectAllThumbnails, "Select All\tCtrl+A");
+    AppendMenuA(popup, MF_STRING, CmdDeselectAllThumbnails, "Deselect All");
+
+    // Show menu at screen position
+    UINT flags = TPM_RETURNCMD | TPM_RIGHTBUTTON;
+    int cmdId = TrackPopupMenu(popup, flags, screenX, screenY, 0, hwnd, nullptr);
+    DestroyMenu(popup);
+
+    // Handle commands locally for Select/Deselect, send others to main window
+    if (cmdId == CmdSelectAllThumbnails) {
+        SelectAll();
+        InvalidateRect(hwnd, nullptr, FALSE);
+    } else if (cmdId == CmdDeselectAllThumbnails) {
+        ClearSelection();
+        InvalidateRect(hwnd, nullptr, FALSE);
+    } else if (cmdId > 0 && win) {
+        // Send command to main window for processing
+        SendMessage(win->hwndFrame, WM_COMMAND, cmdId, 0);
     }
 }
 
@@ -463,8 +630,14 @@ void ThumbnailPanel::DrawThumbnail(HDC hdc, ThumbnailItem* item, bool isCurrentP
         DrawPlaceholder(hdc, item);
     }
 
-    // Draw border for current page (around the actual thumbnail, not the full area)
-    if (isCurrentPage && item->thumbnail && item->thumbnail->IsValid()) {
+    // Determine border color based on state:
+    // - Selected: Green border (RGB 0, 180, 0)
+    // - Current page (not selected): Blue border (RGB 0, 120, 215)
+    // - Both selected AND current: Green border takes precedence (shows selection)
+    bool needsBorder = item->isSelected || isCurrentPage;
+    COLORREF borderColor = item->isSelected ? RGB(0, 180, 0) : RGB(0, 120, 215);
+
+    if (needsBorder && item->thumbnail && item->thumbnail->IsValid()) {
         Size bmpSize = item->thumbnail->GetSize();
         float scaleX = (float)availW / (float)bmpSize.dx;
         float scaleY = (float)availH / (float)bmpSize.dy;
@@ -476,18 +649,18 @@ void ThumbnailPanel::DrawThumbnail(HDC hdc, ThumbnailItem* item, bool isCurrentP
 
         RECT r = {thumbRect.x + 2 + offsetX, thumbRect.y + 2 + offsetY,
                   thumbRect.x + 2 + offsetX + targetW, thumbRect.y + 2 + offsetY + targetH};
-        HPEN borderPen = CreatePen(PS_SOLID, 3, RGB(0, 120, 215)); // Blue
+        HPEN borderPen = CreatePen(PS_SOLID, 3, borderColor);
         HPEN oldPen = (HPEN)SelectObject(hdc, borderPen);
         HBRUSH oldBrush = (HBRUSH)SelectObject(hdc, GetStockObject(NULL_BRUSH));
         Rectangle(hdc, r.left, r.top, r.right, r.bottom);
         SelectObject(hdc, oldBrush);
         SelectObject(hdc, oldPen);
         DeleteObject(borderPen);
-    } else if (isCurrentPage) {
+    } else if (needsBorder) {
         // Fallback border for placeholder
         RECT r = {thumbRect.x + 2, thumbRect.y + 2,
                   thumbRect.x + thumbRect.dx - 2, thumbRect.y + thumbRect.dy - 2};
-        HPEN borderPen = CreatePen(PS_SOLID, 3, RGB(0, 120, 215));
+        HPEN borderPen = CreatePen(PS_SOLID, 3, borderColor);
         HPEN oldPen = (HPEN)SelectObject(hdc, borderPen);
         HBRUSH oldBrush = (HBRUSH)SelectObject(hdc, GetStockObject(NULL_BRUSH));
         Rectangle(hdc, r.left, r.top, r.right, r.bottom);
@@ -593,6 +766,32 @@ LRESULT CALLBACK ThumbnailPanelWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
                 panel->OnLButtonDown(GET_X_LPARAM(lp), GET_Y_LPARAM(lp));
             }
             return 0;
+
+        case WM_CONTEXTMENU:
+            if (panel) {
+                int x = GET_X_LPARAM(lp);
+                int y = GET_Y_LPARAM(lp);
+                // Handle keyboard-invoked context menu (x,y = -1,-1)
+                if (x == -1 || y == -1) {
+                    POINT pt;
+                    GetCursorPos(&pt);
+                    x = pt.x;
+                    y = pt.y;
+                }
+                panel->ShowContextMenu(x, y);
+            }
+            return 0;
+
+        case WM_KEYDOWN:
+            if (panel) {
+                // Handle Ctrl+A for Select All
+                if (wp == 'A' && (GetAsyncKeyState(VK_CONTROL) & 0x8000)) {
+                    panel->SelectAll();
+                    InvalidateRect(hwnd, nullptr, FALSE);
+                    return 0;
+                }
+            }
+            break;
 
         case WM_ERASEBKGND:
             return 1; // Handled in WM_PAINT

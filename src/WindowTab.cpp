@@ -51,6 +51,13 @@ WindowTab::~WindowTab() {
     delete ctrl;
     str::FreePtr(&filePath);
     str::FreePtr(&frameTitle);
+
+    // Cleanup edit mode temp file
+    if (editModeTempPath) {
+        file::Delete(editModeTempPath);
+        str::FreePtr(&editModeTempPath);
+    }
+    str::FreePtr(&originalFilePath);
 }
 
 bool WindowTab::IsDocLoaded() const {

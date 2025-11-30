@@ -24,6 +24,9 @@ struct PageRangeData {
 int ParseSinglePage(const char* input, int totalPages);
 char* GetPageNumberFromUser(HWND hwnd, int pageCount, int currentPage);
 char* GetPageRangeFromUser(HWND hwnd, int pageCount, int currentPage);
+
+// Insert page position dialog - returns page number to insert after (0 = beginning), or -1 if cancelled
+int GetInsertPositionFromUser(HWND hwnd, int pageCount, int currentPage);
 bool ParsePageRangesSafe(const char* input, int totalPages, PageRangeData* data);
 Vec<int>* ParsePageRangeString(const char* input, int totalPages); // DEPRECATED: Use ParsePageRangesSafe() instead
 Vec<int>* ParsePageRanges(const char* input, int totalPages); // DEPRECATED

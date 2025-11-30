@@ -6380,7 +6380,9 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
         }
 
         case CmdInsertTemplate: {
-            logf("=== INSERT_TEMPLATE: Command started ===");
+            // Timing diagnostics to investigate delay
+            DWORD t0 = GetTickCount();
+            logf("=== INSERT_TEMPLATE: Command started at %lu ===", t0);
 
             if (!win->IsDocLoaded()) {
                 MessageBoxA(win->hwndFrame, "Please open a PDF document first.",
@@ -6396,6 +6398,18 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
                 break;
             }
 
+            // Check edit mode BEFORE showing file dialog
+            if (!currentTab->editModeTempPath) {
+                MessageBoxA(win->hwndFrame,
+                    "This document is not in edit mode.\n"
+                    "Please re-open the document to enable editing.",
+                    "Insert Template", MB_OK | MB_ICONINFORMATION);
+                break;
+            }
+
+            DWORD t1 = GetTickCount();
+            logf("INSERT_TEMPLATE: Before file dialog at %lu (delta=%lu ms)", t1, t1 - t0);
+
             // Select PDF to insert
             OPENFILENAMEA ofn = {};
             char szFile[MAX_PATH] = {};
@@ -6409,56 +6423,76 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
             ofn.Flags = OFN_FILEMUSTEXIST;
 
             if (!GetOpenFileNameA(&ofn)) {
-                logf("INSERT_TEMPLATE: User cancelled");
+                logf("INSERT_TEMPLATE: User cancelled file selection");
                 break;
             }
+
+            DWORD t2 = GetTickCount();
+            logf("INSERT_TEMPLATE: After file dialog at %lu (delta=%lu ms)", t2, t2 - t1);
 
             // Ask where to insert (after which page)
             int pageCount = engine->PageCount();
+            DWORD t3 = GetTickCount();
+            logf("INSERT_TEMPLATE: After PageCount() at %lu (delta=%lu ms)", t3, t3 - t2);
+
             int currentPage = win->currPageNo;
+            DWORD t4 = GetTickCount();
+            logf("INSERT_TEMPLATE: Before position dialog at %lu (delta=%lu ms)", t4, t4 - t3);
 
-            TempStr prompt = str::FormatTemp(
-                "Insert after which page? (0 = beginning, %d = end)\nCurrent page: %d",
-                pageCount, currentPage);
+            // Use dedicated insert position dialog
+            int insertAfter = GetInsertPositionFromUser(win->hwndFrame, pageCount, currentPage);
+            DWORD t5 = GetTickCount();
+            logf("INSERT_TEMPLATE: After position dialog at %lu (delta=%lu ms)", t5, t5 - t4);
 
-            // Simple input - reuse page range dialog
-            char* pageInput = GetPageRangeFromUser(win->hwndFrame, pageCount, currentPage);
-            if (!pageInput) {
+            if (insertAfter < 0) {
+                logf("INSERT_TEMPLATE: User cancelled position selection");
                 break;
             }
 
-            int insertAfter = atoi(pageInput);
-            str::Free(pageInput);
+            // Generate temporary output path for insertion result
+            TempStr tempOutputPath = GetTempFilePathTemp("SumatraPDF_insert");
+            logf("INSERT_TEMPLATE: Inserting after page %d, output to %s", insertAfter, tempOutputPath);
 
-            if (insertAfter < 0) insertAfter = 0;
-            if (insertAfter > pageCount) insertAfter = pageCount;
-
-            // Generate output path
-            const char* srcPath = engine->FilePath();
-            TempStr srcDir = path::GetDirTemp(srcPath);
-            TempStr baseName = path::GetBaseNameTemp(srcPath);
-            char* dot = str::FindCharLast(baseName, '.');
-            if (dot) *dot = '\0';
-
-            TempStr outputPath = str::FormatTemp("%s\\%s_with_insert.pdf", srcDir, baseName);
-
-            bool success = InsertPDFPages(engine, szFile, insertAfter, outputPath);
+            DWORD t6 = GetTickCount();
+            // Perform insertion: current temp file + insert file -> new temp output
+            bool success = InsertPDFPages(engine, szFile, insertAfter, tempOutputPath);
+            DWORD t7 = GetTickCount();
+            logf("INSERT_TEMPLATE: InsertPDFPages took %lu ms, success=%d", t7 - t6, success);
 
             if (success) {
-                TempStr successMsg = str::FormatTemp(
-                    "Successfully inserted PDF after page %d:\n%s\n\nWould you like to open it?",
-                    insertAfter, outputPath);
-                int openIt = MessageBoxA(win->hwndFrame, successMsg, "Insert Template",
-                                        MB_YESNO | MB_ICONINFORMATION);
-                if (openIt == IDYES) {
-                    LoadArgs args(outputPath, win);
-                    LoadDocument(&args);
+                // Replace our working temp file with the new version
+                file::Delete(currentTab->editModeTempPath);
+                bool copied = file::Copy(currentTab->editModeTempPath, tempOutputPath, false);
+                file::Delete(tempOutputPath);
+
+                if (copied) {
+                    // Mark as having unsaved changes
+                    currentTab->hasUnsavedChanges = true;
+
+                    // Reload document from updated temp file
+                    DWORD t8 = GetTickCount();
+                    ReloadDocument(win, false);
+                    DWORD t9 = GetTickCount();
+                    logf("INSERT_TEMPLATE: ReloadDocument took %lu ms", t9 - t8);
+
+                    // Refresh thumbnail panel with new DisplayModel to prevent crash
+                    LoadThumbnailPanel(win);
+
+                    // Brief success notification
+                    TempStr successMsg = str::FormatTemp("Inserted %s after page %d.\nUse File > Save to keep changes.",
+                                                 path::GetBaseNameTemp(szFile), insertAfter);
+                    MessageBoxA(win->hwndFrame, successMsg, "Insert Template", MB_OK | MB_ICONINFORMATION);
+                } else {
+                    MessageBoxA(win->hwndFrame, "Failed to update document.",
+                               "Insert Template", MB_OK | MB_ICONERROR);
                 }
             } else {
-                MessageBoxA(win->hwndFrame, "Failed to insert PDF.", "Insert Template", MB_OK | MB_ICONERROR);
+                file::Delete(tempOutputPath);
+                MessageBoxA(win->hwndFrame, "Failed to insert PDF pages.",
+                           "Insert Template", MB_OK | MB_ICONERROR);
             }
 
-            logf("INSERT_TEMPLATE: Command completed");
+            logf("INSERT_TEMPLATE: Command completed, total time %lu ms", GetTickCount() - t0);
             break;
         }
 
