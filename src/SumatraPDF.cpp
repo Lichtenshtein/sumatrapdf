@@ -2902,6 +2902,39 @@ static void InvokeInverseSearch(WindowTab* tab) {
     OnInverseSearch(win, pt.x, pt.y);
 }
 
+// Shows save dialog for page extraction, returns path or nullptr if cancelled
+// The returned path is a TempStr (valid until next temp allocation)
+static char* GetExtractPagesSavePath(HWND hwndOwner, const char* srcPath, const char* suggestedFileName) {
+    WCHAR dstFileName[MAX_PATH + 1]{};
+    TempStr srcDir = path::GetDirTemp(srcPath);
+    TempStr suggestedPath = path::JoinTemp(srcDir, suggestedFileName);
+    str::BufSet(dstFileName, dimof(dstFileName), suggestedPath);
+
+    OPENFILENAME ofn{};
+    str::Str fileFilter(256);
+    fileFilter.Append(_TRA("PDF documents"));
+    fileFilter.Append("\1*.pdf\1");
+    fileFilter.Append(_TRA("All files"));
+    fileFilter.Append("\1*.*\1");
+    str::TransCharsInPlace(fileFilter.CStr(), "\1", "\0");
+    TempWStr fileFilterW = ToWStrTemp(fileFilter);
+
+    ofn.lStructSize = sizeof(ofn);
+    ofn.hwndOwner = hwndOwner;
+    ofn.lpstrFile = dstFileName;
+    ofn.nMaxFile = dimof(dstFileName);
+    ofn.lpstrFilter = fileFilterW;
+    ofn.nFilterIndex = 1;
+    ofn.lpstrDefExt = L"pdf";
+    ofn.Flags = OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST | OFN_HIDEREADONLY;
+
+    bool ok = GetSaveFileNameW(&ofn);
+    if (!ok) {
+        return nullptr;  // User cancelled
+    }
+    return ToUtf8Temp(dstFileName);
+}
+
 // returns true if saved successully
 bool SaveAnnotationsToMaybeNewPdfFile(WindowTab* tab) {
     if (!tab) {
@@ -6120,10 +6153,9 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
             
             logf("EXTRACT_PAGES: Successfully parsed %d pages from input '%s'", rangeData.count, rangeInput);
             str::Free(rangeInput);
-            
-            // Generate output filename in same folder as source PDF
-            const char* srcPath = engine->FilePath();
-            TempStr srcDir = path::GetDirTemp(srcPath);
+
+            // Generate suggested filename - use original path in edit mode, not temp file
+            const char* srcPath = currentTab->originalFilePath ? currentTab->originalFilePath : engine->FilePath();
             TempStr baseName = path::GetBaseNameTemp(srcPath);
             // Remove extension manually since GetBaseNameNoExtTemp doesn't exist
             char* dot = str::FindCharLast(baseName, '.');
@@ -6131,19 +6163,22 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
                 *dot = '\0';
             }
 
-            TempStr outputPath;
+            TempStr suggestedFileName;
             if (rangeData.count == 1) {
-                // Single page
-                int pageNum = rangeData.pages[0];
-                outputPath = str::FormatTemp("%s\\%s_page_%d.pdf", srcDir, baseName, pageNum);
-                logf("EXTRACT_PAGES: Single page extraction to: %s", outputPath);
+                suggestedFileName = str::FormatTemp("%s_page_%d.pdf", baseName, rangeData.pages[0]);
             } else {
-                // Multiple pages
-                outputPath = str::FormatTemp("%s\\%s_pages_%dto%d.pdf", srcDir, baseName,
+                suggestedFileName = str::FormatTemp("%s_pages_%dto%d.pdf", baseName,
                                            rangeData.pages[0], rangeData.pages[rangeData.count - 1]);
-                logf("EXTRACT_PAGES: Multiple page extraction (%d pages) to: %s", rangeData.count, outputPath);
             }
-            
+
+            // Show save dialog
+            char* outputPath = GetExtractPagesSavePath(win->hwndFrame, srcPath, suggestedFileName);
+            if (!outputPath) {
+                logf("EXTRACT_PAGES: User cancelled save dialog");
+                break;
+            }
+            logf("EXTRACT_PAGES: User selected output path: %s", outputPath);
+
             // Extract using memory-safe function
             bool success = ExtractPageRangeToNewPDF(engine, &rangeData, outputPath);
             
@@ -6668,20 +6703,27 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
             }
             rangeData.isValid = true;
 
-            // Generate output path in same folder as source
-            const char* srcPath = engine->FilePath();
-            TempStr srcDir = path::GetDirTemp(srcPath);
+            // Generate suggested filename - use original path in edit mode, not temp file
+            const char* srcPath = currentTab->originalFilePath ? currentTab->originalFilePath : engine->FilePath();
             TempStr baseName = path::GetBaseNameTemp(srcPath);
             char* dot = str::FindCharLast(baseName, '.');
             if (dot) *dot = '\0';
 
-            TempStr outputPath;
+            TempStr suggestedFileName;
             if (rangeData.count == 1) {
-                outputPath = str::FormatTemp("%s\\%s_page_%d.pdf", srcDir, baseName, rangeData.pages[0]);
+                suggestedFileName = str::FormatTemp("%s_page_%d.pdf", baseName, rangeData.pages[0]);
             } else {
-                outputPath = str::FormatTemp("%s\\%s_pages_%dto%d.pdf", srcDir, baseName,
+                suggestedFileName = str::FormatTemp("%s_pages_%dto%d.pdf", baseName,
                                            rangeData.pages[0], rangeData.pages[rangeData.count - 1]);
             }
+
+            // Show save dialog
+            char* outputPath = GetExtractPagesSavePath(win->hwndFrame, srcPath, suggestedFileName);
+            if (!outputPath) {
+                logf("EXTRACT_SELECTED_PAGES: User cancelled save dialog");
+                break;
+            }
+            logf("EXTRACT_SELECTED_PAGES: User selected output path: %s", outputPath);
 
             bool success = ExtractPageRangeToNewPDF(engine, &rangeData, outputPath);
 
