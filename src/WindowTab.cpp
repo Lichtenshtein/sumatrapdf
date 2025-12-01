@@ -87,10 +87,11 @@ EngineBase* WindowTab::GetEngine() const {
 }
 
 const char* WindowTab::GetTabTitle() const {
+    const char* path = originalFilePath ? originalFilePath : filePath;
     if (gGlobalPrefs->fullPathInTitle) {
-        return filePath;
+        return path;
     }
-    return path::GetBaseNameTemp(filePath);
+    return path::GetBaseNameTemp(path);
 }
 
 void WindowTab::MoveDocBy(int dx, int dy) const {

@@ -1653,11 +1653,16 @@ static void AppendSelectionHandlersToMenu(HMENU m, bool isEnabled) {
 }
 
 static void AppendExternalViewersToMenu(HMENU menuFile, const char* filePath) {
+    logf("AppendExternalViewersToMenu: filePath='%s' CanAccessDisk=%d\n",
+         filePath ? filePath : "(null)", CanAccessDisk());
     if (!CanAccessDisk() || (filePath && !file::Exists(filePath))) {
+        logf("AppendExternalViewersToMenu: early return - CanAccessDisk=%d, fileExists=%d\n",
+             CanAccessDisk(), filePath ? file::Exists(filePath) : -1);
         return;
     }
     Vec<CustomCommand*> cmds;
     GetCommandsWithOrigId(cmds, CmdViewWithExternalViewer);
+    logf("AppendExternalViewersToMenu: found %d commands with CmdViewWithExternalViewer\n", (int)cmds.size());
     for (CustomCommand* cmd : cmds) {
         const char* commandLine = GetCommandStringArg(cmd, kCmdArgCommandLine, nullptr);
         const char* filter = GetCommandStringArg(cmd, kCmdArgFilter, nullptr);
@@ -1834,7 +1839,7 @@ HMENU BuildMenuFromDef(MenuDef* menuDef, HMENU menu, BuildMenuCtx* ctx) {
         if (addExternalViewersNext && ctx) {
             // append user external viewers after menu item with CmdOpenWithHtmlHelp
             WindowTab* tab = ctx->tab;
-            const char* path = tab ? tab->filePath : nullptr;
+            const char* path = tab ? (tab->originalFilePath ? tab->originalFilePath : tab->filePath) : nullptr;
             AppendExternalViewersToMenu(menu, path);
             addExternalViewersNext = false;
             continue;

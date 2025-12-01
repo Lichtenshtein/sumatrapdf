@@ -373,7 +373,8 @@ static TempStr FormatParamTemp(char* arg, WindowTab* tab) {
         TempStr pageNoStr = str::FormatTemp("%d", pageNo);
         arg = str::ReplaceTemp(arg, "%p", pageNoStr);
     }
-    const char* path = tab->filePath;
+    // Use original file path when in edit mode, otherwise use filePath
+    const char* path = tab->originalFilePath ? tab->originalFilePath : tab->filePath;
     if (str::Find(arg, "%d")) {
         TempStr dir = path::GetDirTemp(path);
         arg = str::ReplaceTemp(arg, "%d", dir);
@@ -388,7 +389,8 @@ static TempStr FormatParamTemp(char* arg, WindowTab* tab) {
 }
 
 static TempStr GetDocumentPathQuoted(WindowTab* tab) {
-    auto path = tab->filePath;
+    // Use original file path when in edit mode, otherwise use filePath
+    auto path = tab->originalFilePath ? tab->originalFilePath : tab->filePath;
     return str::JoinTemp("\"", path, "\"");
 }
 
@@ -424,7 +426,8 @@ bool PathMatchFilter(const char* path, const char* filter) {
 
 // TODO: find a better file for this?
 bool RunWithExe(WindowTab* tab, const char* cmdLine, const char* filter) {
-    const char* path = tab->filePath;
+    // Use original file path when in edit mode for filter matching and launching
+    const char* path = tab->originalFilePath ? tab->originalFilePath : tab->filePath;
     if (!PathMatchFilter(path, filter)) {
         return false;
     }
