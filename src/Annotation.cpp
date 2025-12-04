@@ -1072,10 +1072,15 @@ Annotation* EngineMupdfCreateAnnotation(EngineBase* engine, int pageNo, PointF p
                 const float* fcol = black;
                 float textColor[3]{};
 
-                if (col.parsedOk) {
-                    PdfColorToFloat(col.pdfCol, textColor);
+                auto parsedCol = GetParsedColor(a.freeTextColor, a.freeTextColorParsed);
+                if (parsedCol && parsedCol->parsedOk) {
+                    PdfColorToFloat(parsedCol->pdfCol, textColor);
                     fcol = textColor;
                 }
+                /* if (col.parsedOk) {
+                    PdfColorToFloat(col.pdfCol, textColor);
+                    fcol = textColor;
+                } */
 
                 pdf_set_annot_default_appearance(ctx, annot, "Helv", (float)fontSize, nCol, fcol);
             }
