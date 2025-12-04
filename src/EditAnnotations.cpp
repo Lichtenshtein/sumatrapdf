@@ -179,6 +179,10 @@ struct EditAnnotationsWindow : Wnd {
     ~EditAnnotationsWindow();
 };
 
+// Forward declarations
+static void AddAnnotationToList(EditAnnotationsWindow* ew, Annotation* annot);
+static void RebuildAnnotationsListBox(EditAnnotationsWindow* ew);
+
 #if 0
 static Annotation* PickNewSelectedAnnotation(EditAnnotationsWindow* ew, int prevIdx) {
     int nAnnots = ew->annotations.Size();
@@ -203,9 +207,10 @@ void DeleteAnnotationAndUpdateUI(WindowTab* tab, Annotation* annot) {
     DeleteAnnotation(annot);
     if (ew != nullptr) {
         // can be null if called from Menu.cpp and annotations window is not visible
-        // ew->skipGoToPage = true;
-        // int currSelIdx = ew ? ew->listBox->GetCurrentSelection() : -1;
-        UpdateAnnotationsList(ew);
+        // Remove the annotation from the list without querying all annotations
+        ew->annotations.Remove(annot);
+        // Rebuild the listbox to reflect the changes
+        RebuildAnnotationsListBox(ew);
 #if 0
         if ((selectNext == nullptr) && (currSelIdx >= 0)) {
             // if we're deleting currently selected, pick
@@ -225,7 +230,11 @@ static void DeleteSelectedAnnotation(EditAnnotationsWindow* ew) {
     }
     Annotation* annot = ew->annotations.at(idx);
     ReportIf(ew->tab->selectedAnnotation != annot);
-    DeleteAnnotationAndUpdateUI(ew->tab, annot);
+    WindowTab* tab = ew->tab;
+    DeleteAnnotationAndUpdateUI(tab, annot);
+
+    // Close the annotation window after deletion
+    CloseAndDeleteEditAnnotationsWindow(tab);
 
     // Note: auto-selecting next annotation might cause page jumping
 #if 0
@@ -925,6 +934,10 @@ void SetSelectedAnnotation(WindowTab* tab, Annotation* annot, bool setEditFocus)
     auto ew = tab->editAnnotsWindow;
     // go to page with a given annotations before triggering repaint
     if (ew) {
+        // If annotation is not in the list, add it (for newly created annotations)
+        if (annot && ew->annotations.Find(annot) < 0) {
+            AddAnnotationToList(ew, annot);
+        }
         UpdateUIForSelectedAnnotation(ew, annot, setEditFocus);
         HwndMakeVisible(ew->hwnd);
     }
@@ -940,6 +953,22 @@ void UpdateAnnotationsList(EditAnnotationsWindow* ew) {
     auto engine = GetEngineMupdf(ew);
     EngineMupdfGetAnnotations(engine, ew->annotations);
     RebuildAnnotationsListBox(ew); */
+}
+
+// Add a single annotation to the list without requerying all annotations
+static void AddAnnotationToList(EditAnnotationsWindow* ew, Annotation* annot) {
+    if (!ew || !annot) {
+        return;
+    }
+    // Check if annotation is already in the list
+    int idx = ew->annotations.Find(annot);
+    if (idx >= 0) {
+        return; // Already in the list
+    }
+    // Add to the list
+    ew->annotations.Append(annot);
+    // Rebuild the listbox to show the new annotation
+    RebuildAnnotationsListBox(ew);
 }
 
 static void ButtonDeleteHandler(EditAnnotationsWindow* ew) {
