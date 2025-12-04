@@ -933,12 +933,13 @@ void SetSelectedAnnotation(WindowTab* tab, Annotation* annot, bool setEditFocus)
 }
 
 void UpdateAnnotationsList(EditAnnotationsWindow* ew) {
-    if (!ew) {
+    return;
+    /* if (!ew) {
         return;
     }
     auto engine = GetEngineMupdf(ew);
     EngineMupdfGetAnnotations(engine, ew->annotations);
-    RebuildAnnotationsListBox(ew);
+    RebuildAnnotationsListBox(ew); */
 }
 
 static void ButtonDeleteHandler(EditAnnotationsWindow* ew) {
