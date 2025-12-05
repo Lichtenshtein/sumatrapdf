@@ -429,6 +429,8 @@ void ToolbarUpdateStateForWindow(MainWindow* win, bool setButtonsVisibility) {
     if (setButtonsVisibility && NeedsFindUI(win)) {
         UpdateToolbarFindText(win);
     }
+    // Reposition font controls
+    UpdateToolbarFontControls(win);
     const char* msg = "";
     DisplayModel* dm = win->AsFixed();
     if (dm && EngineHasUnsavedAnnotations(dm->GetEngine())) {
