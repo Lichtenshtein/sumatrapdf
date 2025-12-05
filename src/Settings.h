@@ -73,6 +73,8 @@ struct FixedPageUI {
 
 // customization options for eBookUI
 struct EBookUI {
+    // font name for text files
+    char* fontName;
     // font size, default 8.0
     float fontSize;
     // default is 420
@@ -547,14 +549,15 @@ static const StructInfo gFixedPageUIInfo = {sizeof(FixedPageUI), 8, gFixedPageUI
                                             "dientColors\0InvertColors\0HideScrollbars"};
 
 static const FieldInfo gEBookUIFields[] = {
+    {offsetof(EBookUI, fontName), SettingType::String, 0},
     {offsetof(EBookUI, fontSize), SettingType::Float, (intptr_t)"0"},
     {offsetof(EBookUI, layoutDx), SettingType::Float, (intptr_t)"0"},
     {offsetof(EBookUI, layoutDy), SettingType::Float, (intptr_t)"0"},
     {offsetof(EBookUI, ignoreDocumentCSS), SettingType::Bool, false},
     {offsetof(EBookUI, customCSS), SettingType::String, 0},
 };
-static const StructInfo gEBookUIInfo = {sizeof(EBookUI), 5, gEBookUIFields,
-                                        "FontSize\0LayoutDx\0LayoutDy\0IgnoreDocumentCSS\0CustomCSS"};
+static const StructInfo gEBookUIInfo = {sizeof(EBookUI), 6, gEBookUIFields,
+                                        "FontName\0FontSize\0LayoutDx\0LayoutDy\0IgnoreDocumentCSS\0CustomCSS"};
 
 static const FieldInfo gWindowMargin_1_Fields[] = {
     {offsetof(WindowMargin, top), SettingType::Int, 0},

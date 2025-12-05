@@ -20,6 +20,7 @@ extern "C" {
 #include "utils/WinUtil.h"
 #include "utils/ZipUtil.h"
 #include "utils/Timer.h"
+#include "utils/EncodingDetector.h"
 
 #include "wingui/UIModels.h"
 
@@ -1888,7 +1889,7 @@ ByteSlice LoadEmbeddedPDFFile(const char* filePath) {
 }
 
 static ByteSlice TxtFileToHTML(const char* path) {
-    ByteSlice fd = file::ReadFileWithAllocator(path, GetTempAllocator());
+    ByteSlice fd = file::ReadFile(path);
     if (fd.empty()) {
         return {};
     }
@@ -1898,7 +1899,28 @@ static ByteSlice TxtFileToHTML(const char* path) {
         InterlockedDecrement(&gAllowAllocFailure);
     };
 
-    TempStr data = (TempStr)fd.data();
+    // Detect and convert encoding to UTF-8
+    EncodingResult encResult = EncodingDetector::DetectEncoding(fd);
+    uint codepage = encResult.codepage;
+    if (codepage == 0) {
+        codepage = CP_ACP;
+    }
+
+    TempStr data = nullptr;
+    if (codepage == CP_UTF8) {
+        data = str::DupTemp((char*)fd.data(), fd.size());
+    } else {
+        // Convert from detected codepage to UTF-8
+        TempStr tmp = str::DupTemp((char*)fd.data(), fd.size());
+        data = strconv::ToMultiByteTemp(tmp, codepage, CP_UTF8);
+    }
+
+    fd.Free();
+
+    if (!data) {
+        return {};
+    }
+
     data = str::ReplaceTemp(data, "&", "&amp;");
     if (!data) {
         return {};
@@ -1912,20 +1934,36 @@ static ByteSlice TxtFileToHTML(const char* path) {
         return {};
     }
 
+    // Get font settings from GlobalPrefs
+    float fontSize = 12.0f;  // default
+    const char* fontName = "Consolas, 'Malgun Gothic', monospace";  // default with Korean support
+
+    if (gGlobalPrefs) {
+        if (gGlobalPrefs->eBookUI.fontSize > 6 && gGlobalPrefs->eBookUI.fontSize < 72) {
+            fontSize = gGlobalPrefs->eBookUI.fontSize;
+        }
+        if (gGlobalPrefs->eBookUI.fontName && !str::IsEmpty(gGlobalPrefs->eBookUI.fontName)) {
+            fontName = gGlobalPrefs->eBookUI.fontName;
+        }
+    }
+
     str::Str d;
-    d.Append(R"(<html>
+    d.AppendFmt(R"(<html>
     <head>
 <style>
     body {
-        color: 0xff0000;
+        font-family: %s;
+        font-size: %.1fpt;
     }
     pre {
         white-space: pre-wrap;
+        font-family: inherit;
+        font-size: inherit;
     }
 </style>
     </head>
 <body>
-    <pre>)");
+    <pre>)", fontName, fontSize);
     bool ok = d.Append(data);
     if (!ok) {
         return {};

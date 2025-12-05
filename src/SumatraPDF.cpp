@@ -6257,6 +6257,38 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
         return 0;
     }
 
+    if ((cmdId >= CmdEncodingFirst) && (cmdId <= CmdEncodingLast)) {
+        if (win && win->IsDocLoaded()) {
+            DisplayModel* dm = win->ctrl->AsFixed();
+            if (dm) {
+                EngineBase* engine = dm->GetEngine();
+                if (engine && engine->SupportsEncoding()) {
+                    Vec<uint> supportedEncodings = engine->GetSupportedEncodings();
+                    int index = cmdId - CmdEncodingFirst;
+                    if (index >= 0 && index < (int)supportedEncodings.size()) {
+                        uint codepage = supportedEncodings.at(index);
+                        engine->SetEncoding(codepage);
+                        // Rebuild page info as page count/content might have changed
+                        free(dm->pagesInfo);
+                        dm->pagesInfo = nullptr;
+                        dm->BuildPagesInfo();
+
+                        delete dm->textSearch;
+                        delete dm->textSelection;
+                        delete dm->textCache;
+                        dm->textCache = new DocumentTextCache(engine);
+                        dm->textSelection = new TextSelection(engine, dm->textCache);
+                        dm->textSearch = new TextSearch(engine, dm->textCache);
+
+                        dm->Relayout(dm->zoomVirtual, dm->rotation);
+                        win->RedrawAll(true);
+                    }
+                }
+            }
+        }
+        return 0;
+    }
+
     if (!win) {
         return DefWindowProc(hwnd, msg, wp, lp);
     }

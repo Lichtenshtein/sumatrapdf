@@ -16,6 +16,7 @@
 #include "utils/TrivialHtmlParser.h"
 #include "utils/WinUtil.h"
 #include "utils/ZipUtil.h"
+#include "utils/EncodingInfo.h"
 
 #include "wingui/UIModels.h"
 
@@ -1656,6 +1657,12 @@ class EngineHtml : public EngineEbook {
 
     static EngineBase* CreateFromFile(const char* fileName);
 
+    // Encoding support
+    bool SupportsEncoding() const override { return true; }
+    uint GetEncoding() const override;
+    void SetEncoding(uint codepage) override;
+    Vec<uint> GetSupportedEncodings() const override;
+
   protected:
     HtmlDoc* doc = nullptr;
 
@@ -1689,6 +1696,53 @@ bool EngineHtml::Load(const char* fileName) {
     }
 
     return pageCount > 0;
+}
+
+uint EngineHtml::GetEncoding() const {
+    return doc ? doc->GetEncoding() : CP_UTF8;
+}
+
+void EngineHtml::SetEncoding(uint codepage) {
+    if (!doc || doc->GetEncoding() == codepage) {
+        return;
+    }
+
+    if (!doc->SetEncoding(codepage)) {
+        return;
+    }
+
+    // Clear existing pages and anchors
+    if (pages) {
+        DeleteVecMembers(*pages);
+        delete pages;
+        pages = nullptr;
+    }
+    anchors.Reset();
+    baseAnchors.Reset();
+    allocator.FreeAll();
+
+    // Re-format pages
+    HtmlFormatterArgs args;
+    args.htmlStr = doc->GetHtmlData();
+    args.pageDx = (float)pageRect.dx - 2 * pageBorder;
+    args.pageDy = (float)pageRect.dy - 2 * pageBorder;
+    args.SetFontName(GetDefaultFontName());
+    args.fontSize = GetDefaultFontSize();
+    args.textAllocator = &allocator;
+    args.textRenderMethod = mui::TextRenderMethod::Gdiplus;
+
+    pages = HtmlFileFormatter(&args, doc).FormatAllPages(false);
+    pageCount = (int)pages->size();
+    ExtractPageAnchors();
+}
+
+Vec<uint> EngineHtml::GetSupportedEncodings() const {
+    Vec<uint> encodings;
+    Vec<EncodingInfo> all = EncodingRegistry::GetAllEncodings();
+    for (size_t i = 0; i < all.size(); i++) {
+        encodings.Append(all[i].codepage);
+    }
+    return encodings;
 }
 
 static IPageDestination* newRemoteHtmlDest(const char* relativeURL) {
@@ -1762,6 +1816,12 @@ class EngineTxt : public EngineEbook {
 
     TocTree* GetToc() override;
 
+    // Encoding support
+    bool SupportsEncoding() const override { return true; }
+    uint GetEncoding() const override;
+    void SetEncoding(uint codepage) override;
+    Vec<uint> GetSupportedEncodings() const override;
+
     static EngineBase* CreateFromFile(const char* fileName);
 
   protected:
@@ -1807,6 +1867,54 @@ bool EngineTxt::Load(const char* fileName) {
     }
 
     return pageCount > 0;
+}
+
+uint EngineTxt::GetEncoding() const {
+    return doc ? doc->GetEncoding() : CP_UTF8;
+}
+
+void EngineTxt::SetEncoding(uint codepage) {
+    if (!doc || doc->GetEncoding() == codepage) {
+        return;
+    }
+
+    if (!doc->SetEncoding(codepage)) {
+        return;
+    }
+
+    // Clear existing pages and anchors
+    // Note: EngineEbook destructor deletes pages, but we need to do it here
+    if (pages) {
+        DeleteVecMembers(*pages);
+        delete pages;
+        pages = nullptr;
+    }
+    anchors.Reset();
+    baseAnchors.Reset();
+    allocator.FreeAll(); // Clear allocated text memory
+
+    // Re-format pages
+    HtmlFormatterArgs args;
+    args.htmlStr = doc->GetHtmlData();
+    args.pageDx = (float)pageRect.dx - 2 * pageBorder;
+    args.pageDy = (float)pageRect.dy - 2 * pageBorder;
+    args.SetFontName(GetDefaultFontName());
+    args.fontSize = GetDefaultFontSize();
+    args.textAllocator = &allocator;
+    args.textRenderMethod = mui::TextRenderMethod::Gdiplus;
+
+    pages = TxtFormatter(&args).FormatAllPages(false);
+    pageCount = (int)pages->size();
+    ExtractPageAnchors();
+}
+
+Vec<uint> EngineTxt::GetSupportedEncodings() const {
+    Vec<uint> encodings;
+    Vec<EncodingInfo> all = EncodingRegistry::GetAllEncodings();
+    for (size_t i = 0; i < all.size(); i++) {
+        encodings.Append(all[i].codepage);
+    }
+    return encodings;
 }
 
 TocTree* EngineTxt::GetToc() {

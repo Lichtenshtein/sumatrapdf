@@ -904,6 +904,9 @@
     <ClCompile Include="..\src\DisplayMode.cpp" />
     <ClCompile Include="..\src\Flags.cpp" />
     <ClCompile Include="..\src\SumatraConfig.cpp" />
+    <ClCompile Include="..\src\utils\EncodingInfo.cpp" />
+    <ClCompile Include="..\src\utils\EncodingDetector.cpp" />
+    <ClCompile Include="..\src\utils\EncodingDetector_ut.cpp" />
     <ClCompile Include="..\src\SumatraUnitTests.cpp" />
     <ClCompile Include="..\src\tools\test_util.cpp" />
     <ClCompile Include="..\src\utils\BaseUtil.cpp" />

@@ -2,6 +2,7 @@
    License: GPLv3 */
 
 #include "utils/BaseUtil.h"
+#include "utils/EncodingInfo.h"
 #include "utils/ScopedWin.h"
 #include "utils/CmdLineArgsIter.h"
 #include "utils/FileUtil.h"
@@ -837,6 +838,15 @@ static MenuDef menuDefSearch[] = {
 };
 //] ACCESSKEY_GROUP Search Menu
 
+//[ ACCESSKEY_GROUP Encoding Menu
+static MenuDef menuDefEncoding[] = {
+    {
+        nullptr,
+        0,
+    },
+};
+//] ACCESSKEY_GROUP Encoding Menu
+
 //[ ACCESSKEY_GROUP Settings Menu
 static MenuDef menuDefSettings[] = {
     {
@@ -846,6 +856,10 @@ static MenuDef menuDefSettings[] = {
     {
         _TRN("&Advanced Options..."),
         CmdAdvancedOptions,
+    },
+    {
+        _TRN("&Encoding"),
+        (UINT_PTR)menuDefEncoding,
     },
     {
         _TRN("Change Language"),
@@ -1840,6 +1854,38 @@ std::pair<bool, bool> GetCommandIdState(BuildMenuCtx* ctx, int cmdId) {
     return {remove, disable};
 }
 
+static void AppendEncodingsToMenu(HMENU m, BuildMenuCtx* ctx) {
+    if (!ctx || !ctx->tab) {
+        return;
+    }
+    EngineBase* engine = ctx->tab->GetEngine();
+    if (!engine || !engine->SupportsEncoding()) {
+        return;
+    }
+
+    uint currentEncoding = engine->GetEncoding();
+    Vec<uint> supportedEncodings = engine->GetSupportedEncodings();
+
+    for (size_t i = 0; i < supportedEncodings.size(); i++) {
+        uint codepage = supportedEncodings.at(i);
+        const char* name = EncodingRegistry::GetDisplayName(codepage);
+        if (!name) {
+            continue;
+        }
+
+        if (i >= 256) break;
+
+        uint cmdId = CmdEncodingFirst + (int)i;
+        UINT flags = MF_STRING | MF_ENABLED;
+        if (codepage == currentEncoding) {
+            flags |= MF_CHECKED;
+        }
+
+        TempWStr ws = ToWStrTemp(name);
+        AppendMenuW(m, flags, cmdId, ws);
+    }
+}
+
 HMENU BuildMenuFromDef(MenuDef* menuDef, HMENU menu, BuildMenuCtx* ctx) {
     ReportDebugIf(!menu);
 
@@ -1853,6 +1899,10 @@ HMENU BuildMenuFromDef(MenuDef* menuDef, HMENU menu, BuildMenuCtx* ctx) {
 
     if (menuDef == menuDefThemes) {
         AppendThemesToMenu(menu);
+    }
+
+    if (menuDef == menuDefEncoding) {
+        AppendEncodingsToMenu(menu, ctx);
     }
 
     bool addExternalViewersNext = false;
@@ -1914,6 +1964,9 @@ HMENU BuildMenuFromDef(MenuDef* menuDef, HMENU menu, BuildMenuCtx* ctx) {
             UINT flags = MF_POPUP | (disableMenu ? MF_DISABLED : MF_ENABLED);
             if (subMenuDef == menuDefFile) {
                 DynamicPartOfFileMenu(subMenu, ctx);
+            }
+            if (subMenuDef == menuDefEncoding) {
+                AppendEncodingsToMenu(subMenu, ctx);
             }
             TempWStr ws = ToWStrTemp(title);
             AppendMenuW(menu, flags, (UINT_PTR)subMenu, ws);
@@ -2824,6 +2877,29 @@ void UpdateAppMenu(MainWindow* win, HMENU m) {
         RebuildFavMenu(win, m);
     } else if (id == menuDefZoom[0].idOrSubmenu) {
         BuildMenuZoom(m);
+    } else if (id == menuDefSettings[0].idOrSubmenu) {
+        // Rebuild Settings menu to update Encoding submenu
+        WindowTab* tab = win->CurrentTab();
+        auto ctx = NewBuildMenuCtx(tab, Point{0, 0});
+        AutoDelete delCtx(ctx);
+        MenuEmpty(m);
+        BuildMenuFromDef(menuDefSettings, m, ctx);
+    } else if (id == (UINT_PTR)-1) {
+        // This could be an empty submenu like Encoding
+        // Try to populate it if we have a valid tab with encoding support
+        WindowTab* tab = win->CurrentTab();
+        if (tab) {
+            EngineBase* engine = tab->GetEngine();
+            if (engine && engine->SupportsEncoding()) {
+                int count = GetMenuItemCount(m);
+                if (count == 0) {
+                    // Empty menu - populate with encoding items
+                    auto ctx = NewBuildMenuCtx(tab, Point{0, 0});
+                    AutoDelete delCtx(ctx);
+                    AppendEncodingsToMenu(m, ctx);
+                }
+            }
+        }
     }
     MenuUpdateStateForWindow(win);
     MarkMenuOwnerDraw(win->menu);

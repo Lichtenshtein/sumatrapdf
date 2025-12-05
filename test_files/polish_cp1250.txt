@@ -1,0 +1,11 @@
+Witaj! To jest plik testowy w jêzyku polskim.
+
+Polskie znaki: ¹ æ ê ³ ñ ó œ Ÿ ¿
+Wielkie litery: ¥ Æ Ê £ Ñ Ó Œ  ¯
+
+Testowe zdania:
+- Warszawa jest stolic¹ Polski
+- Kraków to piêkne miasto
+- Gdañsk le¿y nad Ba³tykiem
+
+Windows-1250 kodowanie test...

@@ -534,6 +534,28 @@ class EngineBase {
     // all code there)
     virtual bool HandleLink(IPageDestination*, ILinkHandler*);
 
+    // encoding support for text-based documents
+    // returns true if this engine supports encoding selection
+    virtual bool SupportsEncoding() const {
+        return false;
+    }
+
+    // get current encoding (codepage)
+    virtual uint GetEncoding() const {
+        return CP_UTF8;
+    }
+
+    // set encoding and reload document content
+    virtual void SetEncoding(uint codepage) {
+        (void)codepage;
+        // no-op for engines that don't support encoding
+    }
+
+    // get list of supported encodings for this document type
+    virtual Vec<uint> GetSupportedEncodings() const {
+        return Vec<uint>();
+    }
+
     // protected:
     void SetFilePath(const char* s);
 

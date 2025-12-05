@@ -252,7 +252,11 @@ enum {
     CmdFavoriteFirst,
     CmdFavoriteLast = CmdFavoriteFirst + 256,
 
-    CmdLast = CmdFavoriteLast,
+    /* range for encodings */
+    CmdEncodingFirst,
+    CmdEncodingLast = CmdEncodingFirst + 256,
+
+    CmdLast = CmdEncodingLast,
     CmdFirstCustom = CmdLast + 100,
 
     // aliases, at the end to not mess ordering

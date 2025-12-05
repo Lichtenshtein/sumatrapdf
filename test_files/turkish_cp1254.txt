@@ -1,0 +1,11 @@
+Merhaba! Bu Türkçe test dosyasýdýr.
+
+Türkçe karakterler: ç ð ý ö þ ü
+Büyük harfler: Ç Ð Ý Ö Þ Ü
+
+Test cümleleri:
+- Ankara Türkiye'nin baþkentidir
+- Ýstanbul çok güzel bir þehirdir
+- Ýzmir Ege Denizi'nde bulunur
+
+Windows-1254 kodlama testi...

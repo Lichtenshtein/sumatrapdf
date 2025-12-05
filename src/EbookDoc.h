@@ -135,7 +135,12 @@ class HtmlDoc {
     Vec<ImageData> images;
     Props props;
 
+    // Encoding support
+    ByteSlice rawData;
+    uint currentCodepage = CP_UTF8;
+
     bool Load();
+    bool LoadWithEncoding(uint codepage);
     ByteSlice LoadURL(const char* url);
 
   public:
@@ -150,6 +155,10 @@ class HtmlDoc {
     TempStr GetPropertyTemp(const char* name) const;
     const char* GetFileName() const;
 
+    // Encoding support methods
+    uint GetEncoding() const { return currentCodepage; }
+    bool SetEncoding(uint codepage);
+
     static bool IsSupportedFileType(Kind kind);
     static HtmlDoc* CreateFromFile(const char* fileName);
 };
@@ -161,10 +170,16 @@ class TxtDoc {
     str::Str htmlData;
     bool isRFC = false;
 
+    // Encoding support
+    ByteSlice rawData;      // Original file data
+    uint currentCodepage = CP_UTF8;  // Current encoding
+
     bool Load();
+    bool LoadWithEncoding(uint codepage);
 
   public:
     explicit TxtDoc(const char* fileName);
+    ~TxtDoc();
 
     ByteSlice GetHtmlData() const;
 
@@ -174,6 +189,11 @@ class TxtDoc {
     bool IsRFC() const;
     bool HasToc() const;
     bool ParseToc(EbookTocVisitor* visitor);
+
+    // Encoding support methods
+    uint GetEncoding() const { return currentCodepage; }
+    bool SetEncoding(uint codepage);
+    ByteSlice GetRawData() const { return rawData; }
 
     static bool IsSupportedFileType(Kind kind);
     static TxtDoc* CreateFromFile(const char* fileName);

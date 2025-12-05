@@ -1,0 +1,9 @@
+Hello. This is a UTF-8 test file.
+
+ASCII characters: ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789
+
+Korean: 안녕하세요
+Japanese: こんにちは
+Chinese: 你好
+
+UTF-8 encoding detection test...

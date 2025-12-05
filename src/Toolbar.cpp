@@ -43,6 +43,7 @@ extern "C" {
 #include "wingui/Layout.h"
 #include "wingui/WinGui.h"
 #include "Favorites.h"
+#include "utils/EncodingInfo.h"
 
 #include "utils/Log.h"
 
@@ -57,6 +58,36 @@ static int kButtonSpacingX = 4;
 
 // distance between label and edit field
 constexpr int kTextPaddingRight = 6;
+
+// Font size options for text files
+static const int kFontSizes[] = {8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28};
+// static const int kFontSizes[] = {8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 32, 36, 48};
+static const int kFontSizeCount = dimof(kFontSizes);
+
+// Common fonts for text files (with Korean support)
+static const char* kFontFamilies[] = {
+    "Consolas, 'Malgun Gothic', monospace",
+    "Courier New, monospace",
+    "D2Coding, 'Malgun Gothic', monospace",
+    "Malgun Gothic, sans-serif",
+    "Gulim, sans-serif",
+    "Arial, sans-serif",
+    "Georgia, serif",
+    "Times New Roman, serif",
+};
+static const int kFontFamilyCount = dimof(kFontFamilies);
+
+// Display names for font families (ASCII only for compatibility)
+static const wchar_t* kFontFamilyDisplayNames[] = {
+    L"Consolas",
+    L"Courier New",
+    L"D2Coding",
+    L"Malgun Gothic",
+    L"Gulim",
+    L"Arial",
+    L"Georgia",
+    L"Times New Roman",
+};
 
 struct ToolbarButtonInfo {
     /* index in the toolbar bitmap (-1 for separators) */
@@ -327,6 +358,38 @@ static void SetToolbarInfoText(MainWindow* win, const char* s) {
 constexpr LPARAM kStateEnabled = (LPARAM)MAKELONG(1, 0);
 constexpr LPARAM kStateDisabled = (LPARAM)MAKELONG(0, 0);
 
+static void UpdateToolbarFontControls(MainWindow* win) {
+    if (!win->hwndFontCombo) {
+        return;
+    }
+
+    // Get toolbar width
+    RECT toolbarRect{};
+    GetClientRect(win->hwndToolbar, &toolbarRect);
+    int toolbarWidth = toolbarRect.right;
+
+    // Get control dimensions
+    int fontComboWidth = DpiScale(win->hwndFrame, 120);
+    int fontSizeWidth = DpiScale(win->hwndFrame, 60);
+    int spacing = DpiScale(win->hwndFrame, 5);
+
+    // Get the height from the first button to align properly
+    RECT r{};
+    TbGetRect(win->hwndToolbar, CmdZoomIn, &r);  // Use any button for height reference
+    int iconDy = r.bottom - r.top;
+    int y = (r.bottom - iconDy) / 2 + 1;
+
+    // Calculate positions from the right edge
+    int fontComboX = toolbarWidth - fontComboWidth - spacing;
+    int fontSizeX = fontComboX - fontSizeWidth - spacing;
+
+    // Move font combo to the right edge
+    MoveWindow(win->hwndFontCombo, fontComboX, y, fontComboWidth, iconDy, TRUE);
+
+    // Move font size combo to the left of font combo
+    MoveWindow(win->hwndFontSizeCombo, fontSizeX, y, fontSizeWidth, iconDy, TRUE);
+}
+
 // TODO: this is called too often
 void ToolbarUpdateStateForWindow(MainWindow* win, bool setButtonsVisibility) {
     HWND hwnd = win->hwndToolbar;
@@ -371,6 +434,22 @@ void ToolbarUpdateStateForWindow(MainWindow* win, bool setButtonsVisibility) {
     if (dm && EngineHasUnsavedAnnotations(dm->GetEngine())) {
         msg = _TRA("You have unsaved annotations");
     }
+
+    if (win->IsDocLoaded()) {
+        EngineBase* engine = dm ? dm->GetEngine() : nullptr;
+        if (engine && engine->SupportsEncoding()) {
+            uint codepage = engine->GetEncoding();
+            const char* encName = EncodingRegistry::GetDisplayName(codepage);
+            if (encName) {
+                if (str::IsEmpty(msg)) {
+                    msg = encName;
+                } else {
+                    msg = str::FormatTemp("%s | %s", msg, encName);
+                }
+            }
+        }
+    }
+
     SetToolbarInfoText(win, msg);
 }
 
@@ -496,6 +575,36 @@ static LRESULT CALLBACK WndProcToolbar(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
         // "find as you type"
         if (EN_UPDATE == HIWORD(wp) && hEdit == win->hwndFindEdit && gGlobalPrefs->showToolbar) {
             FindTextOnThread(win, TextSearch::Direction::Forward, false);
+        }
+
+        // Handle font size ComboBox change
+        if (win && CBN_SELCHANGE == HIWORD(wp) && hEdit == win->hwndFontSizeCombo) {
+            int idx = (int)SendMessageW(win->hwndFontSizeCombo, CB_GETCURSEL, 0, 0);
+            if (idx >= 0 && idx < kFontSizeCount) {
+                float newSize = (float)kFontSizes[idx];
+                if (gGlobalPrefs) {
+                    gGlobalPrefs->eBookUI.fontSize = newSize;
+                    // Reload document to apply new font size
+                    if (win->IsDocLoaded()) {
+                        HwndSendCommand(win->hwndFrame, CmdReloadDocument);
+                    }
+                }
+            }
+        }
+
+        // Handle font family ComboBox change
+        if (win && CBN_SELCHANGE == HIWORD(wp) && hEdit == win->hwndFontCombo) {
+            int idx = (int)SendMessageW(win->hwndFontCombo, CB_GETCURSEL, 0, 0);
+            if (idx >= 0 && idx < kFontFamilyCount) {
+                if (gGlobalPrefs) {
+                    str::Free(gGlobalPrefs->eBookUI.fontName);
+                    gGlobalPrefs->eBookUI.fontName = str::Dup(kFontFamilies[idx]);
+                    // Reload document to apply new font
+                    if (win->IsDocLoaded()) {
+                        HwndSendCommand(win->hwndFrame, CmdReloadDocument);
+                    }
+                }
+            }
         }
     }
     return CallWindowProc(DefWndProcToolbar, hwnd, msg, wp, lp);
@@ -650,6 +759,7 @@ void UpdateToolbarState(MainWindow* win) {
     if (!isChecked) {
         win->CurrentTab()->prevZoomVirtual = kInvalidZoom;
     }
+    UpdateToolbarFontControls(win);
 }
 
 static void CreateFindBox(MainWindow* win, HFONT hfont, int iconDy) {
@@ -699,6 +809,78 @@ static void CreateInfoText(MainWindow* win, HFONT font) {
 
     win->hwndTbInfoText = labelInfo;
     SetToolbarInfoText(win, "");
+}
+
+static void CreateFontControls(MainWindow* win, HFONT font, int iconDy) {
+    HMODULE hmod = GetModuleHandleW(nullptr);
+    HWND toolbar = win->hwndToolbar;
+
+    // Create font family ComboBox
+    DWORD style = WS_VISIBLE | WS_CHILD | CBS_DROPDOWNLIST | CBS_HASSTRINGS;
+    int fontComboWidth = DpiScale(win->hwndFrame, 120);
+    int comboHeight = iconDy * 10;  // dropdown height
+
+    HWND fontCombo = CreateWindowExW(
+        0, WC_COMBOBOX, L"", style,
+        0, 1, fontComboWidth, comboHeight,
+        toolbar, (HMENU)nullptr, hmod, nullptr);
+
+    SetWindowFont(fontCombo, font, FALSE);
+
+    // Add font family options
+    for (int i = 0; i < kFontFamilyCount; i++) {
+        SendMessageW(fontCombo, CB_ADDSTRING, 0, (LPARAM)kFontFamilyDisplayNames[i]);
+    }
+
+    // Select current font family
+    int selectedFontIdx = 0;  // default to first font
+    if (gGlobalPrefs && gGlobalPrefs->eBookUI.fontName) {
+        for (int i = 0; i < kFontFamilyCount; i++) {
+            if (str::Eq(gGlobalPrefs->eBookUI.fontName, kFontFamilies[i])) {
+                selectedFontIdx = i;
+                break;
+            }
+        }
+    }
+    SendMessageW(fontCombo, CB_SETCURSEL, selectedFontIdx, 0);
+
+    win->hwndFontCombo = fontCombo;
+
+    // Create font size ComboBox
+    int fontSizeWidth = DpiScale(win->hwndFrame, 60);
+    comboHeight = iconDy * 8;  // dropdown height
+
+    HWND fontSizeCombo = CreateWindowExW(
+        0, WC_COMBOBOX, L"", style,
+        0, 1, fontSizeWidth, comboHeight,
+        toolbar, (HMENU)nullptr, hmod, nullptr);
+
+    SetWindowFont(fontSizeCombo, font, FALSE);
+
+    // Add font size options
+    for (int i = 0; i < kFontSizeCount; i++) {
+        TempWStr sizeStr = ToWStrTemp(str::FormatTemp("%d", kFontSizes[i]));
+        SendMessageW(fontSizeCombo, CB_ADDSTRING, 0, (LPARAM)sizeStr);
+    }
+
+    // Select current font size
+    float currentSize = 12.0f;
+    if (gGlobalPrefs && gGlobalPrefs->eBookUI.fontSize > 6) {
+        currentSize = gGlobalPrefs->eBookUI.fontSize;
+    }
+    int selectedIdx = 4;  // default to 12pt
+    for (int i = 0; i < kFontSizeCount; i++) {
+        if (kFontSizes[i] == (int)currentSize) {
+            selectedIdx = i;
+            break;
+        }
+    }
+    SendMessageW(fontSizeCombo, CB_SETCURSEL, selectedIdx, 0);
+
+    win->hwndFontSizeCombo = fontSizeCombo;
+
+    // Position the controls correctly
+    UpdateToolbarFontControls(win);
 }
 
 static WNDPROC DefWndProcPageBox = nullptr;
@@ -1161,9 +1343,11 @@ void CreateToolbar(MainWindow* win) {
     CreatePageBox(win, font, iconSize);
     CreateFindBox(win, font, iconSize);
     CreateInfoText(win, font);
+    CreateFontControls(win, font, iconSize);
 
     UpdateToolbarPageText(win, -1);
     UpdateToolbarFindText(win);
+    UpdateToolbarFontControls(win);
 }
 
 static void ReCreateToolbar(MainWindow* win) {
@@ -1176,6 +1360,8 @@ static void ReCreateToolbar(MainWindow* win) {
         HwndDestroyWindowSafe(&win->hwndFindEdit);
         HwndDestroyWindowSafe(&win->hwndFindBg);
         HwndDestroyWindowSafe(&win->hwndTbInfoText);
+        HwndDestroyWindowSafe(&win->hwndFontCombo);
+        HwndDestroyWindowSafe(&win->hwndFontSizeCombo);
         HwndDestroyWindowSafe(&win->hwndToolbar);
         HwndDestroyWindowSafe(&win->hwndReBar);
     }

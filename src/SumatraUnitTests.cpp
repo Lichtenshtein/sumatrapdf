@@ -293,7 +293,9 @@ void parseCommandsTest() {
     }
 }
 
+extern void EncodingDetector_UnitTests();
 void SumatraPDF_UnitTests() {
+    EncodingDetector_UnitTests();
     parseCommandsTest();
     colorTest();
     BenchRangeTest();

@@ -105,6 +105,10 @@ struct MainWindow {
     HWND hwndPageTotal = nullptr;
     HWND hwndTbInfoText = nullptr;
 
+    // Font settings controls for text files
+    HWND hwndFontCombo = nullptr;
+    HWND hwndFontSizeCombo = nullptr;
+
     // state related to table of contents (PDF bookmarks etc.)
     HWND hwndTocBox = nullptr;
     UINT_PTR tocBoxSubclassId = 0;

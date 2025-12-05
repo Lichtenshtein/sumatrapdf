@@ -1667,6 +1667,14 @@ char Str::LastChar() const {
     return at(n - 1);
 }
 
+void Str::Reserve(size_t capacity) {
+    // Pre-allocate buffer to avoid multiple reallocations
+    // This sets the capacity hint which will be used on first expansion
+    if (capacity > cap) {
+        EnsureCap(this, capacity);
+    }
+}
+
 // WStr
 
 static WCHAR* EnsureCap(WStr* s, size_t needed) {

@@ -1,6 +1,8 @@
 /* Copyright 2022 the SumatraPDF project authors (see AUTHORS file).
    License: Simplified BSD (see COPYING.BSD) */
 
+#pragma once
+
 // note: include BaseUtil.h instead of including directly
 
 #define UTF8_BOM "\xEF\xBB\xBF"
@@ -340,6 +342,7 @@ struct Str {
     char* Get() const;
     char* CStr() const;
     char LastChar() const;
+    void Reserve(size_t capacity);  // Pre-allocate buffer capacity
 
     // http://www.cprogramming.com/c++11/c++11-ranged-for-loop.html
     // https://stackoverflow.com/questions/16504062/how-to-make-the-for-each-loop-function-in-c-work-with-a-custom-class

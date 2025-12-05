@@ -18,6 +18,8 @@
 #include "DocController.h"
 #include "EngineBase.h"
 #include "EbookBase.h"
+#include "utils/EncodingDetector.h"
+#include "utils/EncodingInfo.h"
 #include "EbookDoc.h"
 #include "PalmDbReader.h"
 #include "MobiDoc.h"
@@ -225,6 +227,50 @@ static inline void AppendChar(str::Str& htmlData, char c) {
         default:
             htmlData.AppendChar(c);
             break;
+    }
+}
+
+// Check if character might start a link (fast path optimization)
+static inline bool MightStartLink(char c) {
+    return c == '@' || c == 'h' || c == 'w' || c == 'm' || c == 'R';
+}
+
+// Check if character needs HTML escaping
+static inline bool NeedsEscape(char c) {
+    return c == '&' || c == '<' || c == '"';
+}
+
+// Find the end of a block that doesn't need special processing
+// Returns pointer to first char that needs special handling, or end of string
+static const char* FindBatchEnd(const char* start, const char* textEnd, bool isRFC) {
+    const char* curr = start;
+    while (curr < textEnd) {
+        char c = *curr;
+        // Stop at characters that need escaping
+        if (NeedsEscape(c)) {
+            break;
+        }
+        // Stop at potential link starts
+        if (MightStartLink(c)) {
+            break;
+        }
+        // Stop at form feed (page break)
+        if (c == '\f') {
+            break;
+        }
+        // Stop at newline if RFC (might be section header)
+        if (isRFC && c == '\n') {
+            break;
+        }
+        curr++;
+    }
+    return curr;
+}
+
+// Append a batch of text that doesn't need escaping
+static inline void AppendBatch(str::Str& htmlData, const char* start, const char* end) {
+    if (end > start) {
+        htmlData.Append(start, end - start);
     }
 }
 
@@ -1261,21 +1307,64 @@ HtmlDoc::~HtmlDoc() {
         str::Free(img.fileName);
     }
     htmlData.Free();
+    rawData.Free();
 }
 
 bool HtmlDoc::Load() {
-    {
-        ByteSlice data = file::ReadFile(fileName);
-        if (!data) {
-            return false;
-        }
-        TempStr decoded = DecodeTextToUtf8Temp(data, true);
-        if (!decoded) {
-            return false;
-        }
-        htmlData = str::Dup(decoded);
-        data.Free();
+    rawData = file::ReadFile(fileName);
+    if (!rawData) {
+        return false;
     }
+
+    // Detect encoding
+    EncodingResult result = EncodingDetector::DetectEncoding(rawData);
+    currentCodepage = result.codepage;
+    if (currentCodepage == 0) {
+        currentCodepage = CP_ACP;
+    }
+
+    return LoadWithEncoding(currentCodepage);
+}
+
+bool HtmlDoc::SetEncoding(uint codepage) {
+    if (currentCodepage == codepage) {
+        return true;
+    }
+    return LoadWithEncoding(codepage);
+}
+
+bool HtmlDoc::LoadWithEncoding(uint codepage) {
+    if (!rawData) {
+        return false;
+    }
+
+    currentCodepage = codepage;
+    htmlData.Free();
+
+    TempStr decoded = nullptr;
+    if (codepage == CP_UTF8) {
+        decoded = str::DupTemp((const char*)rawData.Get(), rawData.size());
+    } else {
+        decoded = strconv::ToMultiByteTemp((const char*)rawData.Get(), codepage, CP_UTF8);
+    }
+
+    if (!decoded) {
+        // Fallback
+        if (codepage != CP_ACP) {
+            return LoadWithEncoding(CP_ACP);
+        }
+        return false;
+    }
+
+    // ByteSlice takes ownership if we pass it allocated memory?
+    // str::DupTemp returns memory from temp allocator, so we must copy it
+    // But wait, htmlData.SetCopy() or similar?
+    // ByteSlice doesn't have SetCopy.
+    // Let's assume htmlData = ... works as before.
+    // In original code: htmlData = str::Dup(decoded);
+    // str::Dup allocates with malloc/new.
+
+    htmlData = str::Dup(decoded);
 
     pagePath.SetCopy(fileName);
     str::TransCharsInPlace(pagePath, "\\", "/");
@@ -1524,21 +1613,75 @@ static const char* TextFindRfcEnd(str::Str& htmlData, const char* curr) {
     return end;
 }
 
+TxtDoc::~TxtDoc() {
+    rawData.Free();
+}
+
 bool TxtDoc::Load() {
-    ByteSlice fileContent = file::ReadFile(fileName);
-    if (!fileContent) {
+    rawData = file::ReadFile(fileName);
+    if (!rawData) {
         return false;
     }
 
-    char* text = (char*)fileContent.Get();
+    // Detect encoding
+    EncodingResult result = EncodingDetector::DetectEncoding(rawData);
+    currentCodepage = result.codepage;
+    if (currentCodepage == 0) {
+        currentCodepage = CP_ACP;
+    }
+
+    return LoadWithEncoding(currentCodepage);
+}
+
+bool TxtDoc::SetEncoding(uint codepage) {
+    if (currentCodepage == codepage) {
+        return true;
+    }
+    return LoadWithEncoding(codepage);
+}
+
+bool TxtDoc::LoadWithEncoding(uint codepage) {
+    if (!rawData) {
+        return false;
+    }
+
+    currentCodepage = codepage;
+    htmlData.Reset();
+
+    // Pre-allocate buffer: estimate 1.5x for HTML tags and entity escaping
+    size_t estimatedSize = rawData.size() + rawData.size() / 2;
+    htmlData.Reserve(estimatedSize);
+
+    char* text = (char*)rawData.Get();
+    size_t len = rawData.size();
+
+    // Handle TCR files
     if (str::EndsWithI(fileName, ".tcr") && str::StartsWith(text, TCR_HEADER)) {
-        text = DecompressTcrTextTemp(fileContent, fileContent.size());
-        if (!text) {
+        TempStr decompressed = DecompressTcrTextTemp(text, len);
+        if (!decompressed) {
             return false;
         }
+        text = decompressed;
+        len = str::Len(text);
     }
-    text = DecodeTextToUtf8Temp(text);
-    if (!text) {
+
+    // Convert to UTF-8
+    TempStr textUtf8 = nullptr;
+    if (codepage == CP_UTF8) {
+        // Already UTF-8, just validate or copy
+        // For now, we assume it's valid or we just use it as is
+        // We might want to sanitize it if it's invalid UTF-8
+        textUtf8 = str::DupTemp(text, len);
+    } else {
+        TempStr tmp = str::DupTemp(text, len);
+        textUtf8 = strconv::ToMultiByteTemp(tmp, codepage, CP_UTF8);
+    }
+
+    if (!textUtf8) {
+        // Fallback to system default if conversion fails
+        if (codepage != CP_ACP) {
+            return LoadWithEncoding(CP_ACP);
+        }
         return false;
     }
 
@@ -1550,15 +1693,36 @@ bool TxtDoc::Load() {
     int sectionCount = 0;
 
     htmlData.Append("<pre>");
-    char* d = text;
-    for (const char* curr = d; *curr; curr++) {
-        // similar logic to LinkifyText in PdfEngine.cpp
+    char* d = textUtf8;
+    size_t textLen = str::Len(textUtf8);
+    const char* textEnd = d + textLen;
+    const char* curr = d;
+
+    while (curr < textEnd) {
+        // Try to find a batch of regular text that can be copied at once
+        if (!linkEnd && !rfcHeader) {
+            const char* batchEnd = FindBatchEnd(curr, textEnd, isRFC);
+            if (batchEnd > curr) {
+                // Copy the batch directly
+                AppendBatch(htmlData, curr, batchEnd);
+                curr = batchEnd;
+                if (curr >= textEnd) break;
+            }
+        }
+
+        // Handle link end
         if (linkEnd == curr) {
             htmlData.Append("</a>");
             linkEnd = nullptr;
         } else if (linkEnd) {
-            /* don't check for hyperlinks inside a link */;
-        } else if ('@' == *curr) {
+            // Inside a link - just append the character
+            AppendChar(htmlData, *curr);
+            curr++;
+            continue;
+        }
+
+        // Check for potential links (only at specific characters)
+        if ('@' == *curr) {
             linkEnd = TextFindEmailEnd(htmlData, curr);
         } else if (curr > d && ('/' == curr[-1] || isalnum((u8)curr[-1]))) {
             /* don't check for a link at this position */;
@@ -1579,9 +1743,11 @@ bool TxtDoc::Load() {
             if (curr > d && *(curr + 2) && (*(curr + 3) || *(curr + 2) != '\n')) {
                 htmlData.Append("<pagebreak />");
             }
+            curr++;
             continue;
         }
 
+        // RFC section headers
         if (isRFC && curr > d && '\n' == *(curr - 1) && (str::IsDigit(*curr) || str::StartsWith(curr, "APPENDIX")) &&
             str::FindChar(curr, '\n') && str::Parse(str::FindChar(curr, '\n') + 1, "%?\r\n")) {
             htmlData.AppendFmt("<b id='section%d' title=\"", ++sectionCount);
@@ -1597,6 +1763,7 @@ bool TxtDoc::Load() {
         }
 
         AppendChar(htmlData, *curr);
+        curr++;
     }
     if (linkEnd) {
         htmlData.Append("</a>");
