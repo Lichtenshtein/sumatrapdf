@@ -144,6 +144,10 @@ static MenuDef menuDefFile[] = {
         CmdShowInFolder,
     },
     {
+        _TRN("Reload Document"),
+        CmdReloadDocument,
+    },
+    {
         kMenuSeparator,
         0,
     },
@@ -156,22 +160,6 @@ static MenuDef menuDefFile[] = {
         CmdReopenLastClosedFile,
     },
     {
-        _TRN("Reload Document"),
-        CmdReloadDocument,
-    },
-    {
-        _TRN("Copy Document's Path"),
-        CmdCopyFilePath,
-    },
-    {
-        _TRN("Remove Document From History"),
-        CmdForgetSelectedDocument,
-    },
-    {
-        _TRN("Clear History"),
-        CmdClearHistory,
-    },
-    {
         kMenuSeparator,
         0,
     },
@@ -180,16 +168,20 @@ static MenuDef menuDefFile[] = {
         CmdSaveAs,
     },
 //[ ACCESSKEY_ALTERNATIVE // only one of these two will be shown
-#ifdef ENABLE_SAVE_SHORTCUT
+// #ifdef ENABLE_SAVE_SHORTCUT
     {
         _TRN("Save S&hortcut..."),
         CmdCreateShortcutToFile,
     },
 //| ACCESSKEY_ALTERNATIVE
-#else
+// #else
     {
         kMenuSeparator,
         0,
+    },
+    {
+        _TRN("Copy Document's Path"),
+        CmdCopyFilePath,
     },
     {
         _TRN("P&roperties"),
@@ -199,7 +191,7 @@ static MenuDef menuDefFile[] = {
         _TRN("Re&name..."),
         CmdRenameFile,
     },
-    #endif
+    // #endif
     //] ACCESSKEY_ALTERNATIVE
     {
         _TRN("&Print..."),
@@ -216,8 +208,16 @@ static MenuDef menuDefFile[] = {
         0,
     },
     {
+        _TRN("Remove Document From History"),
+        CmdForgetSelectedDocument,
+    },
+    {
         _TRN("Delete Opened File"),
         CmdDeleteFile,
+    },
+    {
+        _TRN("Clear History"),
+        CmdClearHistory,
     },
     {
         kMenuSeparator,
@@ -257,6 +257,18 @@ static MenuDef menuDefEdit[] = {
         0,
     },
     {
+        _TRN("&Delete All Bookmarks"),
+        CmdDeleteAllBookmarks,
+    },
+    {
+        _TRN("Delete All &Highlights"),
+        CmdDeleteAllHighlights,
+    },
+    {
+        kMenuSeparator,
+        0,
+    },
+    {
         _TRN("Save Annotations to existing PDF"),
         CmdSaveAnnotations,
     },
@@ -273,8 +285,8 @@ static MenuDef menuDefEdit[] = {
         CmdExtractPages,
     },
     {
-        _TRN("De&lete Pages..."),
-        CmdDeletePages,
+        _TRN("Convert to I&mages..."),
+        CmdConvertPdfToImages,
     },
     {
         _TRN("Combi&ne PDFs..."),
@@ -285,12 +297,8 @@ static MenuDef menuDefEdit[] = {
         CmdInsertTemplate,
     },
     {
-        _TRN("Convert to I&mages..."),
-        CmdConvertPdfToImages,
-    },
-    {
-        kMenuSeparator,
-        0,
+        _TRN("De&lete Pages..."),
+        CmdDeletePages,
     },
     {
         _TRN("&Analyze with AI..."),
@@ -552,10 +560,10 @@ static MenuDef menuDefTabs[] = {
         _TRN("New &Window"),
         CmdNewWindow,
     },
-    {
-        _TRN("Duplicate Tab"),
-        CmdDuplicateTab,
-    },
+    // {
+        // _TRN("Duplicate Tab"),
+        // CmdDuplicateTab,
+    // },
     {
         _TRN("Duplicate in New Window"),
         CmdDuplicateInNewWindow,
@@ -839,18 +847,6 @@ MenuDef menuDefFavorites[] = {
     {
         _TRN("Show Favorites"),
         CmdFavoriteToggle,
-    },
-    {
-        kMenuSeparator,
-        0,
-    },
-    {
-        _TRN("&Delete All Bookmarks"),
-        CmdDeleteAllBookmarks,
-    },
-    {
-        _TRN("Delete All &Highlights"),
-        CmdDeleteAllHighlights,
     },
     {
         nullptr,
