@@ -16,6 +16,7 @@ enum class TbIcon {
     GoForward,
     LayoutContinuous,
     LayoutSinglePage,
+    ToggleThumbnails,
     RotateLeft,
     RotateRight,
     ZoomOut,
