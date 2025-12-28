@@ -305,7 +305,7 @@ static void SetToolbarInfoText(MainWindow* win, const char* s) {
         return;
     }
     TbSetButtonDx(win->hwndToolbar, CmdInfoText, size.dx);
-    int lastButtonCmdId = (int)CmdFindMatch;
+    int lastButtonCmdId = (int)CmdDefaultMode;
     if (gCustomToolbarButtons) {
         int n = gCustomToolbarButtons->Size();
         ToolbarButtonInfo& last = gCustomToolbarButtons->At(n - 1);
