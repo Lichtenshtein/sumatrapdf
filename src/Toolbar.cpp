@@ -79,14 +79,13 @@ static ToolbarButtonInfo gToolbarButtons[] = {
     {TbIcon::Print, CmdPrint, _TRN("Print")},
     {TbIcon::None, 0, nullptr}, // separator
     {TbIcon::None, CmdPageInfo, nullptr}, // text box for page number + show current page / no of pages
+    {TbIcon::PageFirst, CmdGoToFirstPage, _TRN("First Page")},
     {TbIcon::PagePrev, CmdGoToPrevPage, _TRN("Previous Page")},
     {TbIcon::PageNext, CmdGoToNextPage, _TRN("Next Page")},
+    {TbIcon::PageLast, CmdGoToLastPage, _TRN("Last Page")},
     {TbIcon::None, 0, nullptr}, // separator
     {TbIcon::GoBack, CmdNavigateBack, _TRN("Go Back")},
     {TbIcon::GoForward, CmdNavigateForward, _TRN("Go Forward")},
-    {TbIcon::None, 0, nullptr}, // separator
-    {TbIcon::PageFirst, CmdGoToFirstPage, _TRN("First Page")},
-    {TbIcon::PageLast, CmdGoToLastPage, _TRN("Last Page")},
     {TbIcon::None, 0, nullptr}, // separator
     {TbIcon::LayoutContinuous, CmdZoomFitWidthAndContinuous, _TRN("Fit Width and Show Pages Continuously")},
     {TbIcon::LayoutSinglePage, CmdZoomFitPageAndSinglePage, _TRN("Fit a Single Page")},
@@ -105,7 +104,7 @@ static ToolbarButtonInfo gToolbarButtons[] = {
     {TbIcon::ReadMode, CmdReadMode, _TRN("Reading Mode")},
     {TbIcon::DefaultMode, CmdDefaultMode, _TRN("Default Mode")},
     {TbIcon::None, 0, nullptr}, // separator
-    {TbIcon::CopyPageImage, CmdCopyPageImage, _TRN("Copy As Image")},
+    {TbIcon::CopyPageImage, CmdCopyPageImage, _TRN("Copy as Image")},
 };
 // unicode chars: https://www.compart.com/en/unicode/U+25BC
 

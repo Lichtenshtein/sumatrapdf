@@ -265,6 +265,10 @@ static MenuDef menuDefEdit[] = {
         CmdDeleteAllHighlights,
     },
     {
+        _TRN("De&lete Pages..."),
+        CmdDeletePages,
+    },
+    {
         kMenuSeparator,
         0,
     },
@@ -281,6 +285,18 @@ static MenuDef menuDefEdit[] = {
         0,
     },
     {
+        _TRN("Copy as Image"),
+        CmdCopyPageImage,
+    },
+    {
+        _TRN("Copy as Text"),
+        CmdSendToLLM,
+    },
+    {
+        kMenuSeparator,
+        0,
+    },
+    {
         _TRN("Extra&ct Pages as PDF..."),
         CmdExtractPages,
     },
@@ -289,24 +305,16 @@ static MenuDef menuDefEdit[] = {
         CmdConvertPdfToImages,
     },
     {
-        _TRN("Copy as Image"),
-        CmdCopyPageImage,
-    },
-    {
-        _TRN("Combi&ne PDFs..."),
-        CmdCombinePDFs,
+        kMenuSeparator,
+        0,
     },
     {
         _TRN("&Insert Template PDF..."),
         CmdInsertTemplate,
     },
     {
-        _TRN("De&lete Pages..."),
-        CmdDeletePages,
-    },
-    {
-        _TRN("&Analyze with AI..."),
-        CmdSendToLLM,
+        _TRN("Combi&ne PDFs..."),
+        CmdCombinePDFs,
     },
     {
         _TRN("Open the ML Model"),
