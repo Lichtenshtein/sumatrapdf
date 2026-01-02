@@ -1215,7 +1215,7 @@ static void CreateMainLayout(EditAnnotationsWindow* ew) {
     {
         Trackbar::CreateArgs args;
         args.parent = parent;
-        args.rangeMin = 8;
+        args.rangeMin = 7;
         args.rangeMax = 36;
         args.font = fnt;
 
