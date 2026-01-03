@@ -801,7 +801,7 @@ LRESULT Wnd::WndProcDefault(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
 
         case WM_ENTERSIZEMOVE:
         case WM_EXITSIZEMOVE: {
-            SIZE size = {0};
+            SIZE size = {};
             OnSize(msg, 0, size);
             break;
         }
@@ -1322,7 +1322,7 @@ int TooltipGetCount(HWND hwnd) {
 }
 
 void TooltipoRemoveTool(HWND hwnd, HWND owner, int id) {
-    TOOLINFOW ti = {0};
+    TOOLINFOW ti = {};
     ti.cbSize = sizeof(ti);
     ti.hwnd = owner;
     ti.uId = (UINT_PTR)id;
@@ -1331,7 +1331,7 @@ void TooltipoRemoveTool(HWND hwnd, HWND owner, int id) {
 
 int TooltipGetId(HWND hwnd, int idx) {
     WCHAR buf[90]; // per docs returns max 80 chars
-    TOOLINFOW ti = {0};
+    TOOLINFOW ti = {};
     ti.cbSize = sizeof(ti);
     ti.lpszText = buf;
     BOOL ok = SendMessageW(hwnd, TTM_ENUMTOOLS, idx, (LPARAM)&ti);
@@ -1367,7 +1367,7 @@ void TooltipAddTools(HWND hwnd, HWND owner, TooltipInfo* tools, int nTools) {
         TooltipInfo& tti = tools[i];
 
         TempWStr ws = ToWStrTemp(tti.s);
-        TOOLINFOW ti = {0};
+        TOOLINFOW ti = {};
         ti.cbSize = sizeof(ti);
         ti.hwnd = owner;
         ti.uId = (UINT_PTR)tti.id;
@@ -1380,7 +1380,7 @@ void TooltipAddTools(HWND hwnd, HWND owner, TooltipInfo* tools, int nTools) {
 
 static TempStr TooltipGetTextTemp(HWND hwnd, HWND owner, int id) {
     WCHAR buf[512];
-    TOOLINFOW ti = {0};
+    TOOLINFOW ti = {};
     ti.cbSize = sizeof(ti);
     ti.hwnd = owner;
     ti.uId = (UINT_PTR)id;
@@ -1409,7 +1409,7 @@ static bool TooltipUpdateText(HWND hwnd, HWND owner, int id, const char* s, bool
 
     SetMaxWidthForText(hwnd, s, multiline);
     TempWStr ws = ToWStrTemp(s);
-    TOOLINFOW ti = {0};
+    TOOLINFOW ti = {};
     ti.cbSize = sizeof(ti);
     ti.hwnd = owner;
     ti.uId = (UINT_PTR)id;
@@ -1420,7 +1420,7 @@ static bool TooltipUpdateText(HWND hwnd, HWND owner, int id, const char* s, bool
 }
 
 void TooltipUpdateRect(HWND hwnd, HWND owner, int id, const Rect& rc) {
-    TOOLINFOW ti = {0};
+    TOOLINFOW ti = {};
     ti.cbSize = sizeof(ti);
     ti.hwnd = owner;
     ti.uId = (UINT_PTR)id;
@@ -1458,7 +1458,7 @@ int Tooltip::Add(const char* s, const Rect& rc, bool multiline) {
     int id = GetNextTooltipID();
     SetMaxWidthForText(hwnd, s, multiline);
     TempWStr ws = ToWStrTemp(s);
-    TOOLINFOW ti = {0};
+    TOOLINFOW ti = {};
     ti.cbSize = sizeof(ti);
     ti.hwnd = parent;
     ti.uId = (UINT_PTR)id;
@@ -1523,7 +1523,7 @@ void Tooltip::Delete(int id) {
         ReportIf(removeIdx < 0);
     }
 
-    TOOLINFOW ti{0};
+    TOOLINFOW ti{};
     ti.cbSize = sizeof(ti);
     ti.hwnd = parent;
     ti.uId = (UINT_PTR)id;
@@ -3088,13 +3088,19 @@ TabsCtrl::MouseState TabsCtrl::TabStateFromMousePosition(const Point& p) {
     int nTabs = TabCount();
     for (int i = 0; i < nTabs; i++) {
         TabInfo* ti = tabs[i];
+        Rect r = ti->r;
         // logfa("testing i=%d rect: %d %d %d %d pt: %d %d\n", i, ti->r.x, ti->r.y, ti->r.dx, ti->r.dy, p.x, p.y);
-        if (!ti->r.Contains(p)) {
+        if (!r.Contains(p)) {
             continue;
         }
         res.tabIdx = i;
         res.overClose = ti->rClose.Contains(p);
         res.tabInfo = ti;
+        Rect rightHalf = r;
+        int halfDx = r.dx / 2;
+        rightHalf.x = r.x + halfDx;
+        rightHalf.dx = halfDx;
+        res.inRightHalf = rightHalf.Contains(p);
         return res;
     }
 
@@ -3440,25 +3446,26 @@ static void TriggerTabDblClick(TabsCtrl* tabs, int tabIdx, bool shiftPressed) {
     tabs->onTabDblClick.Call(&ev);
 }
 
-static void UpdateAfterDrag(TabsCtrl* tabsCtrl, int tab1, int tab2) {
+static void UpdateAfterDrag(TabsCtrl* tabsCtrl, int tabIdxFrom, int tabIdxTo) {
     int nTabs = tabsCtrl->TabCount();
-    bool badState = (tab1 == tab2) || (tab1 < 0) || (tab2 < 0) || (tab1 >= nTabs) || (tab2 >= nTabs);
+    bool badState =
+        (tabIdxFrom == tabIdxTo) || (tabIdxFrom < 0) || (tabIdxTo < 0) || (tabIdxFrom >= nTabs) || (tabIdxTo > nTabs);
     if (badState) {
-        logfa("tab1: %d, tab2: %d, nTabs: %d\n", tab1, tab2, nTabs);
+        logfa("tabIdxFrom: %d, tabIdxTo: %d, nTabs: %d\n", tabIdxFrom, tabIdxTo, nTabs);
         ReportDebugIf(true);
         return;
     }
 
     auto&& tabs = tabsCtrl->tabs;
-    std::swap(tabs.at(tab1), tabs.at(tab2));
-
-    // TODO: simplify?
-    int current = tabsCtrl->GetSelected();
-    int newSelected = tab1;
-    if (tab1 == current) {
-        newSelected = tab2;
+    TabInfo* moved = tabs.At(tabIdxFrom);
+    tabs.RemoveAt(tabIdxFrom);
+    if (tabIdxFrom < tabIdxTo) {
+        // we moved from left to right e.g. from 1 to 3
+        // after removing 1 we insert not at 3 but 2
+        tabIdxTo -= 1;
     }
-    tabsCtrl->SetSelected(newSelected);
+    tabs.InsertAt(tabIdxTo, moved);
+    tabsCtrl->SetSelected(tabIdxTo);
     tabsCtrl->LayoutTabs();
     TabsCtrlUpdateAfterChangingTabsCount(tabsCtrl);
 }
@@ -3482,6 +3489,12 @@ LRESULT TabsCtrl::OnNotifyReflect(WPARAM wp, LPARAM lp) {
 
 LRESULT TabsCtrl::WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
     // TCITEMW* tcs = nullptr;
+
+    // I'm seeing crashes when ending a drag in WM_LBUTTONUP
+    // because the MainWindow has been destroyed
+    if (!IsWindow(hwnd)) {
+        return 0;
+    }
 
     Point mousePos = {GET_X_LPARAM(lp), GET_Y_LPARAM(lp)};
     if (WM_MOUSELEAVE == msg) {
@@ -3656,10 +3669,18 @@ LRESULT TabsCtrl::WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
                 TriggerTabMigration(this, selectedTab, scPoint);
                 return 0;
             }
-            if (tabUnderMouse != selectedTab && !GetTab(tabUnderMouse)->isPinned) {
-                TriggerTabDragged(this, selectedTab, tabUnderMouse);
-                UpdateAfterDrag(this, selectedTab, tabUnderMouse);
+            int dstIdx = tabUnderMouse;
+            if (tabState.inRightHalf) {
+                dstIdx++;
             }
+            if (dstIdx == selectedTab) {
+                return 0;
+            }
+            if ((dstIdx < TabCount()) && GetTab(dstIdx)->isPinned) {
+                return 0;
+            }
+            TriggerTabDragged(this, selectedTab, dstIdx);
+            UpdateAfterDrag(this, selectedTab, dstIdx);
             return 0;
         }
         case WM_LBUTTONDBLCLK: {
@@ -3742,7 +3763,7 @@ HWND TabsCtrl::Create(TabsCtrl::CreateArgs& argsIn) {
     if (withToolTips) {
         HWND ttHwnd = GetToolTipsHwnd();
         SetWindowStyle(ttHwnd, TTS_NOPREFIX, true);
-        TOOLINFO ti{0};
+        TOOLINFO ti{};
         ti.cbSize = sizeof(ti);
         ti.hwnd = hwnd;
         ti.uId = 0;
@@ -3768,7 +3789,7 @@ int TabsCtrl::TabCount() {
 // takes ownership of tab
 int TabsCtrl::InsertTab(int idx, TabInfo* tab) {
     ReportIf(idx < 0);
-    TCITEMW item{0};
+    TCITEMW item{};
     item.mask = TCIF_TEXT;
     item.pszText = ToWStrTemp(tab->text);
     int res = TabCtrl_InsertItem(hwnd, idx, &item);
@@ -3814,7 +3835,6 @@ void TabsCtrl::SwapTabs(int idx1, int idx2) {
     TabInfo* tmp = tabs[idx1];
     tabs[idx1] = tabs[idx2];
     tabs[idx2] = tmp;
-    LayoutTabs();
 }
 
 // Note: the caller should take care of deleting userData

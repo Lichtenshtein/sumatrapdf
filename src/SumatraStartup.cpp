@@ -948,7 +948,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int) {
     HWND existingHwnd = nullptr;
     WindowTab* tabToSelect = nullptr;
     const char* logFilePath = nullptr;
-    Vec<SessionData*>* sessionData = nullptr;
 
     supressThrowFromNew();
 
@@ -1286,10 +1285,10 @@ ContinueOpenWindow:
     // keep this data alive until the end of program and ensure it's not
     // over-written by re-loading settings file while we're using it
     // and also to keep TabState forever for lazy loading of tabs
-    sessionData = gGlobalPrefs->sessionData;
+    gInitialSessionData = gGlobalPrefs->sessionData;
     gGlobalPrefs->sessionData = new Vec<SessionData*>();
 
-    restoreSession = gGlobalPrefs->restoreSession && (sessionData->size() > 0) && !gPluginMode && !existingHwnd;
+    restoreSession = gGlobalPrefs->restoreSession && (gInitialSessionData->Size() > 0) && !gPluginMode && !existingHwnd;
     if (!gGlobalPrefs->useTabs && (existingInstanceHwnd != nullptr)) {
         // do not restore a session if tabs are disabled and SumatraPDF is already running
         // TODO: maybe disable restoring if tabs are disabled?
@@ -1309,7 +1308,7 @@ ContinueOpenWindow:
     }
 
     if (restoreSession) {
-        for (SessionData* data : *sessionData) {
+        for (SessionData* data : *gInitialSessionData) {
             win = CreateAndShowMainWindow(data);
             for (TabState* state : *data->tabStates) {
                 if (str::IsEmpty(state->filePath)) {
@@ -1447,9 +1446,10 @@ Exit:
     }
     str::Free(logFilePath);
 
-    if (sessionData) {
-        DeleteVecMembers(*sessionData);
-        delete sessionData;
+    if (gInitialSessionData) {
+        FreeSessionState(gInitialSessionData);
+        delete gInitialSessionData;
+        gInitialSessionData = nullptr;
     }
     FreeExternalViewers();
     while (gWindows.size() > 0) {

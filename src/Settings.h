@@ -381,6 +381,9 @@ struct GlobalPrefs {
     ParsedColor mainWindowBackgroundParsed;
     // if true, doesn't open Home tab
     bool noHomeTab;
+    // if true implements pre-3.6 behavior of showing opened files by
+    // frequently used count. If false, shows most recently opened first
+    bool homePageSortByFrequentlyRead;
     // if true, a document will be reloaded automatically whenever it's
     // changed (currently doesn't work for documents shown in the ebook UI)
     bool reloadModifiedDocuments;
@@ -761,6 +764,7 @@ static const FieldInfo gGlobalPrefsFields[] = {
     {offsetof(GlobalPrefs, lazyLoading), SettingType::Bool, true},
     {offsetof(GlobalPrefs, mainWindowBackground), SettingType::Color, (intptr_t)"#80fff200"},
     {offsetof(GlobalPrefs, noHomeTab), SettingType::Bool, true},
+    {offsetof(GlobalPrefs, homePageSortByFrequentlyRead), SettingType::Bool, false},
     {offsetof(GlobalPrefs, reloadModifiedDocuments), SettingType::Bool, true},
     {offsetof(GlobalPrefs, rememberOpenedFiles), SettingType::Bool, true},
     {offsetof(GlobalPrefs, rememberStatePerDocument), SettingType::Bool, true},
@@ -824,9 +828,9 @@ static const FieldInfo gGlobalPrefsFields[] = {
     {(size_t)-1, SettingType::Comment, (intptr_t)"Settings below are not recognized by the current version"},
 };
 static const StructInfo gGlobalPrefsInfo = {
-    sizeof(GlobalPrefs), 73, gGlobalPrefsFields,
+    sizeof(GlobalPrefs), 76, gGlobalPrefsFields,
     "\0\0CheckForUpdates\0CustomScreenDPI\0DefaultDisplayMode\0DefaultZoom\0EnableTeXEnhancements\0EscToExit\0FullPathI"
-    "nTitle\0InverseSearchCmdLine\0CacheDir\0LazyLoading\0MainWindowBackground\0NoHomeTab\0ReloadModifiedDocuments\0RememberOpene"
+    "nTitle\0InverseSearchCmdLine\0CacheDir\0LazyLoading\0MainWindowBackground\0NoHomeTab\0HomePageSortByFrequentlyRead\0ReloadModifiedDocuments\0RememberOpene"
     "dFiles\0RememberStatePerDocument\0RestoreSession\0ReuseInstance\0ShowMenubar\0ShowToolbar\0ShowFavorites\0ShowToc"
     "\0ShowLinks\0ShowStartPage\0SidebarDx\0SmoothScroll\0TabWidth\0Theme\0TocDy\0ToolbarSize\0TreeFontName\0TreeFontSi"
     "ze\0UIFontSize\0UseSysColors\0UseTabs\0ZoomLevels\0ZoomIncrement\0\0FixedPageUI\0\0EBookUI\0\0ComicBookUI\0\0ChmUI"

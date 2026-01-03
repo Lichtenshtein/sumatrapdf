@@ -457,9 +457,15 @@ static int _unmarshal_lzxc_control_data(uint8_t** pData, unsigned int* pDataLen,
     if (dest->windowSize == 0 || dest->resetInterval == 0)
         return 0;
 
-    /* for now, only support resetInterval a multiple of windowSize/2 */
-    if (dest->windowSize == 1)
+    // https://github.com/sumatrapdfreader/sumatrapdf/issues/5207
+    // Validate windowSize is in valid LZX range [2^15, 2^21]
+    if (dest->windowSize < 32768 || dest->windowSize > 2097152) {
         return 0;
+    }
+    // Also ensure it's a power of 2
+    if ((dest->windowSize & (dest->windowSize - 1)) != 0) {
+        return 0;
+    }
     if ((dest->resetInterval % (dest->windowSize / 2)) != 0)
         return 0;
 
@@ -504,13 +510,15 @@ struct chmFile {
 };
 
 static int64_t _chm_fetch_bytes(struct chmFile* h, uint8_t* buf, uint64_t os, int64_t len) {
-    if (os + len > h->data_len) {
+    // Add negative length check
+    if (len <= 0) {
         return 0;
     }
-    if (os + len > h->data_len) {
-        len = h->data_len - os;
+    // Fix overflow-safe bounds check
+    if (os > h->data_len || (uint64_t)len > h->data_len - os) {
+        return 0;
     }
-    memcpy(buf, h->data + os, len);
+    memcpy(buf, h->data + os, (size_t)len);
     return len;
 }
 
@@ -1002,7 +1010,13 @@ static int _chm_get_cmpblock_bounds(struct chmFile* h, uint64_t block, uint64_t*
     }
 
     /* compute the length and absolute start address */
+    if (*start > (uint64_t)*len) {
+        return 0; // Invalid block bounds
+    }
     *len -= *start;
+    if (*start > UINT64_MAX - h->data_offset - h->cn_unit.start) {
+        return 0; // Overflow would occur
+    }
     *start += h->data_offset + h->cn_unit.start;
 
     return 1;
@@ -1111,11 +1125,14 @@ static int64_t _chm_decompress_region(struct chmFile* h, uint8_t* buf, uint64_t 
     if (nLen > (h->reset_table.block_len - nOffset))
         nLen = h->reset_table.block_len - nOffset;
 
-    /* if block is cached, return data from it. */
-    if (h->cache_block_indices[nBlock % h->cache_num_blocks] == nBlock &&
-        h->cache_blocks[nBlock % h->cache_num_blocks] != NULL) {
-        memcpy(buf, h->cache_blocks[nBlock % h->cache_num_blocks] + nOffset, (unsigned int)nLen);
-        return nLen;
+    /* SumatraPDF: seen in a crash report */
+    if (h->cache_num_blocks > 0) {
+      /* if block is cached, return data from it. */
+      if (h->cache_block_indices[nBlock % h->cache_num_blocks] == nBlock &&
+          h->cache_blocks[nBlock % h->cache_num_blocks] != NULL) {
+          memcpy(buf, h->cache_blocks[nBlock % h->cache_num_blocks] + nOffset, (unsigned int)nLen);
+          return nLen;
+      }
     }
 
     /* data request not satisfied, so... start up the decompressor machine */

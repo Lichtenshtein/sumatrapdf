@@ -919,7 +919,11 @@ static bool ShouldSaveThumbnail(FileState* ds) {
 
     // don't create thumbnails for files that won't need them anytime soon
     Vec<FileState*> list;
-    gFileHistory.GetFrequencyOrder(list);
+    if (gGlobalPrefs->homePageSortByFrequentlyRead) {
+        gFileHistory.GetFrequencyOrder(list);
+    } else {
+        gFileHistory.GetRecentlyOpenedOrder(list);
+    }
     int idx = list.Find(ds);
     if (idx < 0 || kFileHistoryMaxFrequent * 2 <= idx) {
         return false;
@@ -3313,6 +3317,8 @@ void CloseTab(WindowTab* tab, bool quitIfLast) {
         return;
     }
     MainWindow* win = tab->win;
+    logf("CloseTab: tab: 0x%p win: 0x%p, hwndFrame: 0x%x, quitIfLast: %d\n", tab, win, win->hwndFrame, (int)quitIfLast);
+
     AbortFinding(win, true);
     ClearFindBox(win);
     RemoveNotificationsForGroup(win->hwndCanvas, kNotifPageInfo);
@@ -3367,6 +3373,8 @@ void CloseTab(WindowTab* tab, bool quitIfLast) {
 // are other windows, else the Frequently Read page is displayed
 void CloseCurrentTab(MainWindow* win, bool quitIfLast) {
     WindowTab* tab = win->CurrentTab();
+    logf("CloseCurrentTab: tab: 0x%p win: 0x%p, hwndFrame: 0x%x, quitIfLast: %d\n", tab, win, win->hwndFrame,
+         (int)quitIfLast);
     if (tab) {
         CloseTab(tab, quitIfLast);
     } else {
@@ -3405,7 +3413,8 @@ void CloseWindow(MainWindow* win, bool quitIfLast, bool forceClose) {
     if (!win) {
         return;
     }
-
+    logf("CloseWindow: win: 0x%p, hwndFrame: 0x%x, quitIfLast: %d, forceClose: %d\n", win, win->hwndFrame,
+         (int)quitIfLast, (int)forceClose);
     ReportIf(forceClose && !quitIfLast);
     if (forceClose) {
         quitIfLast = true;
@@ -3806,7 +3815,7 @@ static void CreateLnkShortcut(MainWindow* win) {
 
     const WCHAR* defExt = ToWStrTemp(ctrl->GetDefaultFileExt());
 
-    WCHAR dstFileName[MAX_PATH] = {0};
+    WCHAR dstFileName[MAX_PATH] = {};
     // Remove the extension so that it can be replaced with .lnk
     auto name = path::GetBaseNameTemp(path);
     str::BufSet(dstFileName, dimof(dstFileName), name);
@@ -5071,7 +5080,7 @@ static void OnFrameKeyEsc(MainWindow* win) {
         return;
     }
     if (gGlobalPrefs->escToExit && (win)) {
-        CloseWindow(win, true, false);
+        CloseCurrentTab(win, true);
         return;
     }
 }
@@ -5609,11 +5618,11 @@ void SetSidebarVisibility(MainWindow* win, bool tocVisible, bool showFavorites) 
     SendMessage(win->hwndToolbar, TB_SETSTATE, CmdToggleBookmarks, state);
 }
 
-constexpr int kMaxURLLen = 1500;
-
 // if url-encoded s is bigger than a reasonable URL path,
 // we don't want to fail but truncate and encode less
 static TempStr URLEncodeMayTruncateTemp(const char* s) {
+    constexpr int kMaxURLLen = 1500;
+
     HRESULT hr;
     DWORD diff;
     WCHAR buf[kMaxURLLen + 1]{};
@@ -8001,7 +8010,14 @@ static LRESULT FrameOnCommand(MainWindow* win, HWND hwnd, UINT msg, WPARAM wp, L
                 SetAnnotCreateArgs(args, cmd);
                 auto annot = MakeAnnotationsFromSelection(tab, &args);
                 if (annot) {
-                    bool openEdit = GetCommandBoolArg(cmd, kCmdArgOpenEdit, IsShiftPressed());
+                    // for built-in shortcuts, Shift also opens edit window
+                    // don't apply that to user shortcuts
+                    // https://github.com/sumatrapdfreader/sumatrapdf/discussions/5209
+                    bool defVal = IsShiftPressed();
+                    if (cmd) {
+                        defVal = false;
+                    }
+                    bool openEdit = GetCommandBoolArg(cmd, kCmdArgOpenEdit, defVal);
                     if (openEdit) {
                         ShowEditAnnotationsWindow(tab);
                         SetSelectedAnnotation(tab, annot);
