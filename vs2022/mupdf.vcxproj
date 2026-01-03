@@ -365,8 +365,8 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
-      <DisableSpecificWarnings>4127;4189;4324;4458;4522;4611;4702;4800;6319;4005;4018;4057;4100;4115;4130;4132;4200;4204;4206;4210;4245;4267;4295;4305;4389;4456;4457;4703;4706;4819;5286;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <PreprocessorDefinitions>WIN32;_WIN32;WINVER=0x0605;_WIN32_WINNT=0x0603;_HAS_ITERATOR_DEBUGGING=0;DEBUG;USE_JPIP;OPJ_EXPORTS;HAVE_LCMS2MT=1;OPJ_STATIC;SHARE_JPEG;TOFU_NOTO;TOFU_CJK_LANG;TOFU_NOTO_SUMATRA;FZ_ENABLE_SVG=1;FZ_ENABLE_BROTLI=0;FZ_ENABLE_BARCODE=0;_UCRT_NOISY_NAN;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4127;4189;4324;4458;4522;4611;4702;4800;6319;4005;4013;4018;4057;4100;4115;4130;4132;4200;4204;4206;4210;4245;4267;4295;4305;4389;4456;4457;4703;4706;4819;5286;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <PreprocessorDefinitions>WIN32;_WIN32;WINVER=0x0605;_WIN32_WINNT=0x0603;_HAS_ITERATOR_DEBUGGING=0;DEBUG;USE_JPIP;OPJ_EXPORTS;HAVE_LCMS2MT=1;OPJ_STATIC;SHARE_JPEG;TOFU_NOTO;TOFU_CJK_LANG;TOFU_NOTO_SUMATRA;FZ_ENABLE_SVG=1;FZ_ENABLE_BROTLI=0;FZ_ENABLE_BARCODE=0;FZ_ENABLE_JS=0;FZ_ENABLE_HYPHEN=0;_UCRT_NOISY_NAN;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\ext\zlib;..\mupdf\include;..\mupdf\generated;..\ext\jbig2dec;..\ext\libjpeg-turbo;..\ext\openjpeg\src\lib\openjp2;..\mupdf\scripts\freetype;..\ext\freetype\include;..\ext\mujs;..\ext\harfbuzz\src;..\ext\lcms2\include;..\ext\gumbo-parser\src;..\ext\extract\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>MaxSpeed</Optimization>
@@ -390,8 +390,8 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
-      <DisableSpecificWarnings>4127;4189;4324;4458;4522;4611;4702;4800;6319;4005;4018;4057;4100;4115;4130;4132;4200;4204;4206;4210;4245;4267;4295;4305;4389;4456;4457;4703;4706;4819;5286;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <PreprocessorDefinitions>WIN32;_WIN32;WINVER=0x0605;_WIN32_WINNT=0x0603;_HAS_ITERATOR_DEBUGGING=0;DEBUG;USE_JPIP;OPJ_EXPORTS;HAVE_LCMS2MT=1;OPJ_STATIC;SHARE_JPEG;TOFU_NOTO;TOFU_CJK_LANG;TOFU_NOTO_SUMATRA;FZ_ENABLE_SVG=1;FZ_ENABLE_BROTLI=0;FZ_ENABLE_BARCODE=0;_UCRT_NOISY_NAN;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4127;4189;4324;4458;4522;4611;4702;4800;6319;4005;4013;4018;4057;4100;4115;4130;4132;4200;4204;4206;4210;4245;4267;4295;4305;4389;4456;4457;4703;4706;4819;5286;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <PreprocessorDefinitions>WIN32;_WIN32;WINVER=0x0605;_WIN32_WINNT=0x0603;_HAS_ITERATOR_DEBUGGING=0;DEBUG;USE_JPIP;OPJ_EXPORTS;HAVE_LCMS2MT=1;OPJ_STATIC;SHARE_JPEG;TOFU_NOTO;TOFU_CJK_LANG;TOFU_NOTO_SUMATRA;FZ_ENABLE_SVG=1;FZ_ENABLE_BROTLI=0;FZ_ENABLE_BARCODE=0;FZ_ENABLE_JS=0;FZ_ENABLE_HYPHEN=0;_UCRT_NOISY_NAN;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\ext\zlib;..\mupdf\include;..\mupdf\generated;..\ext\jbig2dec;..\ext\libjpeg-turbo;..\ext\openjpeg\src\lib\openjp2;..\mupdf\scripts\freetype;..\ext\freetype\include;..\ext\mujs;..\ext\harfbuzz\src;..\ext\lcms2\include;..\ext\gumbo-parser\src;..\ext\extract\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>MaxSpeed</Optimization>
@@ -415,8 +415,8 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
-      <DisableSpecificWarnings>4127;4189;4324;4458;4522;4611;4702;4800;6319;4005;4018;4057;4100;4115;4130;4132;4200;4204;4206;4210;4245;4267;4295;4305;4389;4456;4457;4703;4706;4819;5286;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <PreprocessorDefinitions>WIN32;_WIN32;WINVER=0x0605;_WIN32_WINNT=0x0603;_HAS_ITERATOR_DEBUGGING=0;DEBUG;USE_JPIP;OPJ_EXPORTS;HAVE_LCMS2MT=1;OPJ_STATIC;SHARE_JPEG;TOFU_NOTO;TOFU_CJK_LANG;TOFU_NOTO_SUMATRA;FZ_ENABLE_SVG=1;FZ_ENABLE_BROTLI=0;FZ_ENABLE_BARCODE=0;ARCH_HAS_NEON=1;_UCRT_NOISY_NAN;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4127;4189;4324;4458;4522;4611;4702;4800;6319;4005;4013;4018;4057;4100;4115;4130;4132;4200;4204;4206;4210;4245;4267;4295;4305;4389;4456;4457;4703;4706;4819;5286;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <PreprocessorDefinitions>WIN32;_WIN32;WINVER=0x0605;_WIN32_WINNT=0x0603;_HAS_ITERATOR_DEBUGGING=0;DEBUG;USE_JPIP;OPJ_EXPORTS;HAVE_LCMS2MT=1;OPJ_STATIC;SHARE_JPEG;TOFU_NOTO;TOFU_CJK_LANG;TOFU_NOTO_SUMATRA;FZ_ENABLE_SVG=1;FZ_ENABLE_BROTLI=0;FZ_ENABLE_BARCODE=0;FZ_ENABLE_JS=0;FZ_ENABLE_HYPHEN=0;ARCH_HAS_NEON=1;_UCRT_NOISY_NAN;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\ext\zlib;..\mupdf\include;..\mupdf\generated;..\ext\jbig2dec;..\ext\libjpeg-turbo;..\ext\openjpeg\src\lib\openjp2;..\mupdf\scripts\freetype;..\ext\freetype\include;..\ext\mujs;..\ext\harfbuzz\src;..\ext\lcms2\include;..\ext\gumbo-parser\src;..\ext\extract\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>MaxSpeed</Optimization>
@@ -440,8 +440,8 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
-      <DisableSpecificWarnings>4127;4189;4324;4458;4522;4611;4702;4800;6319;4005;4018;4057;4100;4115;4130;4132;4200;4204;4206;4210;4245;4267;4295;4305;4389;4456;4457;4703;4706;4819;5286;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <PreprocessorDefinitions>ASAN_BUILD=1;WIN32;_WIN32;WINVER=0x0605;_WIN32_WINNT=0x0603;_HAS_ITERATOR_DEBUGGING=0;DEBUG;USE_JPIP;OPJ_EXPORTS;HAVE_LCMS2MT=1;OPJ_STATIC;SHARE_JPEG;TOFU_NOTO;TOFU_CJK_LANG;TOFU_NOTO_SUMATRA;FZ_ENABLE_SVG=1;FZ_ENABLE_BROTLI=0;FZ_ENABLE_BARCODE=0;_UCRT_NOISY_NAN;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4127;4189;4324;4458;4522;4611;4702;4800;6319;4005;4013;4018;4057;4100;4115;4130;4132;4200;4204;4206;4210;4245;4267;4295;4305;4389;4456;4457;4703;4706;4819;5286;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <PreprocessorDefinitions>ASAN_BUILD=1;WIN32;_WIN32;WINVER=0x0605;_WIN32_WINNT=0x0603;_HAS_ITERATOR_DEBUGGING=0;DEBUG;USE_JPIP;OPJ_EXPORTS;HAVE_LCMS2MT=1;OPJ_STATIC;SHARE_JPEG;TOFU_NOTO;TOFU_CJK_LANG;TOFU_NOTO_SUMATRA;FZ_ENABLE_SVG=1;FZ_ENABLE_BROTLI=0;FZ_ENABLE_BARCODE=0;FZ_ENABLE_JS=0;FZ_ENABLE_HYPHEN=0;_UCRT_NOISY_NAN;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\ext\zlib;..\mupdf\include;..\mupdf\generated;..\ext\jbig2dec;..\ext\libjpeg-turbo;..\ext\openjpeg\src\lib\openjp2;..\mupdf\scripts\freetype;..\ext\freetype\include;..\ext\mujs;..\ext\harfbuzz\src;..\ext\lcms2\include;..\ext\gumbo-parser\src;..\ext\extract\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>MaxSpeed</Optimization>
@@ -465,8 +465,8 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
-      <DisableSpecificWarnings>4127;4189;4324;4458;4522;4611;4702;4800;6319;4005;4018;4057;4100;4115;4130;4132;4200;4204;4206;4210;4245;4267;4295;4305;4389;4456;4457;4703;4706;4819;5286;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <PreprocessorDefinitions>WIN32;_WIN32;WINVER=0x0605;_WIN32_WINNT=0x0603;_HAS_ITERATOR_DEBUGGING=0;DEBUG;USE_JPIP;OPJ_EXPORTS;HAVE_LCMS2MT=1;OPJ_STATIC;SHARE_JPEG;TOFU_NOTO;TOFU_CJK_LANG;TOFU_NOTO_SUMATRA;FZ_ENABLE_SVG=1;FZ_ENABLE_BROTLI=0;FZ_ENABLE_BARCODE=0;_UCRT_NOISY_NAN;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4127;4189;4324;4458;4522;4611;4702;4800;6319;4005;4013;4018;4057;4100;4115;4130;4132;4200;4204;4206;4210;4245;4267;4295;4305;4389;4456;4457;4703;4706;4819;5286;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <PreprocessorDefinitions>WIN32;_WIN32;WINVER=0x0605;_WIN32_WINNT=0x0603;_HAS_ITERATOR_DEBUGGING=0;DEBUG;USE_JPIP;OPJ_EXPORTS;HAVE_LCMS2MT=1;OPJ_STATIC;SHARE_JPEG;TOFU_NOTO;TOFU_CJK_LANG;TOFU_NOTO_SUMATRA;FZ_ENABLE_SVG=1;FZ_ENABLE_BROTLI=0;FZ_ENABLE_BARCODE=0;FZ_ENABLE_JS=0;FZ_ENABLE_HYPHEN=0;_UCRT_NOISY_NAN;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\ext\zlib;..\mupdf\include;..\mupdf\generated;..\ext\jbig2dec;..\ext\libjpeg-turbo;..\ext\openjpeg\src\lib\openjp2;..\mupdf\scripts\freetype;..\ext\freetype\include;..\ext\mujs;..\ext\harfbuzz\src;..\ext\lcms2\include;..\ext\gumbo-parser\src;..\ext\extract\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>MaxSpeed</Optimization>
@@ -490,8 +490,8 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
-      <DisableSpecificWarnings>4127;4189;4324;4458;4522;4611;4702;4800;6319;4005;4018;4057;4100;4115;4130;4132;4200;4204;4206;4210;4245;4267;4295;4305;4389;4456;4457;4703;4706;4819;5286;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <PreprocessorDefinitions>WIN32;_WIN32;WINVER=0x0605;_WIN32_WINNT=0x0603;_HAS_ITERATOR_DEBUGGING=0;DEBUG;USE_JPIP;OPJ_EXPORTS;HAVE_LCMS2MT=1;OPJ_STATIC;SHARE_JPEG;TOFU_NOTO;TOFU_CJK_LANG;TOFU_NOTO_SUMATRA;FZ_ENABLE_SVG=1;FZ_ENABLE_BROTLI=0;FZ_ENABLE_BARCODE=0;_UCRT_NOISY_NAN;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4127;4189;4324;4458;4522;4611;4702;4800;6319;4005;4013;4018;4057;4100;4115;4130;4132;4200;4204;4206;4210;4245;4267;4295;4305;4389;4456;4457;4703;4706;4819;5286;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <PreprocessorDefinitions>WIN32;_WIN32;WINVER=0x0605;_WIN32_WINNT=0x0603;_HAS_ITERATOR_DEBUGGING=0;DEBUG;USE_JPIP;OPJ_EXPORTS;HAVE_LCMS2MT=1;OPJ_STATIC;SHARE_JPEG;TOFU_NOTO;TOFU_CJK_LANG;TOFU_NOTO_SUMATRA;FZ_ENABLE_SVG=1;FZ_ENABLE_BROTLI=0;FZ_ENABLE_BARCODE=0;FZ_ENABLE_JS=0;FZ_ENABLE_HYPHEN=0;_UCRT_NOISY_NAN;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\ext\zlib;..\mupdf\include;..\mupdf\generated;..\ext\jbig2dec;..\ext\libjpeg-turbo;..\ext\openjpeg\src\lib\openjp2;..\mupdf\scripts\freetype;..\ext\freetype\include;..\ext\mujs;..\ext\harfbuzz\src;..\ext\lcms2\include;..\ext\gumbo-parser\src;..\ext\extract\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>MaxSpeed</Optimization>
@@ -515,8 +515,8 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
-      <DisableSpecificWarnings>4127;4189;4324;4458;4522;4611;4702;4800;6319;4005;4018;4057;4100;4115;4130;4132;4200;4204;4206;4210;4245;4267;4295;4305;4389;4456;4457;4703;4706;4819;5286;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <PreprocessorDefinitions>WIN32;_WIN32;WINVER=0x0605;_WIN32_WINNT=0x0603;_HAS_ITERATOR_DEBUGGING=0;DEBUG;USE_JPIP;OPJ_EXPORTS;HAVE_LCMS2MT=1;OPJ_STATIC;SHARE_JPEG;TOFU_NOTO;TOFU_CJK_LANG;TOFU_NOTO_SUMATRA;FZ_ENABLE_SVG=1;FZ_ENABLE_BROTLI=0;FZ_ENABLE_BARCODE=0;ARCH_HAS_NEON=1;_UCRT_NOISY_NAN;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4127;4189;4324;4458;4522;4611;4702;4800;6319;4005;4013;4018;4057;4100;4115;4130;4132;4200;4204;4206;4210;4245;4267;4295;4305;4389;4456;4457;4703;4706;4819;5286;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <PreprocessorDefinitions>WIN32;_WIN32;WINVER=0x0605;_WIN32_WINNT=0x0603;_HAS_ITERATOR_DEBUGGING=0;DEBUG;USE_JPIP;OPJ_EXPORTS;HAVE_LCMS2MT=1;OPJ_STATIC;SHARE_JPEG;TOFU_NOTO;TOFU_CJK_LANG;TOFU_NOTO_SUMATRA;FZ_ENABLE_SVG=1;FZ_ENABLE_BROTLI=0;FZ_ENABLE_BARCODE=0;FZ_ENABLE_JS=0;FZ_ENABLE_HYPHEN=0;ARCH_HAS_NEON=1;_UCRT_NOISY_NAN;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\ext\zlib;..\mupdf\include;..\mupdf\generated;..\ext\jbig2dec;..\ext\libjpeg-turbo;..\ext\openjpeg\src\lib\openjp2;..\mupdf\scripts\freetype;..\ext\freetype\include;..\ext\mujs;..\ext\harfbuzz\src;..\ext\lcms2\include;..\ext\gumbo-parser\src;..\ext\extract\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>MaxSpeed</Optimization>
@@ -540,8 +540,8 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
-      <DisableSpecificWarnings>4127;4189;4324;4458;4522;4611;4702;4800;6319;4005;4018;4057;4100;4115;4130;4132;4200;4204;4206;4210;4245;4267;4295;4305;4389;4456;4457;4703;4706;4819;5286;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <PreprocessorDefinitions>ASAN_BUILD=1;WIN32;_WIN32;WINVER=0x0605;_WIN32_WINNT=0x0603;_HAS_ITERATOR_DEBUGGING=0;DEBUG;USE_JPIP;OPJ_EXPORTS;HAVE_LCMS2MT=1;OPJ_STATIC;SHARE_JPEG;TOFU_NOTO;TOFU_CJK_LANG;TOFU_NOTO_SUMATRA;FZ_ENABLE_SVG=1;FZ_ENABLE_BROTLI=0;FZ_ENABLE_BARCODE=0;_UCRT_NOISY_NAN;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4127;4189;4324;4458;4522;4611;4702;4800;6319;4005;4013;4018;4057;4100;4115;4130;4132;4200;4204;4206;4210;4245;4267;4295;4305;4389;4456;4457;4703;4706;4819;5286;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <PreprocessorDefinitions>ASAN_BUILD=1;WIN32;_WIN32;WINVER=0x0605;_WIN32_WINNT=0x0603;_HAS_ITERATOR_DEBUGGING=0;DEBUG;USE_JPIP;OPJ_EXPORTS;HAVE_LCMS2MT=1;OPJ_STATIC;SHARE_JPEG;TOFU_NOTO;TOFU_CJK_LANG;TOFU_NOTO_SUMATRA;FZ_ENABLE_SVG=1;FZ_ENABLE_BROTLI=0;FZ_ENABLE_BARCODE=0;FZ_ENABLE_JS=0;FZ_ENABLE_HYPHEN=0;_UCRT_NOISY_NAN;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\ext\zlib;..\mupdf\include;..\mupdf\generated;..\ext\jbig2dec;..\ext\libjpeg-turbo;..\ext\openjpeg\src\lib\openjp2;..\mupdf\scripts\freetype;..\ext\freetype\include;..\ext\mujs;..\ext\harfbuzz\src;..\ext\lcms2\include;..\ext\gumbo-parser\src;..\ext\extract\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>MaxSpeed</Optimization>
@@ -565,8 +565,8 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
-      <DisableSpecificWarnings>4127;4189;4324;4458;4522;4611;4702;4800;6319;4005;4018;4057;4100;4115;4130;4132;4200;4204;4206;4210;4245;4267;4295;4305;4389;4456;4457;4703;4706;4819;5286;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <PreprocessorDefinitions>WIN32;_WIN32;WINVER=0x0605;_WIN32_WINNT=0x0603;_HAS_ITERATOR_DEBUGGING=0;NDEBUG;USE_JPIP;OPJ_EXPORTS;HAVE_LCMS2MT=1;OPJ_STATIC;SHARE_JPEG;TOFU_NOTO;TOFU_CJK_LANG;TOFU_NOTO_SUMATRA;FZ_ENABLE_SVG=1;FZ_ENABLE_BROTLI=0;FZ_ENABLE_BARCODE=0;_UCRT_NOISY_NAN;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4127;4189;4324;4458;4522;4611;4702;4800;6319;4005;4013;4018;4057;4100;4115;4130;4132;4200;4204;4206;4210;4245;4267;4295;4305;4389;4456;4457;4703;4706;4819;5286;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <PreprocessorDefinitions>WIN32;_WIN32;WINVER=0x0605;_WIN32_WINNT=0x0603;_HAS_ITERATOR_DEBUGGING=0;NDEBUG;USE_JPIP;OPJ_EXPORTS;HAVE_LCMS2MT=1;OPJ_STATIC;SHARE_JPEG;TOFU_NOTO;TOFU_CJK_LANG;TOFU_NOTO_SUMATRA;FZ_ENABLE_SVG=1;FZ_ENABLE_BROTLI=0;FZ_ENABLE_BARCODE=0;FZ_ENABLE_JS=0;FZ_ENABLE_HYPHEN=0;_UCRT_NOISY_NAN;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\ext\zlib;..\mupdf\include;..\mupdf\generated;..\ext\jbig2dec;..\ext\libjpeg-turbo;..\ext\openjpeg\src\lib\openjp2;..\mupdf\scripts\freetype;..\ext\freetype\include;..\ext\mujs;..\ext\harfbuzz\src;..\ext\lcms2\include;..\ext\gumbo-parser\src;..\ext\extract\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>MaxSpeed</Optimization>
@@ -595,8 +595,8 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
-      <DisableSpecificWarnings>4127;4189;4324;4458;4522;4611;4702;4800;6319;4005;4018;4057;4100;4115;4130;4132;4200;4204;4206;4210;4245;4267;4295;4305;4389;4456;4457;4703;4706;4819;5286;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <PreprocessorDefinitions>WIN32;_WIN32;WINVER=0x0605;_WIN32_WINNT=0x0603;_HAS_ITERATOR_DEBUGGING=0;NDEBUG;USE_JPIP;OPJ_EXPORTS;HAVE_LCMS2MT=1;OPJ_STATIC;SHARE_JPEG;TOFU_NOTO;TOFU_CJK_LANG;TOFU_NOTO_SUMATRA;FZ_ENABLE_SVG=1;FZ_ENABLE_BROTLI=0;FZ_ENABLE_BARCODE=0;_UCRT_NOISY_NAN;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4127;4189;4324;4458;4522;4611;4702;4800;6319;4005;4013;4018;4057;4100;4115;4130;4132;4200;4204;4206;4210;4245;4267;4295;4305;4389;4456;4457;4703;4706;4819;5286;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <PreprocessorDefinitions>WIN32;_WIN32;WINVER=0x0605;_WIN32_WINNT=0x0603;_HAS_ITERATOR_DEBUGGING=0;NDEBUG;USE_JPIP;OPJ_EXPORTS;HAVE_LCMS2MT=1;OPJ_STATIC;SHARE_JPEG;TOFU_NOTO;TOFU_CJK_LANG;TOFU_NOTO_SUMATRA;FZ_ENABLE_SVG=1;FZ_ENABLE_BROTLI=0;FZ_ENABLE_BARCODE=0;FZ_ENABLE_JS=0;FZ_ENABLE_HYPHEN=0;_UCRT_NOISY_NAN;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\ext\zlib;..\mupdf\include;..\mupdf\generated;..\ext\jbig2dec;..\ext\libjpeg-turbo;..\ext\openjpeg\src\lib\openjp2;..\mupdf\scripts\freetype;..\ext\freetype\include;..\ext\mujs;..\ext\harfbuzz\src;..\ext\lcms2\include;..\ext\gumbo-parser\src;..\ext\extract\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>MaxSpeed</Optimization>
@@ -622,8 +622,8 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
-      <DisableSpecificWarnings>4127;4189;4324;4458;4522;4611;4702;4800;6319;4005;4018;4057;4100;4115;4130;4132;4200;4204;4206;4210;4245;4267;4295;4305;4389;4456;4457;4703;4706;4819;5286;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <PreprocessorDefinitions>WIN32;_WIN32;WINVER=0x0605;_WIN32_WINNT=0x0603;_HAS_ITERATOR_DEBUGGING=0;NDEBUG;USE_JPIP;OPJ_EXPORTS;HAVE_LCMS2MT=1;OPJ_STATIC;SHARE_JPEG;TOFU_NOTO;TOFU_CJK_LANG;TOFU_NOTO_SUMATRA;FZ_ENABLE_SVG=1;FZ_ENABLE_BROTLI=0;FZ_ENABLE_BARCODE=0;ARCH_HAS_NEON=1;_UCRT_NOISY_NAN;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4127;4189;4324;4458;4522;4611;4702;4800;6319;4005;4013;4018;4057;4100;4115;4130;4132;4200;4204;4206;4210;4245;4267;4295;4305;4389;4456;4457;4703;4706;4819;5286;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <PreprocessorDefinitions>WIN32;_WIN32;WINVER=0x0605;_WIN32_WINNT=0x0603;_HAS_ITERATOR_DEBUGGING=0;NDEBUG;USE_JPIP;OPJ_EXPORTS;HAVE_LCMS2MT=1;OPJ_STATIC;SHARE_JPEG;TOFU_NOTO;TOFU_CJK_LANG;TOFU_NOTO_SUMATRA;FZ_ENABLE_SVG=1;FZ_ENABLE_BROTLI=0;FZ_ENABLE_BARCODE=0;FZ_ENABLE_JS=0;FZ_ENABLE_HYPHEN=0;ARCH_HAS_NEON=1;_UCRT_NOISY_NAN;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\ext\zlib;..\mupdf\include;..\mupdf\generated;..\ext\jbig2dec;..\ext\libjpeg-turbo;..\ext\openjpeg\src\lib\openjp2;..\mupdf\scripts\freetype;..\ext\freetype\include;..\ext\mujs;..\ext\harfbuzz\src;..\ext\lcms2\include;..\ext\gumbo-parser\src;..\ext\extract\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>MaxSpeed</Optimization>
@@ -651,8 +651,8 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
-      <DisableSpecificWarnings>4127;4189;4324;4458;4522;4611;4702;4800;6319;4005;4018;4057;4100;4115;4130;4132;4200;4204;4206;4210;4245;4267;4295;4305;4389;4456;4457;4703;4706;4819;5286;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <PreprocessorDefinitions>ASAN_BUILD=1;WIN32;_WIN32;WINVER=0x0605;_WIN32_WINNT=0x0603;_HAS_ITERATOR_DEBUGGING=0;NDEBUG;USE_JPIP;OPJ_EXPORTS;HAVE_LCMS2MT=1;OPJ_STATIC;SHARE_JPEG;TOFU_NOTO;TOFU_CJK_LANG;TOFU_NOTO_SUMATRA;FZ_ENABLE_SVG=1;FZ_ENABLE_BROTLI=0;FZ_ENABLE_BARCODE=0;_UCRT_NOISY_NAN;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4127;4189;4324;4458;4522;4611;4702;4800;6319;4005;4013;4018;4057;4100;4115;4130;4132;4200;4204;4206;4210;4245;4267;4295;4305;4389;4456;4457;4703;4706;4819;5286;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <PreprocessorDefinitions>ASAN_BUILD=1;WIN32;_WIN32;WINVER=0x0605;_WIN32_WINNT=0x0603;_HAS_ITERATOR_DEBUGGING=0;NDEBUG;USE_JPIP;OPJ_EXPORTS;HAVE_LCMS2MT=1;OPJ_STATIC;SHARE_JPEG;TOFU_NOTO;TOFU_CJK_LANG;TOFU_NOTO_SUMATRA;FZ_ENABLE_SVG=1;FZ_ENABLE_BROTLI=0;FZ_ENABLE_BARCODE=0;FZ_ENABLE_JS=0;FZ_ENABLE_HYPHEN=0;_UCRT_NOISY_NAN;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\ext\zlib;..\mupdf\include;..\mupdf\generated;..\ext\jbig2dec;..\ext\libjpeg-turbo;..\ext\openjpeg\src\lib\openjp2;..\mupdf\scripts\freetype;..\ext\freetype\include;..\ext\mujs;..\ext\harfbuzz\src;..\ext\lcms2\include;..\ext\gumbo-parser\src;..\ext\extract\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>MaxSpeed</Optimization>
@@ -680,8 +680,8 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
-      <DisableSpecificWarnings>4127;4189;4324;4458;4522;4611;4702;4800;6319;4005;4018;4057;4100;4115;4130;4132;4200;4204;4206;4210;4245;4267;4295;4305;4389;4456;4457;4703;4706;4819;5286;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <PreprocessorDefinitions>WIN32;_WIN32;WINVER=0x0605;_WIN32_WINNT=0x0603;_HAS_ITERATOR_DEBUGGING=0;NDEBUG;USE_JPIP;OPJ_EXPORTS;HAVE_LCMS2MT=1;OPJ_STATIC;SHARE_JPEG;TOFU_NOTO;TOFU_CJK_LANG;TOFU_NOTO_SUMATRA;FZ_ENABLE_SVG=1;FZ_ENABLE_BROTLI=0;FZ_ENABLE_BARCODE=0;_UCRT_NOISY_NAN;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4127;4189;4324;4458;4522;4611;4702;4800;6319;4005;4013;4018;4057;4100;4115;4130;4132;4200;4204;4206;4210;4245;4267;4295;4305;4389;4456;4457;4703;4706;4819;5286;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <PreprocessorDefinitions>WIN32;_WIN32;WINVER=0x0605;_WIN32_WINNT=0x0603;_HAS_ITERATOR_DEBUGGING=0;NDEBUG;USE_JPIP;OPJ_EXPORTS;HAVE_LCMS2MT=1;OPJ_STATIC;SHARE_JPEG;TOFU_NOTO;TOFU_CJK_LANG;TOFU_NOTO_SUMATRA;FZ_ENABLE_SVG=1;FZ_ENABLE_BROTLI=0;FZ_ENABLE_BARCODE=0;FZ_ENABLE_JS=0;FZ_ENABLE_HYPHEN=0;_UCRT_NOISY_NAN;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\ext\zlib;..\mupdf\include;..\mupdf\generated;..\ext\jbig2dec;..\ext\libjpeg-turbo;..\ext\openjpeg\src\lib\openjp2;..\mupdf\scripts\freetype;..\ext\freetype\include;..\ext\mujs;..\ext\harfbuzz\src;..\ext\lcms2\include;..\ext\gumbo-parser\src;..\ext\extract\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>MaxSpeed</Optimization>
@@ -711,8 +711,8 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
-      <DisableSpecificWarnings>4127;4189;4324;4458;4522;4611;4702;4800;6319;4005;4018;4057;4100;4115;4130;4132;4200;4204;4206;4210;4245;4267;4295;4305;4389;4456;4457;4703;4706;4819;5286;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <PreprocessorDefinitions>WIN32;_WIN32;WINVER=0x0605;_WIN32_WINNT=0x0603;_HAS_ITERATOR_DEBUGGING=0;NDEBUG;USE_JPIP;OPJ_EXPORTS;HAVE_LCMS2MT=1;OPJ_STATIC;SHARE_JPEG;TOFU_NOTO;TOFU_CJK_LANG;TOFU_NOTO_SUMATRA;FZ_ENABLE_SVG=1;FZ_ENABLE_BROTLI=0;FZ_ENABLE_BARCODE=0;_UCRT_NOISY_NAN;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4127;4189;4324;4458;4522;4611;4702;4800;6319;4005;4013;4018;4057;4100;4115;4130;4132;4200;4204;4206;4210;4245;4267;4295;4305;4389;4456;4457;4703;4706;4819;5286;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <PreprocessorDefinitions>WIN32;_WIN32;WINVER=0x0605;_WIN32_WINNT=0x0603;_HAS_ITERATOR_DEBUGGING=0;NDEBUG;USE_JPIP;OPJ_EXPORTS;HAVE_LCMS2MT=1;OPJ_STATIC;SHARE_JPEG;TOFU_NOTO;TOFU_CJK_LANG;TOFU_NOTO_SUMATRA;FZ_ENABLE_SVG=1;FZ_ENABLE_BROTLI=0;FZ_ENABLE_BARCODE=0;FZ_ENABLE_JS=0;FZ_ENABLE_HYPHEN=0;_UCRT_NOISY_NAN;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\ext\zlib;..\mupdf\include;..\mupdf\generated;..\ext\jbig2dec;..\ext\libjpeg-turbo;..\ext\openjpeg\src\lib\openjp2;..\mupdf\scripts\freetype;..\ext\freetype\include;..\ext\mujs;..\ext\harfbuzz\src;..\ext\lcms2\include;..\ext\gumbo-parser\src;..\ext\extract\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>MaxSpeed</Optimization>
@@ -742,8 +742,8 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
-      <DisableSpecificWarnings>4127;4189;4324;4458;4522;4611;4702;4800;6319;4005;4018;4057;4100;4115;4130;4132;4200;4204;4206;4210;4245;4267;4295;4305;4389;4456;4457;4703;4706;4819;5286;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <PreprocessorDefinitions>WIN32;_WIN32;WINVER=0x0605;_WIN32_WINNT=0x0603;_HAS_ITERATOR_DEBUGGING=0;NDEBUG;USE_JPIP;OPJ_EXPORTS;HAVE_LCMS2MT=1;OPJ_STATIC;SHARE_JPEG;TOFU_NOTO;TOFU_CJK_LANG;TOFU_NOTO_SUMATRA;FZ_ENABLE_SVG=1;FZ_ENABLE_BROTLI=0;FZ_ENABLE_BARCODE=0;ARCH_HAS_NEON=1;_UCRT_NOISY_NAN;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4127;4189;4324;4458;4522;4611;4702;4800;6319;4005;4013;4018;4057;4100;4115;4130;4132;4200;4204;4206;4210;4245;4267;4295;4305;4389;4456;4457;4703;4706;4819;5286;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <PreprocessorDefinitions>WIN32;_WIN32;WINVER=0x0605;_WIN32_WINNT=0x0603;_HAS_ITERATOR_DEBUGGING=0;NDEBUG;USE_JPIP;OPJ_EXPORTS;HAVE_LCMS2MT=1;OPJ_STATIC;SHARE_JPEG;TOFU_NOTO;TOFU_CJK_LANG;TOFU_NOTO_SUMATRA;FZ_ENABLE_SVG=1;FZ_ENABLE_BROTLI=0;FZ_ENABLE_BARCODE=0;FZ_ENABLE_JS=0;FZ_ENABLE_HYPHEN=0;ARCH_HAS_NEON=1;_UCRT_NOISY_NAN;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\ext\zlib;..\mupdf\include;..\mupdf\generated;..\ext\jbig2dec;..\ext\libjpeg-turbo;..\ext\openjpeg\src\lib\openjp2;..\mupdf\scripts\freetype;..\ext\freetype\include;..\ext\mujs;..\ext\harfbuzz\src;..\ext\lcms2\include;..\ext\gumbo-parser\src;..\ext\extract\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>MaxSpeed</Optimization>
@@ -772,8 +772,8 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
-      <DisableSpecificWarnings>4127;4189;4324;4458;4522;4611;4702;4800;6319;4005;4018;4057;4100;4115;4130;4132;4200;4204;4206;4210;4245;4267;4295;4305;4389;4456;4457;4703;4706;4819;5286;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <PreprocessorDefinitions>ASAN_BUILD=1;WIN32;_WIN32;WINVER=0x0605;_WIN32_WINNT=0x0603;_HAS_ITERATOR_DEBUGGING=0;NDEBUG;USE_JPIP;OPJ_EXPORTS;HAVE_LCMS2MT=1;OPJ_STATIC;SHARE_JPEG;TOFU_NOTO;TOFU_CJK_LANG;TOFU_NOTO_SUMATRA;FZ_ENABLE_SVG=1;FZ_ENABLE_BROTLI=0;FZ_ENABLE_BARCODE=0;_UCRT_NOISY_NAN;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4127;4189;4324;4458;4522;4611;4702;4800;6319;4005;4013;4018;4057;4100;4115;4130;4132;4200;4204;4206;4210;4245;4267;4295;4305;4389;4456;4457;4703;4706;4819;5286;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <PreprocessorDefinitions>ASAN_BUILD=1;WIN32;_WIN32;WINVER=0x0605;_WIN32_WINNT=0x0603;_HAS_ITERATOR_DEBUGGING=0;NDEBUG;USE_JPIP;OPJ_EXPORTS;HAVE_LCMS2MT=1;OPJ_STATIC;SHARE_JPEG;TOFU_NOTO;TOFU_CJK_LANG;TOFU_NOTO_SUMATRA;FZ_ENABLE_SVG=1;FZ_ENABLE_BROTLI=0;FZ_ENABLE_BARCODE=0;FZ_ENABLE_JS=0;FZ_ENABLE_HYPHEN=0;_UCRT_NOISY_NAN;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\ext\zlib;..\mupdf\include;..\mupdf\generated;..\ext\jbig2dec;..\ext\libjpeg-turbo;..\ext\openjpeg\src\lib\openjp2;..\mupdf\scripts\freetype;..\ext\freetype\include;..\ext\mujs;..\ext\harfbuzz\src;..\ext\lcms2\include;..\ext\gumbo-parser\src;..\ext\extract\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>MaxSpeed</Optimization>
@@ -826,6 +826,7 @@
     <ClInclude Include="..\mupdf\include\mupdf\fitz\hash.h" />
     <ClInclude Include="..\mupdf\include\mupdf\fitz\heap-imp.h" />
     <ClInclude Include="..\mupdf\include\mupdf\fitz\heap.h" />
+    <ClInclude Include="..\mupdf\include\mupdf\fitz\hyphen.h" />
     <ClInclude Include="..\mupdf\include\mupdf\fitz\image.h" />
     <ClInclude Include="..\mupdf\include\mupdf\fitz\json.h" />
     <ClInclude Include="..\mupdf\include\mupdf\fitz\link.h" />
@@ -905,6 +906,7 @@
     <ClInclude Include="..\mupdf\source\fitz\utfdata.h" />
     <ClInclude Include="..\mupdf\source\fitz\xml-imp.h" />
     <ClInclude Include="..\mupdf\source\fitz\z-imp.h" />
+    <ClInclude Include="..\mupdf\source\fitz\zxingbarcode.h" />
     <ClInclude Include="..\mupdf\source\html\css-properties.h" />
     <ClInclude Include="..\mupdf\source\html\html-imp.h" />
     <ClInclude Include="..\mupdf\source\pdf\annotation-icons.h" />
@@ -977,6 +979,7 @@
     <ClCompile Include="..\mupdf\source\fitz\harfbuzz.c" />
     <ClCompile Include="..\mupdf\source\fitz\hash.c" />
     <ClCompile Include="..\mupdf\source\fitz\heap.c" />
+    <ClCompile Include="..\mupdf\source\fitz\hyphen.c" />
     <ClCompile Include="..\mupdf\source\fitz\image.c" />
     <ClCompile Include="..\mupdf\source\fitz\jmemcust.c" />
     <ClCompile Include="..\mupdf\source\fitz\json.c" />
@@ -1096,6 +1099,7 @@
     <ClCompile Include="..\mupdf\source\pdf\pdf-op-buffer.c" />
     <ClCompile Include="..\mupdf\source\pdf\pdf-op-filter.c" />
     <ClCompile Include="..\mupdf\source\pdf\pdf-op-run.c" />
+    <ClCompile Include="..\mupdf\source\pdf\pdf-op-vectorize.c" />
     <ClCompile Include="..\mupdf\source\pdf\pdf-outline.c" />
     <ClCompile Include="..\mupdf\source\pdf\pdf-page.c" />
     <ClCompile Include="..\mupdf\source\pdf\pdf-parse.c" />

@@ -51,6 +51,7 @@ int pdfrecolor_main(int argc, char *argv[]);
 int pdftrim_main(int argc, char *argv[]);
 int pdfbake_main(int argc, char *argv[]);
 int mubar_main(int argc, char *argv[]);
+int mugrep_main(int argc, char *argv[]);
 
 int cmapdump_main(int argc, char *argv[]);
 int pdfaudit_main(int argc, char *argv[]);
@@ -60,36 +61,31 @@ static struct {
 	char *name;
 	char *desc;
 } tools[] = {
-#if FZ_ENABLE_PDF
-	{ pdfclean_main, "clean", "rewrite PDF file" },
-#endif
-	{ muconvert_main, "convert", "convert document" },
-#if FZ_ENABLE_PDF
-	{ pdfcreate_main, "create", "create PDF document" },
+#if FZ_ENABLE_JS
+	{ murun_main, "run", "run javascript" },
 #endif
 	{ mudraw_main, "draw", "convert document" },
-	{ mutrace_main, "trace", "trace device calls" },
+	{ muconvert_main, "convert", "convert document (with simpler options)" },
 #if FZ_ENABLE_PDF
+	{ pdfaudit_main, "audit", "produce usage stats from PDF files" },
+	{ pdfbake_main, "bake", "bake PDF form into static content" },
+	{ pdfclean_main, "clean", "rewrite PDF file" },
+	{ pdfcreate_main, "create", "create PDF document" },
 	{ pdfextract_main, "extract", "extract font and image resources" },
 	{ pdfinfo_main, "info", "show information about PDF resources" },
 	{ pdfmerge_main, "merge", "merge pages from multiple PDF sources into a new PDF" },
 	{ pdfpages_main, "pages", "show information about PDF pages" },
-	{ pdfposter_main, "poster", "split large page into many tiles" },
+	{ pdfposter_main, "poster", "split large PDF page into many tiles" },
 	{ pdfrecolor_main, "recolor", "change colorspace of PDF document" },
+	{ pdfshow_main, "show", "show internal PDF objects" },
 	{ pdfsign_main, "sign", "manipulate PDF digital signatures" },
 	{ pdftrim_main, "trim", "trim PDF page contents" },
-	{ pdfbake_main, "bake", "bake PDF form into static content" },
-#endif
-#if FZ_ENABLE_JS
-	{ murun_main, "run", "run javascript" },
-#endif
-#if FZ_ENABLE_PDF
-	{ pdfshow_main, "show", "show internal PDF objects" },
 #ifndef NDEBUG
 	{ cmapdump_main, "cmapdump", "dump CMap resource as C source file" },
 #endif
-	{ pdfaudit_main, "audit", "produce usage stats from PDF files" },
 #endif
+	{ mugrep_main, "grep", "search for text" },
+	{ mutrace_main, "trace", "trace device calls" },
 #if FZ_ENABLE_BARCODE
 	{ mubar_main, "barcode", "encode/decode barcodes" },
 #endif
