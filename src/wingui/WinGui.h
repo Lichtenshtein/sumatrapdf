@@ -811,7 +811,7 @@ struct TabsCtrl : Wnd {
     void LayoutTabs();
     void ScheduleRepaint();
     TabsCtrl::MouseState TabStateFromMousePosition(const Point& p);
-    void Paint(HDC hdc, RECT& rc);
+    void Paint(HDC hdc, const RECT& rc);
     HBITMAP RenderForDragging(int idx);
 
     Gdiplus::PrivateFontCollection pfc;
