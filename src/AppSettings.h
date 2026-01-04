@@ -11,6 +11,8 @@ enum {
 
 extern bool gDontSaveSettings;
 
+struct SessionData; // Forward declaration
+
 extern Vec<SessionData*>* gInitialSessionData;
 
 TempStr GetSettingsPathTemp();
