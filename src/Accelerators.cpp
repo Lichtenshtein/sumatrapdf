@@ -292,6 +292,8 @@ ACCEL gBuiltInAccelerators[] = {
     {FVIRTKEY, 'U', CmdCreateAnnotUnderline},
     {FVIRTKEY | FSHIFT, 'U', CmdCreateAnnotUnderline},
 
+    {FVIRTKEY | FSHIFT, 'T', CmdCreateAnnotFreeText},
+
     {FSHIFT | FVIRTKEY, 'I', CmdInvertColors},
     {FVIRTKEY, 'I', CmdTogglePageInfo},
 
