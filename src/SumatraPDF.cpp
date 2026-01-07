@@ -3908,6 +3908,12 @@ static TabState* CopyTabState(WindowTab* tab) {
     *fs->tocState = tab->tocState;
     TabState* ts = NewTabState(fs);
     DeleteDisplayState(fs);
+
+    // Copy originalFilePath from WindowTab to TabState
+    if (tab->originalFilePath) {
+        ts->originalFilePath = str::Dup(tab->originalFilePath);
+    }
+
     return ts;
 }
 
@@ -4158,7 +4164,7 @@ static void OpenNextPrevFileInFolder(MainWindow* win, bool forward) {
     WindowTab* tab = win->CurrentTab();
     bool didRetry = false;
 again:
-    const char* path = tab->filePath;
+    const char* path = tab->originalFilePath;
     StrVec files = CollectNextPrevFilesIfChanged(path);
     if (files.Size() < 2) {
         return;
@@ -5802,7 +5808,7 @@ void CopyFilePath(WindowTab* tab) {
     if (!tab) {
         return;
     }
-    const char* path = tab->filePath;
+    const char* path = tab->originalFilePath;
     CopyTextToClipboard(path);
 }
 
@@ -5810,7 +5816,7 @@ void CopyFileName(WindowTab* tab) {
     if (!tab) {
         return;
     }
-    const char* path = path::GetBaseNameTemp(tab->filePath);
+    const char* path = path::GetBaseNameTemp(tab->originalFilePath);
     CopyTextToClipboard(path);
 }
 

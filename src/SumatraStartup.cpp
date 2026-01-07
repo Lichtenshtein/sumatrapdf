@@ -321,13 +321,17 @@ void SetTabState(WindowTab* tab, TabState* state) {
             ctrl->SetZoomVirtual(zoom, nullptr);
         }
     }
+    // Restore originalFilePath
+    if (state->originalFilePath) {
+        tab->originalFilePath = str::Dup(state->originalFilePath);
+    }
 }
 
 // TODO: when files are lazy loaded, they do not restore TabState. Need to remember
 // it in LoadArgs and call SetTabState() if present after loading
 static void RestoreTabOnStartup(MainWindow* win, TabState* state, bool lazyLoad = true) {
     // logf("RestoreTabOnStartup: state->filePath: '%s'\n", state->filePath);
-    LoadArgs args(state->filePath, win);
+    LoadArgs args(state->originalFilePath, win);
     args.noSavePrefs = true;
     if (lazyLoad) {
         args.tabState = state;
@@ -1302,7 +1306,7 @@ ContinueOpenWindow:
         for (SessionData* data : *gInitialSessionData) {
             win = CreateAndShowMainWindow(data);
             for (TabState* state : *data->tabStates) {
-                if (str::IsEmpty(state->filePath)) {
+                if (str::IsEmpty(state->originalFilePath)) {
                     // logf("WinMain: skipping RestoreTabOnStartup() because state->filePath is empty\n");
                     continue;
                 }

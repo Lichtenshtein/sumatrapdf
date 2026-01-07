@@ -316,6 +316,8 @@ struct FileState {
 struct TabState {
     // path of the document
     char* filePath;
+    // Original file path (when working on temp copy for edit mode)
+    char* originalFilePath;
     // same as FileStates -> DisplayMode
     char* displayMode;
     // number of the last read page
