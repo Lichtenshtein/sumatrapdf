@@ -1160,19 +1160,11 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int) {
     SetCurrentLang(flags.lang ? flags.lang : gGlobalPrefs->uiLanguage);
     InitializeEngineMupdf();
 
-    if (!flags.inNewWindow && gGlobalPrefs->useTabs && IsShiftPressed()) {
+    // Check if Shift is pressed and tabs are enabled, then open in new window
+    if (!flags.inNewWindow && gGlobalPrefs->useTabs && flags.fileNames.Size() > 0 && IsShiftPressed()) {
         flags.inNewWindow = true;
     }
 
-    // If the Shift key is held when launching a file and tabs are enabled,
-    // open it in a new window instead of a new tab.
-    {
-        // search only applies if there's 1 file
-        auto nFiles = flags.fileNames.Size();
-        if (IsShiftPressed() && nFiles > 0 && gGlobalPrefs->useTabs) {
-        flags.inNewWindow = true;
-        }
-    }
 
     if (flags.showConsole) {
         RedirectIOToConsole();
