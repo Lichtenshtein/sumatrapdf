@@ -297,7 +297,7 @@ var (
 		mkField("LazyLoading", Bool, true, "when restoring session, delay loading of documents until their tab is selected").setVersion("3.6"),
 		mkField("MainWindowBackground", Color, mkRGBA(0xFF, 0xF2, 0x00, 0x80),
 			"background color of the non-document windows, traditionally yellow").setExpert(),
-		mkField("NoHomeTab", Bool, true, "if true, doesn't open Home tab"),
+		mkField("NoHomeTab", Bool, false, "if true, doesn't open Home tab"),
 		mkField("HomePageSortByFrequentlyRead", Bool, false, "if true implements pre-3.6 behavior of showing opened files by frequently used count. If false, shows most recently opened first"),
 		mkField("ReloadModifiedDocuments", Bool, true,
 			"if true, a document will be reloaded automatically whenever it's changed "+

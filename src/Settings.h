@@ -763,7 +763,7 @@ static const FieldInfo gGlobalPrefsFields[] = {
     {offsetof(GlobalPrefs, cacheDir), SettingType::String, (intptr_t)"abcd"},
     {offsetof(GlobalPrefs, lazyLoading), SettingType::Bool, true},
     {offsetof(GlobalPrefs, mainWindowBackground), SettingType::Color, (intptr_t)"#80fff200"},
-    {offsetof(GlobalPrefs, noHomeTab), SettingType::Bool, true},
+    {offsetof(GlobalPrefs, noHomeTab), SettingType::Bool, false},
     {offsetof(GlobalPrefs, homePageSortByFrequentlyRead), SettingType::Bool, false},
     {offsetof(GlobalPrefs, reloadModifiedDocuments), SettingType::Bool, true},
     {offsetof(GlobalPrefs, rememberOpenedFiles), SettingType::Bool, true},
