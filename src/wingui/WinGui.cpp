@@ -3157,7 +3157,8 @@ void TabsCtrl::Paint(HDC hdc, const RECT& rc) {
 
     SolidBrush br(GdipCol(ThemeControlBackgroundColor()));
 
-    Font f(&fontFamily, 8, Gdiplus::FontStyleRegular, Gdiplus::UnitPoint);
+    // Font f(&fontFamily, 8, Gdiplus::FontStyleRegular, Gdiplus::UnitPoint);
+    Font f(hdc, GetFont());
     Font f2(&fontFamily, 7, Gdiplus::FontStyleRegular, Gdiplus::UnitPoint);
 
     Gdiplus::Rect gr = ToGdipRect(rc);
