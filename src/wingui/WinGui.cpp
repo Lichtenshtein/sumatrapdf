@@ -3247,7 +3247,7 @@ void TabsCtrl::Paint(HDC hdc, const RECT& rc) {
             int curr = wt->ctrl->CurrentPageNo();
             int count = wt->ctrl->PageCount();
             if (count > 0) {
-                snprintf(pageBuf, sizeof(pageBuf), " (%d/%d)", curr, count);
+                snprintf(pageBuf, sizeof(pageBuf), " (%d/%d)  ", curr, count);
             }
         }
 
