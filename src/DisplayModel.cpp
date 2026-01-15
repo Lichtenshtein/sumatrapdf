@@ -57,6 +57,7 @@
 #include "EngineAll.h"
 #include "DisplayModel.h"
 #include "GlobalPrefs.h"
+#include "RenderCache.h"
 #include "SumatraPDF.h"
 #include "PdfSync.h"
 #include "ProgressUpdateUI.h"
