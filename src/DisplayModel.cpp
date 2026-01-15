@@ -1338,18 +1338,6 @@ void DisplayModel::RenderVisibleParts() {
     }
 }
 
-void DisplayModel::RenderVisiblePagesSync() {
-    for (int pageNo = 1; pageNo <= PageCount(); ++pageNo) {
-        PageInfo* pageInfo = GetPageInfo(pageNo);
-        if (!pageInfo->shown || pageInfo->visibleRatio <= 0.0f) {
-            continue;
-        }
-        if (!gRenderCache->Exists(this, pageNo, rotation, GetZoomReal(pageNo))) {
-            gRenderCache->RenderSync(this, pageNo);
-        }
-    }
-}
-
 void DisplayModel::SetViewPortSize(Size newViewPortSize) {
     ScrollState ss;
 
@@ -1480,7 +1468,6 @@ void DisplayModel::GoToPage(int pageNo, int scrollY, bool addNavPt, int scrollX)
     viewPort.y = limitValue(viewPort.y, 0, canvasSize.dy - viewPort.dy);
 
     RecalcVisibleParts();
-    RenderVisiblePagesSync();
     RenderVisibleParts();
     cb->UpdateScrollbars(canvasSize);
     cb->PageNoChanged(this, pageNo);

@@ -435,35 +435,6 @@ void RenderCache::RequestRendering(DisplayModel* dm, int pageNo) {
     }
 }
 
-void RenderCache::RenderSync(DisplayModel* dm, int pageNo) {
-    ReportDebugIf(!dm);
-    if (!dm || dm->pauseRendering) {
-        return;
-    }
-    TilePosition tile(0, 0, 0);
-    int rotation = NormalizeRotation(dm->GetRotation());
-    float zoom = dm->GetZoomReal(pageNo);
-
-    if (Exists(dm, pageNo, rotation, zoom, &tile)) {
-        return;
-    }
-
-    PageRenderRequest req{};
-    req.dm = dm;
-    req.pageNo = pageNo;
-    req.rotation = rotation;
-    req.zoom = zoom;
-    req.tile = tile;
-    req.pageRect = GetTileRectUser(dm->GetEngine(), pageNo, rotation, zoom, tile);
-
-    RenderPageArgs args(pageNo, zoom, rotation, &req.pageRect);
-    RenderedBitmap* bmp = dm->GetEngine()->RenderPage(args);
-    if (bmp && !dm->GetEngine()->IsImageCollection()) {
-        UpdateBitmapColors(bmp->GetBitmap(), textColor, backgroundColor);
-    }
-    Add(req, bmp);
-}
-
 /* Render a bitmap for page <pageNo> in <dm>. */
 void RenderCache::RequestRendering(DisplayModel* dm, int pageNo, TilePosition tile, bool clearQueueForPage) {
     logvf("RenderCache::RequestRendering: pageNo %d\n", pageNo);
