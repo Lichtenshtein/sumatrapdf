@@ -719,7 +719,7 @@ static DWORD WINAPI RenderCacheThread(LPVOID data) {
                 UpdateBitmapColors(bmp->GetBitmap(), cache->textColor, cache->backgroundColor);
             }
             cache->Add(req, bmp);
-            req.dm->OnPageRendered(req.pageNo);
+            req.dm->RepaintDisplay();
         }
         ResetTempAllocator();
     }

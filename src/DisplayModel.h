@@ -218,9 +218,6 @@ struct DisplayModel : DocController {
     bool GoToPrevPage(int scrollY);
     int GetPageNextToPoint(Point pt) const;
 
-    void OnPageRendered(int pageNo);
-    void StartPageRenderWait();
-
     EngineBase* engine = nullptr;
 
     /* an array of PageInfo, len of array is pageCount */
@@ -270,10 +267,6 @@ struct DisplayModel : DocController {
 
     /* allow resizing a window without triggering a new rendering (needed for window destruction) */
     bool pauseRendering = false;
-
-    Vec<int> waitingPages;
-    Vec<int> waitingReady;
-    bool waitingForPages = false;
 
     /* reverse page order */
     bool reverse = false;

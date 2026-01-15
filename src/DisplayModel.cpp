@@ -235,45 +235,6 @@ bool DisplayModel::VisiblePagesReady() {
     return true;
 }
 
-void DisplayModel::OnPageRendered(int pageNo) {
-    if (!waitingForPages) {
-        RepaintDisplay();
-        return;
-    }
-    int idx = waitingPages.Find(pageNo);
-    if (idx >= 0) {
-        waitingReady[idx] = 1;
-    }
-    for (size_t i = 0; i < waitingReady.len; i++) {
-        if (!waitingReady[i]) {
-            return;
-        }
-    }
-    waitingForPages = false;
-    RepaintDisplay();
-}
-
-void DisplayModel::StartPageRenderWait() {
-    waitingPages.Reset();
-    waitingReady.Reset();
-    waitingForPages = false;
-    for (int pageNo = 1; pageNo <= PageCount(); ++pageNo) {
-        PageInfo* pageInfo = GetPageInfo(pageNo);
-        if (pageInfo->visibleRatio > 0.0f) {
-            waitingPages.Append(pageNo);
-            TilePosition tile(gRenderCache->GetTileRes(this, pageNo), 0, 0);
-            bool ready = gRenderCache->Exists(this, pageNo, GetRotation(), GetZoomReal(pageNo), &tile);
-            waitingReady.Append(ready ? 1 : 0);
-            if (!ready) {
-                waitingForPages = true;
-            }
-        }
-    }
-    if (!waitingForPages) {
-        RepaintDisplay();
-    }
-}
-
 bool DisplayModel::InPresentation() const {
     return inPresentation;
 }
@@ -1471,7 +1432,7 @@ void DisplayModel::GoToPage(int pageNo, int scrollY, bool addNavPt, int scrollX)
     RenderVisibleParts();
     cb->UpdateScrollbars(canvasSize);
     cb->PageNoChanged(this, pageNo);
-    StartPageRenderWait();
+    RepaintDisplay();
 }
 
 void DisplayModel::SetDisplayMode(DisplayMode newDisplayMode, bool keepContinuous) {
@@ -1661,7 +1622,7 @@ void DisplayModel::ScrollXTo(int xOff) {
     if (CurrentPageNo() != currPageNo) {
         cb->PageNoChanged(this, CurrentPageNo());
     }
-    StartPageRenderWait();
+    RepaintDisplay();
 }
 
 void DisplayModel::ScrollXBy(int dx) {
@@ -1681,7 +1642,7 @@ void DisplayModel::ScrollYTo(int yOff) {
     if (newPageNo != currPageNo) {
         cb->PageNoChanged(this, newPageNo);
     }
-    StartPageRenderWait();
+    RepaintDisplay();
 }
 
 /* Scroll the doc in y-axis by 'dy'. If 'changePage' is TRUE, automatically
@@ -1739,7 +1700,7 @@ void DisplayModel::ScrollYBy(int dy, bool changePage) {
     if (newPageNo != currPageNo) {
         cb->PageNoChanged(this, newPageNo);
     }
-    StartPageRenderWait();
+    RepaintDisplay();
 }
 
 int DisplayModel::yOffset() {
